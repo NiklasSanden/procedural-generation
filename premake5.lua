@@ -52,8 +52,8 @@ project "ProceduralGeneration"
 
     links
     {
-        "glfw3.lib",
-        "opengl32.lib"
+        "glfw3.lib"
+        --"opengl32.lib"
     }
 
     postbuildcommands
