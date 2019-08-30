@@ -7,6 +7,7 @@
 #include "ShaderFilesHandler.h"
 
 #include <iostream>
+#include <cmath> // fmod
 
 // Error handling
 void APIENTRY GLDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* msg, const void* data) {
@@ -65,7 +66,7 @@ void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 // Settings
-const unsigned int SCREEN_WIDTH = 800;
+const unsigned int SCREEN_WIDTH = 600;
 const unsigned int SCREEN_HEIGHT = 600;
 
 int main() {
@@ -90,6 +91,9 @@ int main() {
 	}
 	glfwMakeContextCurrent(window);
 
+	// limit fps to refresh rate
+	glfwSwapInterval(1);
+
 	// --------------------------------------------------------------------------
 	// GLAD Setup
 	// --------------------------------------------------------------------------
@@ -103,7 +107,7 @@ int main() {
 	// Callback functions
 	// --------------------------------------------------------------------------
 	// error handling
-#if CFG_DEBUG
+#ifdef CFG_DEBUG
 	if (glDebugMessageCallback) {
 		std::cout << "Register OpenGL debug callback\n" << std::endl;
 		glEnable(GL_DEBUG_OUTPUT); // GL_DEBUG_OUTPUT_SYNCHRONOUS
@@ -136,9 +140,9 @@ int main() {
 	// --------------------------------------------------------------------------
 	float vertices[] = {
 		// positions         // colors
-		 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-		-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-		 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top
+		 0.98f, -0.85f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+		-0.98f, -0.85f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+		 0.0f,  0.85f, 0.0f,  0.0f, 0.0f, 1.0f    // top
 	};
 	unsigned int indices[]{
 		0, 1, 2
@@ -185,7 +189,18 @@ int main() {
 	// --------------------------------------------------------------------------
 	// Render Loop
 	// --------------------------------------------------------------------------
+	/*int count = 0;
+	double oldTime = glfwGetTime();*/
 	while (!glfwWindowShouldClose(window)) {
+		// FPS counter
+		/*count++;
+		if (glfwGetTime() - oldTime > 1.0) {
+			std::cout << "FPS is: " << count << std::endl;
+			count = 0;
+			oldTime = glfwGetTime();
+		}*/
+
+
 		// input
 		processInput(window);
 
@@ -197,6 +212,12 @@ int main() {
 		
 		// set shader program
 		ourShader.use();
+
+		// change uniform
+		float timeValue = glfwGetTime() / 5.0f;
+		//float uniformValue = (sin(timeValue) / 2.0f) + 0.5f;
+		float uniformValue = 1.0f - fmod(timeValue, 1.0f);
+		ourShader.setFloat("timeValue", uniformValue);
 
 		// render
 		glBindVertexArray(VAO);

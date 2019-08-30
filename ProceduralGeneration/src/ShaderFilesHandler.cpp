@@ -16,7 +16,7 @@ std::vector<std::string> ShaderFileHandler::fileNames = { "shader.frag", "shader
 std::unordered_map<std::string, unsigned int> ShaderFileHandler::shaderIndex;
 
 void ShaderFileHandler::setupShaderSource() {
-#if CFG_DEBUG
+#ifdef CFG_DEBUG
 	// extract source code and save it to the sourceCode.txt file
 	// which will be used in release
 	extractSourceCode();
