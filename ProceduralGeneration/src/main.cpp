@@ -103,7 +103,7 @@ int main() {
 	// Callback functions
 	// --------------------------------------------------------------------------
 	// error handling
-#if _DEBUG
+#if CFG_DEBUG
 	if (glDebugMessageCallback) {
 		std::cout << "Register OpenGL debug callback\n" << std::endl;
 		glEnable(GL_DEBUG_OUTPUT); // GL_DEBUG_OUTPUT_SYNCHRONOUS

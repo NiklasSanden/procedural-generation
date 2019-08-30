@@ -1,4 +1,5 @@
 #include "ShaderFilesHandler.h"
+#include <shaders/ExtractSourceCode/extractSourceCode.h>
 
 #include <glad/glad.h>
 
@@ -10,15 +11,22 @@
 #include <fstream>
 #include <sstream>
 
-std::vector<std::string> ShaderFileHandler::fileNames;
-std::vector<std::string> ShaderFileHandler::sourceCode;
+std::vector<std::string> ShaderFileHandler::sourceCode = { "#version 450 core\nout vec4 FragColour;\n\nin vec3 ourColour;\n\nvoid main()\n{\n    FragColour = vec4(ourColour, 1.0f);\n}", "#version 450 core\nlayout (location = 0) in vec3 aPos;\nlayout (location = 1) in vec3 aColour;\n\nout vec3 ourColour;\n\nvoid main()\n{\n    gl_Position = vec4(aPos, 1.0);\n    ourColour = aColour;\n}" };
+std::vector<std::string> ShaderFileHandler::fileNames = { "shader.frag", "shader.vert" };
 std::unordered_map<std::string, unsigned int> ShaderFileHandler::shaderIndex;
 
 void ShaderFileHandler::setupShaderSource() {
-#if _DEBUG
+#if CFG_DEBUG
+	// extract source code and save it to the sourceCode.txt file
+	// which will be used in release
+	extractSourceCode();
+
+	// now the it the debug way...
 	std::string path = "src/shaders";
 
 	for (const auto& entry : std::filesystem::directory_iterator(path)) {
+		if (entry.is_directory()) continue;
+
 		// retrieve the shader source code from filePath
 		std::string shaderCode;
 		std::ifstream shaderFile;

@@ -1,0 +1,2 @@
+std::vector<std::string> ShaderFileHandler::sourceCode = {"#version 450 core\nout vec4 FragColour;\n\nin vec3 ourColour;\n\nvoid main()\n{\n    FragColour = vec4(ourColour, 1.0f);\n}", "#version 450 core\nlayout (location = 0) in vec3 aPos;\nlayout (location = 1) in vec3 aColour;\n\nout vec3 ourColour;\n\nvoid main()\n{\n    gl_Position = vec4(aPos, 1.0);\n    ourColour = aColour;\n}" };
+std::vector<std::string> ShaderFileHandler::fileNames = { "shader.frag", "shader.vert" };
