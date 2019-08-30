@@ -25,6 +25,15 @@ project "ProceduralGeneration"
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp", 
         "%{prj.name}/src/**.c",
+
+        "%{prj.name}/src/shaders/**.vert",
+        "%{prj.name}/src/shaders/**.frag", 
+        "%{prj.name}/src/shaders/**.geom",
+        "%{prj.name}/src/shaders/**.comp",
+        "%{prj.name}/src/shaders/**.tese", 
+        "%{prj.name}/src/shaders/**.tesc",
+        "%{prj.name}/src/shaders/**.glsl",
+
         "%{prj.name}/include/**.h",
         "%{prj.name}/include/**.cpp", 
         "%{prj.name}/include/**.c"
@@ -47,6 +56,14 @@ project "ProceduralGeneration"
         "opengl32.lib"
     }
 
+    postbuildcommands
+    {
+        -- resources
+        "{RMDIR} ../bin/" .. outputdir .. "/%{prj.name}/res",
+        "{MKDIR} ../bin/" .. outputdir .. "/%{prj.name}/res",
+        "{COPY} res ../bin/" .. outputdir .. "/%{prj.name}/res"
+    }
+
     filter "system:windows"
         systemversion "latest"
 
@@ -62,6 +79,8 @@ project "ProceduralGeneration"
 
         postbuildcommands 
         { 
+            -- shaders for debug
+            "{RMDIR} ../bin/" .. outputdir .. "/%{prj.name}/src/shaders",
             "{MKDIR} ../bin/" .. outputdir .. "/%{prj.name}/src/shaders",
             "{COPY} src/shaders ../bin/" .. outputdir .. "/%{prj.name}/src/shaders"
         }

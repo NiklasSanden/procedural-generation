@@ -213,12 +213,6 @@ int main() {
 		// set shader program
 		ourShader.use();
 
-		// change uniform
-		float timeValue = glfwGetTime() / 5.0f;
-		//float uniformValue = (sin(timeValue) / 2.0f) + 0.5f;
-		float uniformValue = 1.0f - fmod(timeValue, 1.0f);
-		ourShader.setFloat("timeValue", uniformValue);
-
 		// render
 		glBindVertexArray(VAO);
 		//glDrawArrays(GL_TRIANGLES, 0, 6);
