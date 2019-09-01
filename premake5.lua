@@ -22,10 +22,12 @@ project "ProceduralGeneration"
 
     files 
     { 
+        -- source
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp", 
         "%{prj.name}/src/**.c",
 
+        -- shaders
         "%{prj.name}/src/shaders/**.vert",
         "%{prj.name}/src/shaders/**.frag", 
         "%{prj.name}/src/shaders/**.geom",
@@ -34,15 +36,24 @@ project "ProceduralGeneration"
         "%{prj.name}/src/shaders/**.tesc",
         "%{prj.name}/src/shaders/**.glsl",
 
-        "%{prj.name}/include/**.h",
-        "%{prj.name}/include/**.cpp", 
-        "%{prj.name}/include/**.c"
+        -- includes
+        "%{prj.name}/include/GLAD/glad.c",
+        "%{prj.name}/include/stb/stb_image.cpp"
+
+        -- not necessary
+        --"%{prj.name}/include/**.h",
+        --"%{prj.name}/include/**.cpp", 
+        --"%{prj.name}/include/**.c"
+        --"%{prj.name}/include/**.hpp"
     }
 
     includedirs
     {
         "%{prj.name}/src",
-        "%{prj.name}/include"
+        "%{prj.name}/include",
+        "%{prj.name}/include/GLAD",
+        "%{prj.name}/include/glm",
+        "%{prj.name}/include/stb"
     }
 
     libdirs
