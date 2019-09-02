@@ -9,14 +9,13 @@
 
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace Engine {
 	class Game {
 	private:
-		std::shared_ptr<Program> program = nullptr;
-		std::shared_ptr<InputBase> inputPtr = nullptr;
-		std::vector<std::shared_ptr<GameObject>> gameObjects;
+		Program* program = nullptr;
+		InputBase* inputPtr = nullptr;
+		std::vector<GameObject*> gameObjects;
 
 		// deltaTime etc
 		double physicsTimeSimulated = 0.0;
@@ -24,11 +23,12 @@ namespace Engine {
 		float physicsTimeStep = 0.2f;
 
 	public:
-		Game(std::shared_ptr<Program> _program, std::shared_ptr<InputBase> input);
+		Game(Program* _program, InputBase* input);
 		~Game();
 
-		void addGameObject(std::shared_ptr<GameObject> gameObject);
+		void addGameObject(GameObject* gameObject);
 		void deleteGameObject(std::string gameObjectName);
+		GameObject* findObjectWithName(std::string gameObjectName);
 		void startGame();
 	private:
 		void gameLoop();

@@ -10,6 +10,9 @@
 namespace Engine {
 	class ShaderManager {
 	private:
+		// Private constructor, that is we do not want any actual resource manager objects.Its membersand functions should be publicly available(static).
+		ShaderManager() {};
+
 		// fileNames and sourceCode are used when not reading the source code from files
 		static std::vector<std::string> fileNames;
 		static std::vector<std::string> sourceCode;

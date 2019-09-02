@@ -14,17 +14,25 @@ int main() {
 	// Window
 	Program* program = new Program(600, 600);
 	// Input
-	ProceduralGeneration::Input* input = new ProceduralGeneration::Input();
+	ProceduralGeneration::Input* input = new ProceduralGeneration::Input(program->window);
 	setInputPtr(input); // For callbacks
+	ProceduralGeneration::GameManager::setInputPtr(input);
+	
 	// Main game
-	std::shared_ptr<Game> game = std::make_shared<Game>(program, input);
-	ProceduralGeneration::GameManager::setGamePtr(game);
+	Game* game = new Game(program, input);
+	ProceduralGeneration::GameManager::setGamePtr(game); 
+	
+	// add gameManager
+	ProceduralGeneration::GameManager* gameManager = new ProceduralGeneration::GameManager("GameManager");
+	game->addGameObject(gameManager);
+
+	// start the game
 	game->startGame();
 
 	// Cleanup
-	game.reset();
-	program.reset();
-	input.reset();
+	delete game;
+	delete program;
+	delete input;
 
 	std::cout << "---------------------------\nDone - Press enter to close\n---------------------------" << std::endl;
 	std::cin.get();

@@ -1,15 +1,13 @@
 #include "Input.h"
 
-#include <memory>
-
 using namespace Engine;
 
 // Pointer to the input class that inherits InputBase in the acutal game
 namespace Engine {
-	std::shared_ptr<InputBase> inputPtrCallback;
+	InputBase* inputPtrCallback;
 }
 
-void Engine::setInputPtr(std::shared_ptr<InputBase> _inputPtrCallback) {
+void Engine::setInputPtr(InputBase* _inputPtrCallback) {
 	inputPtrCallback = _inputPtrCallback;
 }
 

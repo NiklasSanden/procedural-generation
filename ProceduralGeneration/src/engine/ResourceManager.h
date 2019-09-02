@@ -24,7 +24,7 @@ namespace Engine {
 		static void cleanup();
 	private:
 		// Private constructor, that is we do not want any actual resource manager objects. Its members and functions should be publicly available (static).
-		ResourceManager() { }
+		ResourceManager() {};
 		// Loads a single texture from file
 		static Texture2D loadTextureFromFile(const char* file, bool alpha);
 	};

@@ -3,8 +3,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <memory>
-
 namespace Engine {
 	// Callbacks
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -19,5 +17,5 @@ namespace Engine {
 		virtual void processInput(GLFWwindow* window) = 0;
 	};
 
-	void setInputPtr(std::shared_ptr<InputBase> _inputPtrCallback);
+	void setInputPtr(InputBase* _inputPtrCallback);
 }

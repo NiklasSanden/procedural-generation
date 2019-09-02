@@ -18,6 +18,9 @@ public:
 	// gets the source code from strings and builds it
 	Shader(const std::vector<unsigned int>& shaderIDs);
 
+	// deletes the program
+	~Shader();
+
 	// use/activate the shader
 	void use();
 

@@ -21,6 +21,11 @@ Shader::Shader(const std::vector<unsigned int>& shaderIDs) {
 	checkLinkingErrors();
 }
 
+Shader::~Shader() {
+	// cleanup
+	glDeleteProgram(this->ID);
+}
+
 // use/activate the shader
 void Shader::use() {
 	glUseProgram(this->ID);

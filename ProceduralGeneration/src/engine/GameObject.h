@@ -1,19 +1,29 @@
 #pragma once
 
 #include "Renderer.h"
+#include "Transform.h"
 
 #include <string>
-#include <memory>
+#include <iostream>
 
 namespace Engine {
 	class GameObject {
 	private:
-		std::shared_ptr<Renderer> renderer;
+		Renderer* renderer = nullptr;
+		Transform* transform = nullptr;
 	public:
-		std::string name;
+		std::string name = "null";
+
+		GameObject(std::string _name) { name = _name; }
+		// delete components
+		virtual ~GameObject() {
+			std::cout << "Deleting components from gameObject: " << name << std::endl;
+			delete renderer;
+			delete transform;
+		}
 
 		virtual void awake() = 0;
-		virtual void update() = 0;
+		virtual void update(float deltaTime) = 0;
 		virtual void fixedUpdate() = 0;
 		virtual void render() = 0;
 	};
