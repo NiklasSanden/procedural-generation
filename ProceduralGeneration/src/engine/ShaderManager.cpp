@@ -1,9 +1,9 @@
-#include "ShaderFilesHandler.h"
+#include "ShaderManager.h"
 #include <shaders/ExtractSourceCode/extractSourceCode.h>
 
 #include <glad/glad.h>
 
-#include <unordered_map>
+#include <map>
 #include <string>
 #include <iostream>
 
@@ -11,11 +11,13 @@
 #include <fstream>
 #include <sstream>
 
-std::vector<std::string> ShaderFileHandler::sourceCode = { "#version 450 core\nout vec4 FragColour;\n\nin vec3 ourColour;\n\nvoid main()\n{\n    FragColour = vec4(ourColour, 1.0f);\n}", "#version 450 core\nlayout (location = 0) in vec3 aPos;\nlayout (location = 1) in vec3 aColour;\n\nout vec3 ourColour;\n\nuniform float timeValue;\n\nvec3 finalColour;\n\nvoid main()\n{\n    gl_Position = vec4(aPos, 1.0);\n\n	if (aColour.x > 0.9){\n		if (timeValue < 1.0f/3.0f){\n			finalColour = vec3(aColour.x - timeValue * 3.0, timeValue * 3.0, 0.0); \n		}\n		else if (timeValue < 2.0f/3.0f){\n			finalColour = vec3(0.0, aColour.x - (timeValue - 0.33) * 3.0, (timeValue - 0.33) * 3.0);\n		}\n		else{\n			finalColour = vec3((timeValue - 0.66) * 3.0, 0.0, aColour.x - (timeValue - 0.66) * 3.0);\n		}\n	}\n	else if (aColour.y > 0.9){\n		if (timeValue < 1.0f/3.0f){\n			finalColour = vec3(0.0, aColour.y - timeValue * 3.0, timeValue * 3.0);\n		}\n		else if (timeValue < 2.0f/3.0f){\n			finalColour = vec3((timeValue - 0.33) * 3.0, 0.0, aColour.y - (timeValue - 0.33) * 3.0);\n		}\n		else{\n			finalColour = vec3(aColour.y - (timeValue - 0.66) * 3.0, (timeValue - 0.66) * 3.0, 0.0); \n		}\n	}\n	else if (aColour.z > 0.9){\n		if (timeValue < 1.0f/3.0f){\n			finalColour = vec3(timeValue * 3.0, 0.0, aColour.z - timeValue * 3.0);\n		}\n		else if (timeValue < 2.0f/3.0f){\n			finalColour = vec3(aColour.z - (timeValue - 0.33) * 3.0, (timeValue - 0.33) * 3.0, 0.0); \n		}\n		else{\n			finalColour = vec3(0.0, aColour.z - (timeValue - 0.66) * 3.0, (timeValue - 0.66) * 3.0);\n		}\n	}\n\n    ourColour = finalColour;\n}" };
-std::vector<std::string> ShaderFileHandler::fileNames = { "shader.frag", "shader.vert" };
-std::unordered_map<std::string, unsigned int> ShaderFileHandler::shaderIndex;
+using namespace Engine;
 
-void ShaderFileHandler::setupShaderSource() {
+std::vector<std::string> ShaderManager::sourceCode = { "#version 450 core\nout vec4 FragColour;\n\nin vec3 ourColour;\n\nvoid main()\n{\n    FragColour = vec4(ourColour, 1.0f);\n}", "#version 450 core\nlayout (location = 0) in vec3 aPos;\nlayout (location = 1) in vec3 aColour;\n\nout vec3 ourColour;\n\nuniform float timeValue;\n\nvec3 finalColour;\n\nvoid main()\n{\n    gl_Position = vec4(aPos, 1.0);\n\n	if (aColour.x > 0.9){\n		if (timeValue < 1.0f/3.0f){\n			finalColour = vec3(aColour.x - timeValue * 3.0, timeValue * 3.0, 0.0); \n		}\n		else if (timeValue < 2.0f/3.0f){\n			finalColour = vec3(0.0, aColour.x - (timeValue - 0.33) * 3.0, (timeValue - 0.33) * 3.0);\n		}\n		else{\n			finalColour = vec3((timeValue - 0.66) * 3.0, 0.0, aColour.x - (timeValue - 0.66) * 3.0);\n		}\n	}\n	else if (aColour.y > 0.9){\n		if (timeValue < 1.0f/3.0f){\n			finalColour = vec3(0.0, aColour.y - timeValue * 3.0, timeValue * 3.0);\n		}\n		else if (timeValue < 2.0f/3.0f){\n			finalColour = vec3((timeValue - 0.33) * 3.0, 0.0, aColour.y - (timeValue - 0.33) * 3.0);\n		}\n		else{\n			finalColour = vec3(aColour.y - (timeValue - 0.66) * 3.0, (timeValue - 0.66) * 3.0, 0.0); \n		}\n	}\n	else if (aColour.z > 0.9){\n		if (timeValue < 1.0f/3.0f){\n			finalColour = vec3(timeValue * 3.0, 0.0, aColour.z - timeValue * 3.0);\n		}\n		else if (timeValue < 2.0f/3.0f){\n			finalColour = vec3(aColour.z - (timeValue - 0.33) * 3.0, (timeValue - 0.33) * 3.0, 0.0); \n		}\n		else{\n			finalColour = vec3(0.0, aColour.z - (timeValue - 0.66) * 3.0, (timeValue - 0.66) * 3.0);\n		}\n	}\n\n    ourColour = finalColour;\n}" };
+std::vector<std::string> ShaderManager::fileNames = { "shader.frag", "shader.vert" };
+std::map<std::string, unsigned int> ShaderManager::shaderIndex;
+
+void ShaderManager::setupShaderSource() {
 #ifdef CFG_DEBUG
 	// extract source code and save it to the sourceCode.txt file
 	// which will be used in release
@@ -75,11 +77,11 @@ void ShaderFileHandler::setupShaderSource() {
 }
 
 // Get the shader ID by passing in the file name
-unsigned int ShaderFileHandler::getShaderID(std::string shaderName) {
+unsigned int ShaderManager::getShaderID(std::string shaderName) {
 	return shaderIndex[shaderName];
 }
 
-void ShaderFileHandler::compileShader(std::string& shaderCode, std::string& name) {
+void ShaderManager::compileShader(std::string& shaderCode, std::string& name) {
 	// the last 4 letters
 	std::string extension = name.substr(name.size() - 4);
 	
@@ -99,7 +101,7 @@ void ShaderFileHandler::compileShader(std::string& shaderCode, std::string& name
 }
 
 // Utility function for displaying errors if compilation went wrong
-void ShaderFileHandler::checkCompileErrors(unsigned int shader, std::string& name) {
+void ShaderManager::checkCompileErrors(unsigned int shader, std::string& name) {
 	int success;
 	char infoLog[1024];
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -111,7 +113,7 @@ void ShaderFileHandler::checkCompileErrors(unsigned int shader, std::string& nam
 }
 
 // Delete all shaders
-void ShaderFileHandler::cleanup() {
+void ShaderManager::cleanup() {
 	for (const auto& index : shaderIndex) {
 		glDeleteShader(index.second);
 	}

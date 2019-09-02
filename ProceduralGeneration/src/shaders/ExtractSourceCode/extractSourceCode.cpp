@@ -10,8 +10,8 @@
 
 void extractSourceCode() {
 
-	std::string fileNames = "\nstd::vector<std::string> ShaderFileHandler::fileNames = { ";
-	std::string sourceCodes = "std::vector<std::string> ShaderFileHandler::sourceCode = {";
+	std::string fileNames = "\nstd::vector<std::string> ShaderManager::fileNames = { ";
+	std::string sourceCodes = "std::vector<std::string> ShaderManager::sourceCode = {";
 
 	std::string path = "src/shaders";
 	for (const auto& entry : std::filesystem::directory_iterator(path)) {
