@@ -15,7 +15,6 @@ public:
 	// the shader program ID;
 	unsigned int ID;
 
-	// gets the source code from strings and builds it
 	Shader(const std::vector<unsigned int>& shaderIDs);
 
 	// deletes the program

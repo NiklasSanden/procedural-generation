@@ -139,6 +139,9 @@ void APIENTRY Engine::GLDebugMessageCallback(GLenum source, GLenum type, GLuint 
 // Set the viewport size equal to the window size when the user resizes the window
 void Engine::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
-	Program::SCREEN_WIDTH = width;
-	Program::SCREEN_HEIGHT = height;
+	// This will be false when you minimize
+	if (width > 0)
+		Program::SCREEN_WIDTH = width;
+	if (height > 0)
+		Program::SCREEN_HEIGHT = height;
 }

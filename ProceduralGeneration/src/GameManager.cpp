@@ -1,6 +1,8 @@
 #include "GameManager.h"
 #include "engine/Game.h"
+#include "engine/ResourceManager.h"
 #include "Camera.h"
+#include "Cube.h"
 
 #include <iostream>
 
@@ -27,8 +29,16 @@ void GameManager::setInputPtr(Input* _inputPtr) {
 }
 
 GameManager::GameManager(std::string _name) : GameObject(_name) {
+	// Load textures
+	Engine::ResourceManager::loadTexture("420x0.jpg", false, "420x0.jpg");
+
+	// Create Objects
 	Camera* camera = new Camera(); // create a camera and add it to the game
 	this->gamePtr->addGameObject(camera); // the game class will deallocate the memory
+
+	// add cube
+	Cube* cube = new Cube("Cube1");
+	this->gamePtr->addGameObject(cube);
 }
 
 GameManager::~GameManager() {

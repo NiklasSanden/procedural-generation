@@ -6,12 +6,15 @@
 
 namespace Engine {
 	class Renderer {
-	protected:
-		Shader* shaderProgram = nullptr;
 	public:
-		Renderer(std::vector<unsigned int>& shaders) { 
-			shaderProgram = new Shader(shaders); 
-		}
+		Shader* shaderProgram = nullptr;
+		// VAO and buffers
+		unsigned int VAO = 0;
+		unsigned int VBO = 0;
+	public:
+		Renderer(std::vector<unsigned int> ids) { 
+			this->shaderProgram = new Shader(ids);
+		};
 		virtual ~Renderer() {
 			// cleanup
 			delete shaderProgram;

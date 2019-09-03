@@ -83,13 +83,12 @@ void Game::gameLoop() {
 		}
 
 		// update (deltaTime)
-		update((float)(glfwGetTime() - this->lastUpdateTime));
+		float deltaTime = (float)(glfwGetTime() - this->lastUpdateTime);
+		this->lastUpdateTime = glfwGetTime();
+		update(deltaTime);
 
 		// render
 		shouldClose = render();
-
-		// end of frame
-		this->lastUpdateTime = glfwGetTime();
 	}
 }
 
@@ -107,8 +106,14 @@ void Game::fixedUpdate() {
 	}
 }
 
+// wireframe
+// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
 bool Game::render() {
 	if (!glfwWindowShouldClose(this->program->window)) {
+		// clear screen
+		glClearColor(0.2f, 0.25f, 0.4f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		// Runs render on all objects
 		for (int i = 0; i < this->gameObjects.size(); i++) {
 			this->gameObjects[i]->render();

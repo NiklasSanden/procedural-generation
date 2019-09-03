@@ -6,7 +6,6 @@
 #include <iostream>
 #include <vector>
 
-// gets the source code from strings and builds it
 Shader::Shader(const std::vector<unsigned int>& shaderIDs) {
 	// shader Program
 	this->ID = glCreateProgram();

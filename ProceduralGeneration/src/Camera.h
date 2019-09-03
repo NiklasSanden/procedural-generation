@@ -10,6 +10,15 @@
 
 namespace ProceduralGeneration {
 	class Camera : public Engine::GameObject {
+	// static
+	public:
+		static glm::mat4 viewMatrix;
+		static glm::mat4 projectionMatrix;
+	// instance
+	private:
+		// settings
+		float movementSpeed = 3.0f;
+		float anglesRotatedX = 0.0f;
 	public:
 		Camera();
 		~Camera() {};

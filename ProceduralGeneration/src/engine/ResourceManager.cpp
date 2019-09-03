@@ -3,6 +3,7 @@
 #include "stb_image.h"
 
 #include <iostream>
+#include <string>
 
 using namespace Engine;
 
@@ -10,7 +11,8 @@ using namespace Engine;
 std::map<std::string, Texture2D> ResourceManager::textures;
 
 Texture2D ResourceManager::loadTexture(const char* file, bool alpha, std::string name) {
-	textures[name] = loadTextureFromFile(file, alpha);
+	std::string filePath = "res/textures/" + std::string(file);
+	textures[name] = loadTextureFromFile(filePath.c_str(), alpha);
 	return textures[name];
 }
 

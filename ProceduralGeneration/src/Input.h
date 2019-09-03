@@ -9,7 +9,7 @@ namespace ProceduralGeneration {
 	class Input : public Engine::InputBase {
 	private:
 		// settings
-		float sensitivity = 0.025f;
+		float sensitivity = 0.0005f;
 
 		// member variables
 		glm::vec2 mouseDelta = glm::vec2(0.0f, 0.0f); // stores the amount the mouse has moved - resets when accessed

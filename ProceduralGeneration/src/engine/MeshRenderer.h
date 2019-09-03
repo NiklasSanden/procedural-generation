@@ -8,7 +8,7 @@
 namespace Engine {
 	class MeshRenderer : public Renderer {
 	public:
-		MeshRenderer(std::vector<std::string> shaders);
+		MeshRenderer(std::vector<unsigned int> ids);
 		void Render() override;
 	};
 }
