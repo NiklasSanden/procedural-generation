@@ -8,7 +8,7 @@
 
 namespace Engine {
 	class GameObject {
-	private:
+	public:
 		Renderer* renderer = nullptr;
 		Transform* transform = nullptr;
 	public:

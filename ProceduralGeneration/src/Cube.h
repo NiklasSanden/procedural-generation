@@ -2,17 +2,13 @@
 
 #include "engine/GameObject.h"
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <vector>
+#include <string>
 
 namespace ProceduralGeneration {
-	class Camera : public Engine::GameObject {
+	class Cube : public Engine::GameObject {
 	public:
-		Camera();
-		~Camera() {};
+		Cube(std::string name);
+		~Cube() {};
 
 		void awake() override;
 		void update(float deltaTime) override;

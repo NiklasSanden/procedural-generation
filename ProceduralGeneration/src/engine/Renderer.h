@@ -2,12 +2,16 @@
 
 #include "Shader.h"
 
+#include <vector>
+
 namespace Engine {
 	class Renderer {
-	private:
+	protected:
 		Shader* shaderProgram = nullptr;
 	public:
-		Renderer() {};
+		Renderer(std::vector<unsigned int>& shaders) { 
+			shaderProgram = new Shader(shaders); 
+		}
 		virtual ~Renderer() {
 			// cleanup
 			delete shaderProgram;
