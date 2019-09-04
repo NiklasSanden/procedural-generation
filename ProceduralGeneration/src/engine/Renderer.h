@@ -12,13 +12,10 @@ namespace Engine {
 		unsigned int VAO = 0;
 		unsigned int VBO = 0;
 	public:
-		Renderer(std::vector<unsigned int> ids) { 
-			this->shaderProgram = new Shader(ids);
+		Renderer(Shader* shaderProgram) { 
+			this->shaderProgram = shaderProgram;
 		};
-		virtual ~Renderer() {
-			// cleanup
-			delete shaderProgram;
-		}
+		virtual ~Renderer() { } // Does not need to delete shaderProgram as ResourceManager does that
 
 		virtual void Render() = 0;
 	};

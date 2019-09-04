@@ -5,9 +5,11 @@
 #include "engine/Transform.h"
 #include "GameManager.h"
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "glad/glad.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/quaternion.hpp"
+#include "glm/ext.hpp"
 
 #include <iostream>
 
@@ -35,15 +37,25 @@ void Camera::update(float deltaTime) {
 	if (anglesRotatedX + mouseDelta.y > glm::pi<float>() / 2.0f - 0.1f) {
 		mouseDelta.y = (glm::pi<float>() / 2.0f - 0.1f) - anglesRotatedX;
 	}
-	else if (anglesRotatedX + mouseDelta.y < -glm::pi<float>() / 2.0f) {
-		mouseDelta.y = (-glm::pi<float>() / 2.0f) - anglesRotatedX;
+	else if (anglesRotatedX + mouseDelta.y < -glm::pi<float>() / 2.0f + 0.1f) {
+		mouseDelta.y = (-glm::pi<float>() / 2.0f + 0.1f) - anglesRotatedX;
 	}
 	anglesRotatedX += mouseDelta.y;
 	
-	this->transform->rotationMatrix = glm::rotate(this->transform->rotationMatrix, mouseDelta.x, glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 tempRotationMatrix(1.0f);
+	this->transform->rotationMatrix = this->transform->rotationMatrix * glm::rotate(tempRotationMatrix, mouseDelta.x, glm::vec3(0.0f, 1.0f, 0.0f));
 
 	glm::vec3 tempRight = glm::vec3(this->transform->rotationMatrix[0][0], this->transform->rotationMatrix[1][0], this->transform->rotationMatrix[2][0]);
-	this->transform->rotationMatrix = glm::rotate(this->transform->rotationMatrix, mouseDelta.y, tempRight);
+	tempRotationMatrix = glm::mat4(1.0f);
+	this->transform->rotationMatrix = this->transform->rotationMatrix * glm::rotate(tempRotationMatrix, mouseDelta.y, tempRight);
+
+	//std::cout << glm::length(glm::vec3(this->transform->rotationMatrix[0][0], this->transform->rotationMatrix[1][0], this->transform->rotationMatrix[2][0])) <<
+	//	" - " << glm::length(glm::vec3(this->transform->rotationMatrix[0][1], this->transform->rotationMatrix[1][1], this->transform->rotationMatrix[2][1])) <<
+	//	" - " << glm::length(glm::vec3(this->transform->rotationMatrix[0][2], this->transform->rotationMatrix[1][2], this->transform->rotationMatrix[2][2])) << std::endl;
+	
+	std::cout << this->transform->rotationMatrix[0][0] << ", " << this->transform->rotationMatrix[1][0] << ", " << this->transform->rotationMatrix[2][0] <<
+		" - " << this->transform->rotationMatrix[0][1] << ", " << this->transform->rotationMatrix[1][1] << ", " << this->transform->rotationMatrix[2][1] <<
+		" - " << this->transform->rotationMatrix[0][2] << ", " << this->transform->rotationMatrix[1][2] << ", " << this->transform->rotationMatrix[2][2] << std::endl;
 
 	// now that we've looked around, get the front and right vector
 	glm::vec3 front = -glm::vec3(this->transform->rotationMatrix[0][2], this->transform->rotationMatrix[1][2], this->transform->rotationMatrix[2][2]);

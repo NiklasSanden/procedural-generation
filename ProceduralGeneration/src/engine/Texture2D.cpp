@@ -2,12 +2,18 @@
 
 #include "glad/glad.h"
 
+#include <iostream>
+
 using namespace Engine;
 
 Texture2D::Texture2D()
 	: width(0), height(0), internalFormat(GL_RGB), imageFormat(GL_RGB), wrap_S(GL_REPEAT), wrap_T(GL_REPEAT), filterMin(GL_LINEAR), filterMax(GL_LINEAR)
 {
 	glGenTextures(1, &this->ID);
+}
+
+Texture2D::~Texture2D() {
+	glDeleteTextures(1, &this->ID);
 }
 
 void Texture2D::generate(unsigned int width, unsigned int height, unsigned char* data)
