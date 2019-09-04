@@ -12,7 +12,6 @@
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
-#include "glm/ext.hpp"
 
 #include <string>
 #include <iostream>
@@ -105,15 +104,22 @@ void Cube::awake() {
 
 void Cube::update(float deltaTime) {
 	Camera* camera = dynamic_cast<Camera*>(GameManager::getGamePtr()->findObjectWithName("Camera"));
-	glm::vec3 front = glm::normalize(glm::vec3(camera->transform->rotationMatrix[0][2], camera->transform->rotationMatrix[1][2], camera->transform->rotationMatrix[2][2]));
+	glm::vec3 front = -camera->transform->getDirection();
 	if (GameManager::getInputPtr()->isKeyPressed(GLFW_KEY_Q)) {
-		glm::mat4 temp = glm::rotate(glm::mat4(1.0f), deltaTime, front);
-		this->transform->rotationMatrix = temp * this->transform->rotationMatrix;
-		//this->transform->rotationMatrix = glm::rotate(this->transform->rotationMatrix, deltaTime, front);
+		this->transform->rotate(deltaTime, front);
 	}
 	if (GameManager::getInputPtr()->isKeyPressed(GLFW_KEY_E)) {
-		glm::mat4 temp = glm::rotate(glm::mat4(1.0f), -deltaTime, front);
-		this->transform->rotationMatrix = temp * this->transform->rotationMatrix;
+		this->transform->rotate(-deltaTime, front);
+	}
+
+	if (GameManager::getInputPtr()->isKeyPressed(GLFW_KEY_L)) {
+		this->transform->translate(this->transform->getRight() * deltaTime);
+	}
+	if (GameManager::getInputPtr()->isKeyPressed(GLFW_KEY_I)) {
+		this->transform->translate(this->transform->getUp() * deltaTime);
+	}
+	if (GameManager::getInputPtr()->isKeyPressed(GLFW_KEY_K)) {
+		this->transform->translate(this->transform->getDirection() * deltaTime);
 	}
 }
 
@@ -125,13 +131,13 @@ void Cube::render() {
 	glUseProgram(0);
 	// Setup uniforms
 	this->renderer->shaderProgram->use();
-	this->renderer->shaderProgram->setMat4("model", this->transform->scaleMatrix * this->transform->rotationMatrix * this->transform->positionMatrix);
+	this->renderer->shaderProgram->setMat4("model", this->transform->getModelMatrix());
 	this->renderer->shaderProgram->setMat4("view", Camera::viewMatrix);
 	this->renderer->shaderProgram->setMat4("projection", Camera::projectionMatrix);
 	
 	// Textures
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, Engine::ResourceManager::getTexture("420x0.jpg")->ID);
+	glBindTexture(GL_TEXTURE_2D, Engine::ResourceManager::getTexture("fire.jpg")->ID);
 
 	// Use VAO
 	glBindVertexArray(this->renderer->VAO);

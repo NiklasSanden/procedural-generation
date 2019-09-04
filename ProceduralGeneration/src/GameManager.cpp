@@ -30,7 +30,7 @@ void GameManager::setInputPtr(Input* _inputPtr) {
 
 GameManager::GameManager(std::string _name) : GameObject(_name) {
 	// Load textures
-	Engine::ResourceManager::loadTexture("420x0.jpg", false, "420x0.jpg");
+	Engine::ResourceManager::loadTexture("fire.jpg", false, "fire.jpg");
 
 	// Create Objects
 	Camera* camera = new Camera(); // create a camera and add it to the game
