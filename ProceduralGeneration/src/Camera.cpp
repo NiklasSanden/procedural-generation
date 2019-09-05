@@ -12,6 +12,7 @@
 
 #include <iostream>
 
+#include "engine/Debug.h"
 using namespace ProceduralGeneration;
 
 // Declare static variables

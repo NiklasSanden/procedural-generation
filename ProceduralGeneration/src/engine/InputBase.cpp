@@ -1,5 +1,6 @@
 #include "Input.h"
 
+#include "Debug.h"
 using namespace Engine;
 
 // Pointer to the input class that inherits InputBase in the acutal game

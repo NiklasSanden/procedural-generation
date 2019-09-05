@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "engine/Debug.h"
 void extractSourceCode() {
 
 	std::string fileNames = "\nstd::vector<std::string> ShaderManager::fileNames = { ";

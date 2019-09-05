@@ -17,7 +17,7 @@ namespace Engine {
 		GameObject(std::string& _name) { name = _name; }
 		// delete components
 		virtual ~GameObject() {
-			std::cout << "Deleting components from gameObject: " << name << std::endl;
+			// std::cout << "Deleting components from gameObject: " << name << std::endl;
 			delete renderer;
 			delete transform;
 		}

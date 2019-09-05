@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "Debug.h"
 using namespace Engine;
 
 std::vector<std::string> ShaderManager::sourceCode = { "#version 450 core\nout vec4 FragColour;\n\nin vec2 texCoord;\n\n// textures\nuniform sampler2D texture0;\n//uniform sampler2D texture1;\n\nvoid main()\n{\n	FragColour = texture(texture0, texCoord);\n    //FragColour = mix(texture(texture0, texCoord), texture(texture1, vec2(1 - texCoord.x, texCoord.y)), 0.35);\n	//FragColour = vec4(1.0, 0.0, 0.0, 1.0);\n}", "#version 450 core\nlayout (location = 0) in vec3 aPos;\nlayout (location = 1) in vec2 aTexCoord;\n\nout vec2 texCoord;\n\nuniform mat4 model;\nuniform mat4 view;\nuniform mat4 projection;\n\nvoid main()\n{\n    gl_Position = projection * view * model * vec4(aPos, 1.0);\n	texCoord = aTexCoord;\n}" };
@@ -82,6 +83,8 @@ unsigned int ShaderManager::getShaderID(std::string& shaderName) {
 }
 
 void ShaderManager::compileShader(std::string& shaderCode, std::string& name) {
+	std::cout << "Compiling shader: " << name << std::endl;
+
 	// the last 4 letters
 	std::string extension = name.substr(name.size() - 4);
 	
@@ -115,6 +118,7 @@ void ShaderManager::checkCompileErrors(unsigned int shader, std::string& name) {
 // Delete all shaders
 void ShaderManager::cleanup() {
 	for (const auto& index : shaderIndex) {
+		std::cout << "Deleting shaders: " << index.first << std::endl;
 		glDeleteShader(index.second);
 	}
 }

@@ -16,6 +16,7 @@
 #include <string>
 #include <iostream>
 
+#include "engine/Debug.h"
 using namespace ProceduralGeneration;
 
 namespace ProceduralGeneration {

@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 
+#include "Debug.h"
 using namespace Engine;
 
 MeshRenderer::MeshRenderer(Shader* shaderProgram) : Renderer(shaderProgram) {

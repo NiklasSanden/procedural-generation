@@ -7,12 +7,14 @@
 
 #include <iostream>
 
+#include "Debug.h"
 using namespace Engine;
 
 unsigned int Program::SCREEN_WIDTH;
 unsigned int Program::SCREEN_HEIGHT;
 
 Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
+	std::cout << "Creating window" << std::endl;
 	SCREEN_WIDTH = screenWidth;
 	SCREEN_HEIGHT = screenHeight;
 
@@ -64,6 +66,7 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NoMouse;				  // Disable mouse interatcion (since we are using glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); at the start
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
@@ -106,6 +109,8 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 }
 
 Program::~Program() {
+	std::cout << "Destroying window" << std::endl;
+
 	// cleanup ImGUI
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();

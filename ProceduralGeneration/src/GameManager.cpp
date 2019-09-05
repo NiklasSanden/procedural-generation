@@ -6,6 +6,7 @@
 
 #include <iostream>
 
+#include "engine/Debug.h"
 using namespace ProceduralGeneration;
 
 // static

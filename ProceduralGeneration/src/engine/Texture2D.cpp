@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+#include "Debug.h"
 using namespace Engine;
 
 Texture2D::Texture2D()

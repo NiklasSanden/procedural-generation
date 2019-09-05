@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 
+#include "Debug.h"
 Shader::Shader(const std::vector<unsigned int>& shaderIDs) {
 	// shader Program
 	this->ID = glCreateProgram();

@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 
+#include "Debug.h"
 using namespace Engine;
 
 Game::Game(Program* _program, InputBase* input) {

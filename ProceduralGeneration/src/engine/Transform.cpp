@@ -1,3 +1,4 @@
+#include "Debug.h"
 #include "Transform.h"
 
 using namespace Engine;

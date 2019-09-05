@@ -11,6 +11,7 @@
 #include <vector>
 #include <filesystem>
 
+#include "Debug.h"
 using namespace Engine;
 
 // Instantiate static variables
@@ -53,6 +54,8 @@ void ResourceManager::loadAllTextures() {
 }
 
 Texture2D* ResourceManager::loadTexture(const char* file, bool alpha, std::string& name) {
+	std::cout << "Loading texture: " << name << std::endl;
+
 	std::string filePath = "res/textures/" + std::string(file);
 	textures[name] = loadTextureFromFile(filePath.c_str(), alpha);
 	return textures[name];
@@ -63,6 +66,8 @@ Texture2D* ResourceManager::getTexture(std::string& name) {
 }
 
 Shader* ResourceManager::createShaderProgram(std::vector<std::string>& files, std::string& name) {
+	std::cout << "Creating shader program: " << name << std::endl;
+
 	// If a shaderProgram with that name doesn't exist
 	if (shaderPrograms.find(name) == shaderPrograms.end()) {
 		// Get all of the shader IDs

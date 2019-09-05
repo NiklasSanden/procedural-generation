@@ -1,10 +1,16 @@
+
 #include "Input.h"
 
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include <iostream>
 
+#include "engine/Debug.h"
 using namespace ProceduralGeneration;
 
 namespace ProceduralGeneration {
@@ -55,7 +61,12 @@ void Input::processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && resetESCKey) {
 		// Uncapture mouse
 		if (isMouseDisabled) {
+			// Show in glfw
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			// Make sure that the mouse interacts with ImGUI
+			ImGuiIO& io = ImGui::GetIO(); (void)io;
+			io.ConfigFlags ^= ImGuiConfigFlags_NoMouse;
+
 			isMouseDisabled = false;
 			firstMouseCallback = true;
 		}
@@ -72,7 +83,12 @@ void Input::processInput(GLFWwindow* window) {
 	// Capture mouse
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
 		if (!isMouseDisabled) {
+			// Hide in glfw
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			// Make sure that the mouse doesn't interact with ImGUI
+			ImGuiIO& io = ImGui::GetIO();
+			io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+
 			isMouseDisabled = true;
 		}
 	}
