@@ -70,7 +70,7 @@ void Input::processInput(GLFWwindow* window) {
 	}
 
 	// Capture mouse
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
 		if (!isMouseDisabled) {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			isMouseDisabled = true;

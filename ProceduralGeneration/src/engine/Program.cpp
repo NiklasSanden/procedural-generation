@@ -126,6 +126,11 @@ void APIENTRY Engine::GLDebugMessageCallback(GLenum source, GLenum type, GLuint 
 
 	// https://blog.nobel-joergensen.com/2013/02/17/debugging-opengl-part-2-using-gldebugmessagecallback/
 
+	// filter
+	// ---------------------------
+	// Useless nvidia notification
+	if (id == 131185) return;
+
 	std::cout << "---------------------opengl-callback-start------------" << std::endl;
 	std::cout << "message: " << msg << std::endl;
 	std::cout << "type: ";

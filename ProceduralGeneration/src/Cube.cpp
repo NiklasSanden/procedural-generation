@@ -131,7 +131,6 @@ void Cube::fixedUpdate() {
 }
 
 void Cube::render() {
-	glUseProgram(0);
 	// Setup uniforms
 	this->renderer->shaderProgram->use();
 	this->renderer->shaderProgram->setMat4("model", this->transform->getModelMatrix());
@@ -146,7 +145,11 @@ void Cube::render() {
 	// Use VAO
 	glBindVertexArray(this->renderer->VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glBindVertexArray(0);
 
+	// Unbind
+	glBindVertexArray(0);
+	this->renderer->shaderProgram->unbind();
+
+	// Renderer component
 	this->renderer->Render();
 }

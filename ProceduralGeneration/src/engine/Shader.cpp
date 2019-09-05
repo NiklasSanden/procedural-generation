@@ -30,6 +30,11 @@ void Shader::use() {
 	glUseProgram(this->ID);
 }
 
+// unbind/deactivate the shader
+void Shader::unbind() {
+	glUseProgram(0);
+}
+
 // utility uniform functions
 // ---------------------------------------------------------------------
 void Shader::setBool(const std::string& name, bool value) {

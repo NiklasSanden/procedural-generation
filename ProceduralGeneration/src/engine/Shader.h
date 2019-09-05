@@ -25,6 +25,8 @@ public:
 
 	// use/activate the shader
 	void use();
+	// unbind/deactivate shader
+	void unbind();
 
 	// utility uniform functions
 	void setBool(const std::string& name, bool value);
