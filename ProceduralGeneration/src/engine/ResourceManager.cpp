@@ -9,12 +9,48 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <filesystem>
 
 using namespace Engine;
 
 // Instantiate static variables
 std::unordered_map<std::string, Texture2D*> ResourceManager::textures;
 std::unordered_map<std::string, Shader*>	  ResourceManager::shaderPrograms;
+
+void ResourceManager::loadAllTextures() {
+	std::string path = "res/textures";
+
+	for (const auto& entry : std::filesystem::directory_iterator(path)) {
+		if (entry.is_directory()) continue;
+
+		std::string entryPath = entry.path().string();
+		int index = (int)entryPath.size() - 1;
+		for (; index >= 0; index--) {
+			if (entryPath[index] == '\\' || entryPath[index] == '/') {
+				index++;
+				break;
+			}
+		}
+		int index2 = (int)entryPath.size() - 1;
+		for (; index2 >= 0; index2--) {
+			if (entryPath[index2] == '.') {
+				index2++;
+				break;
+			}
+		}
+
+		// get the name of the file
+		std::string name = entryPath.substr(index);
+		// get the file extension
+		std::string fileExtension = entryPath.substr(index2);
+
+		bool alpha = false;
+		if (fileExtension == "png") alpha = true;
+
+		// load the texture
+		loadTexture(name.c_str(), alpha, name);
+	}
+}
 
 Texture2D* ResourceManager::loadTexture(const char* file, bool alpha, std::string& name) {
 	std::string filePath = "res/textures/" + std::string(file);

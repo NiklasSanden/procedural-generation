@@ -19,6 +19,8 @@ namespace Engine {
 		// Resource storage
 		static std::unordered_map<std::string, Texture2D*> textures;
 		static std::unordered_map<std::string, Shader*> shaderPrograms;
+		// Loads (and generates) all texture files in the "res/textures/" folder
+		static void loadAllTextures();
 		// Loads (and generates) a texture from file
 		static Texture2D* loadTexture(const char* file, bool alpha, std::string& name);
 		// Retrieves a stored texture
