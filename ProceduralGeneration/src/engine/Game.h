@@ -4,8 +4,8 @@
 #include "GameObject.h"
 #include "InputBase.h"
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
 
 #include <string>
 #include <vector>
@@ -27,8 +27,8 @@ namespace Engine {
 		~Game();
 
 		void addGameObject(GameObject* gameObject);
-		void deleteGameObject(std::string gameObjectName);
-		GameObject* findObjectWithName(std::string gameObjectName);
+		void deleteGameObject(std::string& gameObjectName);
+		GameObject* findObjectWithName(std::string& gameObjectName);
 		void startGame();
 	private:
 		void gameLoop();

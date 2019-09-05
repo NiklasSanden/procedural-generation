@@ -1,8 +1,8 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 namespace Engine {
 	class Transform {
@@ -27,18 +27,18 @@ namespace Engine {
 		glm::vec3 getDirection();
 
 		// Set values in matrices
-		void setPosition(glm::vec3 position);
-		void setRotation(glm::quat rotation);
-		void setScale(glm::vec3 scale);
+		void setPosition(glm::vec3& position);
+		void setRotation(glm::quat& rotation);
+		void setScale(glm::vec3& scale);
 
-		void setRight(glm::vec3 right);
-		void setUp(glm::vec3 up);
-		void setDirection(glm::vec3 front);
+		void setRight(glm::vec3& right);
+		void setUp(glm::vec3& up);
+		void setDirection(glm::vec3& front);
 
 		// Add to existing matrices
-		void translate(glm::vec3 position);
-		void rotate(float angle, glm::vec3 axis);
-		void scale(glm::vec3 scale);
+		void translate(glm::vec3& position);
+		void rotate(float angle, glm::vec3& axis);
+		void scale(glm::vec3& scale);
 
 		// Normalize rotationMatrix
 		void normalizeRotation();

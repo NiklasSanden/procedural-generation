@@ -7,26 +7,26 @@
 
 #include <iostream>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 using namespace Engine;
 
 // Instantiate static variables
-std::map<std::string, Texture2D*> ResourceManager::textures;
-std::map<std::string, Shader*>	  ResourceManager::shaderPrograms;
+std::unordered_map<std::string, Texture2D*> ResourceManager::textures;
+std::unordered_map<std::string, Shader*>	  ResourceManager::shaderPrograms;
 
-Texture2D* ResourceManager::loadTexture(const char* file, bool alpha, std::string name) {
+Texture2D* ResourceManager::loadTexture(const char* file, bool alpha, std::string& name) {
 	std::string filePath = "res/textures/" + std::string(file);
 	textures[name] = loadTextureFromFile(filePath.c_str(), alpha);
 	return textures[name];
 }
 
-Texture2D* ResourceManager::getTexture(std::string name) {
+Texture2D* ResourceManager::getTexture(std::string& name) {
 	return textures[name];
 }
 
-Shader* ResourceManager::createShaderProgram(std::vector<std::string> files, std::string name) {
+Shader* ResourceManager::createShaderProgram(std::vector<std::string>& files, std::string& name) {
 	// If a shaderProgram with that name doesn't exist
 	if (shaderPrograms.find(name) == shaderPrograms.end()) {
 		// Get all of the shader IDs
@@ -42,7 +42,7 @@ Shader* ResourceManager::createShaderProgram(std::vector<std::string> files, std
 	return shaderPrograms[name];
 }
 
-Shader* ResourceManager::getShaderProgram(std::string name) {
+Shader* ResourceManager::getShaderProgram(std::string& name) {
 	return shaderPrograms[name];
 }
 
@@ -77,6 +77,13 @@ Texture2D* ResourceManager::loadTextureFromFile(const char* file, bool alpha) {
 	// Load image
 	int width, height, nrChannels;
 	unsigned char* data = stbi_load(file, &width, &height, &nrChannels, 0);
+
+	// Use the correct gl
+	if		(width % 8 == 0) glPixelStorei(GL_UNPACK_ALIGNMENT, 8);
+	else if (width % 4 == 0) glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	else if (width % 2 == 0) glPixelStorei(GL_UNPACK_ALIGNMENT, 2);
+	else					 glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
 	// Now generate texture
 	if (data) {
 		texture->generate(width, height, data);

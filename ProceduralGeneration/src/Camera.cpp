@@ -18,7 +18,7 @@ using namespace ProceduralGeneration;
 glm::mat4 Camera::viewMatrix = glm::mat4(1.0f);
 glm::mat4 Camera::projectionMatrix = glm::mat4(1.0f);
 
-Camera::Camera() : GameObject("Camera") {
+Camera::Camera(std::string& name) : GameObject(name) {
 	this->transform = new Engine::Transform();
 
 	// move back

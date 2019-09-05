@@ -2,11 +2,12 @@
 
 #include "engine/GameObject.h"
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "glad/glad.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 #include <vector>
+#include <string>
 
 namespace ProceduralGeneration {
 	class Camera : public Engine::GameObject {
@@ -20,7 +21,7 @@ namespace ProceduralGeneration {
 		float movementSpeed = 3.0f;
 		float anglesRotatedX = 0.0f;
 	public:
-		Camera();
+		Camera(std::string& name);
 		~Camera() {};
 
 		void awake() override;

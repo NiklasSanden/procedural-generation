@@ -1,6 +1,10 @@
 #include "Program.h"
 #include "InputBase.h"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include <iostream>
 
 using namespace Engine;
@@ -15,6 +19,8 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 	// --------------------------------------------------------------------------
 	// GLFW Setup
 	// --------------------------------------------------------------------------
+	glfwSetErrorCallback(glfwErrorCallback);
+
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
@@ -50,6 +56,25 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 
 
 	// --------------------------------------------------------------------------
+	// ImGUI Setup
+	// --------------------------------------------------------------------------
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsClassic();
+
+	// Setup Platform/Renderer bindings
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 450");
+
+
+	// --------------------------------------------------------------------------
 	// Callback functions
 	// --------------------------------------------------------------------------
 	// error handling
@@ -81,11 +106,22 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 }
 
 Program::~Program() {
+	// cleanup ImGUI
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
 	// clears all previously allocated GLFW resources
+	glfwDestroyWindow(window);
 	glfwTerminate();
 }
 
-// Error handling
+// GLFW error handling
+void Engine::glfwErrorCallback(int error, const char* description) {
+	std::cout << "--------------------\nGLFW Error: " << error << "\nDescription: " << description << "\n--------------------" << std::endl;
+}
+
+// OpenGL error handling
 void APIENTRY Engine::GLDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* msg, const void* data) {
 
 	// https://blog.nobel-joergensen.com/2013/02/17/debugging-opengl-part-2-using-gldebugmessagecallback/

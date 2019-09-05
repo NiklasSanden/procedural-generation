@@ -38,7 +38,13 @@ project "ProceduralGeneration"
 
         -- includes
         "%{prj.name}/include/GLAD/glad.c",
-        "%{prj.name}/include/stb/stb_image.cpp"
+        "%{prj.name}/include/stb/stb_image.cpp",
+        "%{prj.name}/include/imgui/imgui.cpp",
+        "%{prj.name}/include/imgui/imgui_demo.cpp",
+        "%{prj.name}/include/imgui/imgui_draw.cpp",
+        "%{prj.name}/include/imgui/imgui_widgets.cpp",
+        "%{prj.name}/include/imgui/imgui_impl_glfw.cpp",
+        "%{prj.name}/include/imgui/imgui_impl_opengl3.cpp"
 
         -- not necessary
         --"%{prj.name}/include/**.h",

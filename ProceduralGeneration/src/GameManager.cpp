@@ -28,12 +28,14 @@ void GameManager::setInputPtr(Input* _inputPtr) {
 	inputPtr = _inputPtr;
 }
 
-GameManager::GameManager(std::string _name) : GameObject(_name) {
+GameManager::GameManager(std::string& _name) : GameObject(_name) {
 	// Load textures
-	Engine::ResourceManager::loadTexture("fire.jpg", false, "fire.jpg");
+	std::string textureName = "fire.jpg";
+	Engine::ResourceManager::loadTexture("fire.jpg", false, textureName);
 
 	// Create Objects
-	Camera* camera = new Camera(); // create a camera and add it to the game
+	std::string cameraName = "Camera";
+	Camera* camera = new Camera(cameraName); // create a camera and add it to the game
 	this->gamePtr->addGameObject(camera); // the game class will deallocate the memory
 
 	// add cube

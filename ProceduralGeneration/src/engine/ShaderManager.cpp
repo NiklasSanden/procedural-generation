@@ -1,9 +1,9 @@
 #include "ShaderManager.h"
-#include <shaders/ExtractSourceCode/extractSourceCode.h>
+#include "shaders/ExtractSourceCode/extractSourceCode.h"
 
-#include <glad/glad.h>
+#include "glad/glad.h"
 
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <iostream>
 
@@ -15,7 +15,7 @@ using namespace Engine;
 
 std::vector<std::string> ShaderManager::sourceCode = { "#version 450 core\nout vec4 FragColour;\n\nin vec2 texCoord;\n\n// textures\nuniform sampler2D texture0;\n//uniform sampler2D texture1;\n\nvoid main()\n{\n	FragColour = texture(texture0, texCoord);\n    //FragColour = mix(texture(texture0, texCoord), texture(texture1, vec2(1 - texCoord.x, texCoord.y)), 0.35);\n	//FragColour = vec4(1.0, 0.0, 0.0, 1.0);\n}", "#version 450 core\nlayout (location = 0) in vec3 aPos;\nlayout (location = 1) in vec2 aTexCoord;\n\nout vec2 texCoord;\n\nuniform mat4 model;\nuniform mat4 view;\nuniform mat4 projection;\n\nvoid main()\n{\n    gl_Position = projection * view * model * vec4(aPos, 1.0);\n	texCoord = aTexCoord;\n}" };
 std::vector<std::string> ShaderManager::fileNames = { "shader.frag", "shader.vert" };
-std::map<std::string, unsigned int> ShaderManager::shaderIndex;
+std::unordered_map<std::string, unsigned int> ShaderManager::shaderIndex;
 
 void ShaderManager::setupShaderSource() {
 #ifdef CFG_DEBUG
@@ -77,7 +77,7 @@ void ShaderManager::setupShaderSource() {
 }
 
 // Get the shader ID by passing in the file name
-unsigned int ShaderManager::getShaderID(std::string shaderName) {
+unsigned int ShaderManager::getShaderID(std::string& shaderName) {
 	return shaderIndex[shaderName];
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 // A static singleton ShaderManager class that hosts several
@@ -16,7 +16,7 @@ namespace Engine {
 		// fileNames and sourceCode are used when not reading the source code from files
 		static std::vector<std::string> fileNames;
 		static std::vector<std::string> sourceCode;
-		static std::map<std::string, unsigned int> shaderIndex;
+		static std::unordered_map<std::string, unsigned int> shaderIndex;
 
 		static void compileShader(std::string& shaderCode, std::string& name);
 
@@ -25,7 +25,7 @@ namespace Engine {
 	public:
 		static void setupShaderSource();
 
-		static unsigned int getShaderID(std::string shaderName);
+		static unsigned int getShaderID(std::string& shaderName);
 
 		static void cleanup();
 	};

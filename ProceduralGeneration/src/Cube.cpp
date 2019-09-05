@@ -69,7 +69,9 @@ Cube::Cube(std::string name) : GameObject(name) {
 	// setup components
 	this->transform = new Engine::Transform();
 	// get shaderProgram for renderer
-	Shader* cubeShader = Engine::ResourceManager::createShaderProgram({ "shader.vert", "shader.frag" }, "CubeShader");
+	std::vector<std::string> shaderFiles = { "shader.vert", "shader.frag" };
+	std::string shaderProgramName = "CubeShader";
+	Shader* cubeShader = Engine::ResourceManager::createShaderProgram(shaderFiles, shaderProgramName);
 	this->renderer = new Engine::MeshRenderer(cubeShader);
 
 	// Setup VAO
@@ -103,7 +105,8 @@ void Cube::awake() {
 }
 
 void Cube::update(float deltaTime) {
-	Camera* camera = dynamic_cast<Camera*>(GameManager::getGamePtr()->findObjectWithName("Camera"));
+	std::string cameraName = "Camera";
+	Camera* camera = dynamic_cast<Camera*>(GameManager::getGamePtr()->findObjectWithName(cameraName));
 	glm::vec3 front = -camera->transform->getDirection();
 	if (GameManager::getInputPtr()->isKeyPressed(GLFW_KEY_Q)) {
 		this->transform->rotate(deltaTime, front);
@@ -137,7 +140,8 @@ void Cube::render() {
 	
 	// Textures
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, Engine::ResourceManager::getTexture("fire.jpg")->ID);
+	std::string textureName = "fire.jpg";
+	glBindTexture(GL_TEXTURE_2D, Engine::ResourceManager::getTexture(textureName)->ID);
 
 	// Use VAO
 	glBindVertexArray(this->renderer->VAO);

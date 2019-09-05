@@ -21,7 +21,7 @@ namespace ProceduralGeneration {
 
 	// instanced part
 	public:
-		GameManager(std::string _name);
+		GameManager(std::string& _name);
 		~GameManager();
 
 		void awake() override;

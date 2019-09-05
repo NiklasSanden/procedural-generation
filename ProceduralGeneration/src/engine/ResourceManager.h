@@ -3,9 +3,9 @@
 #include "Texture2D.h"
 #include "Shader.h"
 
-#include <glad/glad.h>
+#include "glad/glad.h"
 
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -17,16 +17,16 @@ namespace Engine {
 	class ResourceManager {
 	public:
 		// Resource storage
-		static std::map<std::string, Texture2D*> textures;
-		static std::map<std::string, Shader*> shaderPrograms;
+		static std::unordered_map<std::string, Texture2D*> textures;
+		static std::unordered_map<std::string, Shader*> shaderPrograms;
 		// Loads (and generates) a texture from file
-		static Texture2D* loadTexture(const char* file, bool alpha, std::string name);
+		static Texture2D* loadTexture(const char* file, bool alpha, std::string& name);
 		// Retrieves a stored texture
-		static Texture2D* getTexture(std::string name);
+		static Texture2D* getTexture(std::string& name);
 		// Creates a shaderProgram if the name doesn't already exist
-		static Shader* createShaderProgram(std::vector<std::string> files, std::string name);
+		static Shader* createShaderProgram(std::vector<std::string>& files, std::string& name);
 		// Gets a shaderProgram based on name
-		static Shader* getShaderProgram(std::string name);
+		static Shader* getShaderProgram(std::string& name);
 		// Properly de-allocates all loaded resources
 		static void cleanup();
 	private:
