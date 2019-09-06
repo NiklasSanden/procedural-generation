@@ -1,9 +1,6 @@
-[submodule "imgui"]
-	path = imgui
-	url = https://github.com/ocornut/imgui
-[submodule "glfw"]
-	path = glfw
-	url = https://github.com/glfw/glfw
 [submodule "ProceduralGeneration/include/glm"]
 	path = ProceduralGeneration/include/glm
 	url = https://github.com/g-truc/glm
+[submodule "ProceduralGeneration/include/stb"]
+	path = ProceduralGeneration/include/stb
+	url = https://github.com/nothings/stb
