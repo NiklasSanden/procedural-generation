@@ -57,7 +57,11 @@ void GameManager::update(float deltaTime) {
 }
 
 void GameManager::fixedUpdate() {
-
+	
 }
 
-void GameManager::render() {}
+void GameManager::renderImGui() {
+	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+	bool showDemoWindow = true;
+	ImGui::ShowDemoWindow(&showDemoWindow);
+}

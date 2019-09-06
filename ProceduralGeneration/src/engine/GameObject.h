@@ -14,17 +14,14 @@ namespace Engine {
 	public:
 		std::string name = "null";
 
-		GameObject(std::string& _name) { name = _name; }
+		GameObject(std::string& _name);
 		// delete components
-		virtual ~GameObject() {
-			// std::cout << "Deleting components from gameObject: " << name << std::endl;
-			delete renderer;
-			delete transform;
-		}
+		virtual ~GameObject();
 
-		virtual void awake() = 0;
-		virtual void update(float deltaTime) = 0;
-		virtual void fixedUpdate() = 0;
-		virtual void render() = 0;
+		virtual void awake() {};
+		virtual void update(float deltaTime) {};
+		virtual void fixedUpdate() {};
+		virtual void render() {};
+		virtual void renderImGui() {};
 	};
 }

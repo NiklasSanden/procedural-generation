@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ImGUILayer.h"
+
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
@@ -10,6 +12,9 @@ namespace Engine {
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 	class Program {
+	public:
+		// Layers
+		ImGuiLayer* imGuiLayer;
 	public:
 		GLFWwindow* window;
 

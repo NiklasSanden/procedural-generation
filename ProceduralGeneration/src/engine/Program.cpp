@@ -1,9 +1,7 @@
 #include "Program.h"
 #include "InputBase.h"
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include "ImGUILayer.h"
 
 #include <iostream>
 
@@ -60,21 +58,7 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 	// --------------------------------------------------------------------------
 	// ImGUI Setup
 	// --------------------------------------------------------------------------
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NoMouse;				  // Disable mouse interatcion (since we are using glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); at the start
-
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsClassic();
-
-	// Setup Platform/Renderer bindings
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 450");
+	this->imGuiLayer = new ImGuiLayer(this->window);
 
 
 	// --------------------------------------------------------------------------
@@ -111,10 +95,8 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 Program::~Program() {
 	std::cout << "Destroying window" << std::endl;
 
-	// cleanup ImGUI
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
+	// cleanup ImGuiLayer
+	delete this->imGuiLayer;
 
 	// clears all previously allocated GLFW resources
 	glfwDestroyWindow(window);

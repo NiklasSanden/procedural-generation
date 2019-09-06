@@ -14,8 +14,11 @@
 #include "Debug.h"
 using namespace Engine;
 
-std::vector<std::string> ShaderManager::sourceCode = { "#version 450 core\nout vec4 FragColour;\n\nin vec2 texCoord;\n\n// textures\nuniform sampler2D texture0;\n//uniform sampler2D texture1;\n\nvoid main()\n{\n	FragColour = texture(texture0, texCoord);\n    //FragColour = mix(texture(texture0, texCoord), texture(texture1, vec2(1 - texCoord.x, texCoord.y)), 0.35);\n	//FragColour = vec4(1.0, 0.0, 0.0, 1.0);\n}", "#version 450 core\nlayout (location = 0) in vec3 aPos;\nlayout (location = 1) in vec2 aTexCoord;\n\nout vec2 texCoord;\n\nuniform mat4 model;\nuniform mat4 view;\nuniform mat4 projection;\n\nvoid main()\n{\n    gl_Position = projection * view * model * vec4(aPos, 1.0);\n	texCoord = aTexCoord;\n}" };
-std::vector<std::string> ShaderManager::fileNames = { "shader.frag", "shader.vert" };
+ShaderManager::ShaderManager() {
+	this->sourceCode = { "#version 450 core\nout vec4 FragColour;\n\nin vec2 texCoord;\n\n// textures\nuniform sampler2D texture0;\n//uniform sampler2D texture1;\n\nvoid main()\n{\n	FragColour = texture(texture0, texCoord);\n    //FragColour = mix(texture(texture0, texCoord), texture(texture1, vec2(1 - texCoord.x, texCoord.y)), 0.35);\n	//FragColour = vec4(1.0, 0.0, 0.0, 1.0);\n}", "#version 450 core\nlayout (location = 0) in vec3 aPos;\nlayout (location = 1) in vec2 aTexCoord;\n\nout vec2 texCoord;\n\nuniform mat4 model;\nuniform mat4 view;\nuniform mat4 projection;\n\nvoid main()\n{\n    gl_Position = projection * view * model * vec4(aPos, 1.0);\n	texCoord = aTexCoord;\n}" };
+	this->fileNames = { "shader.frag", "shader.vert" };
+}
+
 std::unordered_map<std::string, unsigned int> ShaderManager::shaderIndex;
 
 void ShaderManager::setupShaderSource() {
@@ -71,8 +74,10 @@ void ShaderManager::setupShaderSource() {
 		compileShader(shaderCode, name);
 	}
 #else
-	for (int i = 0; i < fileNames.size(); i++) {
-		compileShader(sourceCode[i], fileNames[i]);
+	// Create the instance so that the shader strings are loaded into memory
+	ShaderManager instance;
+	for (int i = 0; i < instance.fileNames.size(); i++) {
+		compileShader(instance.sourceCode[i], instance.fileNames[i]);
 	}
 #endif
 }

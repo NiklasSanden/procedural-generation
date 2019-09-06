@@ -11,8 +11,8 @@
 #include "engine/Debug.h"
 void extractSourceCode() {
 
-	std::string fileNames = "\nstd::vector<std::string> ShaderManager::fileNames = { ";
-	std::string sourceCodes = "std::vector<std::string> ShaderManager::sourceCode = {";
+	std::string fileNames = "\nthis->fileNames = { ";
+	std::string sourceCodes = "this->sourceCode = {";
 
 	std::string path = "src/shaders";
 	for (const auto& entry : std::filesystem::directory_iterator(path)) {

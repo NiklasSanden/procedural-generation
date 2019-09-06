@@ -12,50 +12,46 @@
 using namespace Engine;
 
 int main() {
-#ifdef CFG_DEBUG
-#ifdef _CRTDBG_MAP_ALLOC
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	std::cout << "Memory leaks will be sent to output\n---------------------------" << std::endl;
+// Check for memory leaks
+#ifdef _DEBUG
+	#ifdef _CRTDBG_MAP_ALLOC
+		// Automatically call _CrtDumpMemoryLeaks() when the application is done
+		// All static variables will have been cleared by then as well
+		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+		std::cout << "Memory leaks will be sent to output\n---------------------------" << std::endl;
+	#endif
 #endif
-#endif
 
-	std::string userInput;
-	std::cin >> userInput;
-	while (userInput == "c") {
-		{
-			// Window
-			Program* program = new Program(600, 600);
-			// Input
-			ProceduralGeneration::Input* input = new ProceduralGeneration::Input(program->window);
-			setInputPtr(input); // For callbacks
-			ProceduralGeneration::GameManager::setInputPtr(input);
+	// Window
+	Program* program = new Program(600, 600);
+	// Input
+	ProceduralGeneration::Input* input = new ProceduralGeneration::Input(program->window);
+	setInputPtr(input); // For callbacks
+	ProceduralGeneration::GameManager::setInputPtr(input);
 
-			// Main game
-			Game* game = new Game(program, input);
-			ProceduralGeneration::GameManager::setGamePtr(game);
+	// Main game
+	Game* game = new Game(program, input);
+	ProceduralGeneration::GameManager::setGamePtr(game);
 
-			// add gameManager
-			std::string gameManagerName = "GameManager";
-			ProceduralGeneration::GameManager* gameManager = new ProceduralGeneration::GameManager(gameManagerName);
-			game->addGameObject(gameManager);
+	// add gameManager
+	std::string gameManagerName = "GameManager";
+	ProceduralGeneration::GameManager* gameManager = new ProceduralGeneration::GameManager(gameManagerName);
+	game->addGameObject(gameManager);
 
-			// start the game
-			game->startGame();
+	// start the game
+	game->startGame();
 
-			std::cout << "---------------------------\nCleanup\n---------------------------" << std::endl;
+	std::cout << "---------------------------\nCleanup\n---------------------------" << std::endl;
 
-			// Cleanup
-			delete game;
-			delete program;
-			delete input;
-		}
-
-		std::cin >> userInput;
-	}
+	// Cleanup
+	delete game;
+	delete program;
+	delete input;
 	
+
+	// Done
 	std::cout << "---------------------------\nDone - Press enter to close\n---------------------------" << std::endl;
 	std::cin.get();
-
 	return 0;
 }
 

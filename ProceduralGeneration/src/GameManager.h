@@ -27,6 +27,6 @@ namespace ProceduralGeneration {
 		void awake() override;
 		void update(float deltaTime) override;
 		void fixedUpdate() override;
-		void render() override;
+		void renderImGui() override;
 	};
 }

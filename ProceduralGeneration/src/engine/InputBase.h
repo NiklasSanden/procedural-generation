@@ -11,10 +11,10 @@ namespace Engine {
 	// Abstract class
 	class InputBase {
 	public:
-		virtual void mouseCallback(GLFWwindow* window, double xpos, double ypos) = 0;
-		virtual void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) = 0;
+		virtual void mouseCallback(GLFWwindow* window, double xpos, double ypos) {}
+		virtual void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {}
 
-		virtual void processInput(GLFWwindow* window) = 0;
+		virtual void processInput(GLFWwindow* window) {}
 	};
 
 	void setInputPtr(InputBase* _inputPtrCallback);
