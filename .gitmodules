@@ -4,3 +4,9 @@
 [submodule "ProceduralGeneration/include/stb"]
 	path = ProceduralGeneration/include/stb
 	url = https://github.com/nothings/stb
+[submodule "ProceduralGeneration/for-building/glfw"]
+	path = ProceduralGeneration/for-building/glfw
+	url = https://github.com/glfw/glfw
+[submodule "ProceduralGeneration/for-building/imgui"]
+	path = ProceduralGeneration/for-building/imgui
+	url = https://github.com/ocornut/imgui
