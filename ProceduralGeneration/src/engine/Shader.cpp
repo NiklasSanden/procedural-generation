@@ -1,5 +1,9 @@
 #include "Shader.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
 #include "glad/glad.h"
 
 #include <string>
@@ -7,31 +11,27 @@
 #include <vector>
 
 #include "Debug.h"
+using namespace Engine;
+
 Shader::Shader(const std::vector<unsigned int>& shaderIDs) {
-	// shader Program
 	this->ID = glCreateProgram();
 
-	// attach all shaders
 	for (const auto& id : shaderIDs) {
 		glAttachShader(this->ID, id);
 	}
 
-	// link shader program and print linking errors if any
 	glLinkProgram(this->ID);
 	checkLinkingErrors();
 }
 
 Shader::~Shader() {
-	// cleanup
 	glDeleteProgram(this->ID);
 }
 
-// use/activate the shader
 void Shader::use() {
 	glUseProgram(this->ID);
 }
 
-// unbind/deactivate the shader
 void Shader::unbind() {
 	glUseProgram(0);
 }
@@ -82,8 +82,6 @@ void Shader::setMat4(const std::string& name, const glm::mat4& value) {
 // ---------------------------------------------------------------------
 
 
-// utility function for checking linking errors.
-// ------------------------------------------------------------------------
 void Shader::checkLinkingErrors() {
 	int success;
 	char infoLog[1024];
@@ -91,7 +89,7 @@ void Shader::checkLinkingErrors() {
 	if (!success)
 	{
 		glGetProgramInfoLog(this->ID, 1024, NULL, infoLog);
-		std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: PROGRAM" << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		std::cout << "Error linking program" << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
 	}
 }
 

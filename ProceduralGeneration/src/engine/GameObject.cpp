@@ -1,5 +1,11 @@
 #include "GameObject.h"
 
+#include "Renderer.h"
+#include "Transform.h"
+
+#include <string>
+#include <iostream>
+
 #include "Debug.h"
 using namespace Engine;
 

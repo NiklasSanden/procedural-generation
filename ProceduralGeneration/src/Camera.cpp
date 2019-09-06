@@ -4,6 +4,7 @@
 #include "engine/GameObject.h"
 #include "engine/Transform.h"
 #include "GameManager.h"
+#include "Input.h"
 
 #include "glad/glad.h"
 #include "glm/glm.hpp"
@@ -21,10 +22,7 @@ glm::mat4 Camera::projectionMatrix = glm::mat4(1.0f);
 
 Camera::Camera(std::string& name) : GameObject(name) {
 	this->transform = new Engine::Transform();
-
-	// move back
 	this->transform->translate(glm::vec3(0.0f, 0.0f, 5.0f));
-	//this->transform->positionMatrix = glm::translate(this->transform->positionMatrix, glm::vec3(0.0f, 0.0f, 5.0f));
 }
 
 void Camera::awake() {
@@ -43,9 +41,7 @@ void Camera::update(float deltaTime) {
 	}
 	anglesRotatedX += mouseDelta.y;
 	
-	// rotate around y-axis
 	this->transform->rotate(mouseDelta.x, glm::vec3(0.0f, 1.0f, 0.0f));
-	// rotate around right-axis
 	this->transform->rotate(mouseDelta.y, this->transform->getRight());
 
 	// now that we've looked around, get the front and right vector
@@ -67,14 +63,14 @@ void Camera::update(float deltaTime) {
 	if (GameManager::getInputPtr()->isKeyPressed(GLFW_KEY_A)) {
 		movement.x -= 1.0f;
 	}
+	// move
 	if (glm::abs(movement.x) > 0.1f || glm::abs(movement.y) > 0.1f) {
-		// Move
 		movement = glm::normalize(movement);
 		this->transform->translate(frontXZ * movement.y * this->movementSpeed * deltaTime);
 		this->transform->translate(right * movement.x * this->movementSpeed * deltaTime);
 	}
 
-	// Up and down
+	// up and down
 	if (GameManager::getInputPtr()->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
 		this->transform->translate(glm::vec3(0.0f, -this->movementSpeed, 0.0f) * deltaTime);
 	}

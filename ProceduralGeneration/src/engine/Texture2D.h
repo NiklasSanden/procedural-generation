@@ -5,25 +5,21 @@ namespace Engine {
 	// It also hosts utility functions for easy management.
 	class Texture2D {
 	public:
-		// Holds the ID of the texture object, used for all texture operations to reference to this particlar texture
 		unsigned int ID;
-		// Texture image dimensions
-		unsigned int width, height; // Width and height of loaded image in pixels
+		unsigned int width, height;
 		// Texture Format
-		unsigned int internalFormat; // Format of texture object
-		unsigned int imageFormat; // Format of loaded image
+		unsigned int internalFormat;
+		unsigned int imageFormat;
 		// Texture configuration
-		unsigned int wrap_S; // Wrapping mode on S axis
-		unsigned int wrap_T; // Wrapping mode on T axis
-		unsigned int filterMin; // Filtering mode if texture pixels < screen pixels
-		unsigned int filterMax; // Filtering mode if texture pixels > screen pixels
-		// Constructor (sets default texture modes)
+		unsigned int wrap_S; 
+		unsigned int wrap_T; 
+		unsigned int filterMin; 
+		unsigned int filterMax;
+		
 		Texture2D();
-		// Deletes the texture
 		~Texture2D();
-		// Generates texture from image data
+
 		void generate(unsigned int width, unsigned int height, unsigned char* data);
-		// Binds the texture as the current active GL_TEXTURE_2D texture object
 		void bind() const;
 	};
 }

@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Renderer.h"
-#include "Transform.h"
+namespace Engine {
+	class Renderer;
+	class Transform;
+}
 
 #include <string>
-#include <iostream>
 
 namespace Engine {
 	class GameObject {
@@ -15,7 +16,6 @@ namespace Engine {
 		std::string name = "null";
 
 		GameObject(std::string& _name);
-		// delete components
 		virtual ~GameObject();
 
 		virtual void awake() {};

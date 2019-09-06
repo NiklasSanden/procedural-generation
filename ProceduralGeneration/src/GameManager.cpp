@@ -1,8 +1,11 @@
 #include "GameManager.h"
+#include "engine/GameObject.h"
 #include "engine/Game.h"
 #include "engine/ResourceManager.h"
 #include "Camera.h"
 #include "Cube.h"
+
+#include "imgui/imgui.h"
 
 #include <iostream>
 
@@ -13,7 +16,6 @@ using namespace ProceduralGeneration;
 Engine::Game* GameManager::gamePtr = nullptr;
 Input* GameManager::inputPtr = nullptr;
 
-// GamePtr
 Engine::Game* GameManager::getGamePtr() {
 	return gamePtr;
 }
@@ -21,7 +23,6 @@ void GameManager::setGamePtr(Engine::Game* _gamePtr) {
 	gamePtr = _gamePtr;
 }
 
-// InputPtr
 Input* GameManager::getInputPtr() {
 	return inputPtr;
 }
@@ -30,16 +31,14 @@ void GameManager::setInputPtr(Input* _inputPtr) {
 }
 
 GameManager::GameManager(std::string& _name) : GameObject(_name) {
-	// Load textures
 	Engine::ResourceManager::loadAllTextures();
 
-	// Create Objects
 	std::string cameraName = "Camera";
-	Camera* camera = new Camera(cameraName); // create a camera and add it to the game
+	Camera* camera = new Camera(cameraName);
 	this->gamePtr->addGameObject(camera); // the game class will deallocate the memory
 
-	// add cube
-	Cube* cube = new Cube("Cube1");
+	std::string cubeName = "Cube1";
+	Cube* cube = new Cube(cubeName);
 	this->gamePtr->addGameObject(cube);
 }
 
@@ -49,7 +48,7 @@ GameManager::~GameManager() {
 
 // instance
 void GameManager::awake() {
-	// setup camera
+
 }
 
 void GameManager::update(float deltaTime) {

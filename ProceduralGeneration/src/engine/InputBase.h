@@ -8,7 +8,6 @@ namespace Engine {
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-	// Abstract class
 	class InputBase {
 	public:
 		virtual void mouseCallback(GLFWwindow* window, double xpos, double ypos) {}

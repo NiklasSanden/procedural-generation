@@ -1,6 +1,9 @@
-#include "Debug.h"
 #include "Transform.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/quaternion.hpp"
+
+#include "Debug.h"
 using namespace Engine;
 
 glm::mat4 Transform::getModelMatrix() {
@@ -10,7 +13,6 @@ glm::mat4 Transform::getModelMatrix() {
 	return this->positionMatrix * glm::transpose(rotationMatrix) * this->scaleMatrix;
 }
 
-// Extract from matrices
 glm::vec3 Transform::getPosition() {
 	return glm::vec3(this->positionMatrix[3][0], this->positionMatrix[3][1], this->positionMatrix[3][2]);
 }
@@ -35,7 +37,6 @@ glm::vec3 Transform::getDirection() {
 	return glm::vec3(this->rotationMatrix[0][2], this->rotationMatrix[1][2], this->rotationMatrix[2][2]);
 }
 
-// Set values in matrices
 void Transform::setPosition(glm::vec3& position) {
 	this->positionMatrix[3][0] = position.x;
 	this->positionMatrix[3][1] = position.y;
@@ -68,7 +69,6 @@ void Transform::setDirection(glm::vec3& direction) {
 	this->rotationMatrix[2][2] = direction.z;
 }
 
-// Add to existing matrices
 void Transform::translate(glm::vec3& position) {
 	this->positionMatrix[3][0] += position.x;
 	this->positionMatrix[3][1] += position.y;
@@ -78,20 +78,7 @@ void Transform::translate(glm::vec3& position) {
 void Transform::rotate(float angle, glm::vec3& axis) {
 	// Create a rotation matrix based on the desired rotations
 	glm::quat tempRot = glm::angleAxis(angle, axis);
-	setRotation(getRotation() * tempRot);
-
-	// ------------------
-	// Other possibility
-	// ------------------
-	//// Get the new right, up and direction vectors
-	//glm::vec3 newRight = tempRot * getRight();
-	//glm::vec3 newUp = tempRot * getUp();
-	//glm::vec3 newDirection = tempRot * getDirection();
-
-	//// Set the new vectors
-	//setRight(newRight);
-	//setUp(newUp);
-	//setDirection(newDirection);
+	setRotation(getRotation() * tempRot); // not commutative
 
 	// Make sure that the right, up and direction vectors are normalized (will change after a while because of floating point precision error)
 	normalizeRotation();
@@ -103,7 +90,6 @@ void Transform::scale(glm::vec3& scale) {
 	this->scaleMatrix[2][2] *= scale.z;
 }
 
-// Normalize rotation Matrix
 void Transform::normalizeRotation() {
 	setRight(glm::normalize(getRight()));
 	setUp(glm::normalize(getUp()));

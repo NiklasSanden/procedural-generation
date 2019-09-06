@@ -27,13 +27,12 @@ void ShaderManager::setupShaderSource() {
 	// which will be used in release
 	extractSourceCode();
 
-	// now the it the debug way...
+	
 	std::string path = "src/shaders";
 
 	for (const auto& entry : std::filesystem::directory_iterator(path)) {
 		if (entry.is_directory()) continue;
 
-		// retrieve the shader source code from filePath
 		std::string shaderCode;
 		std::ifstream shaderFile;
 		
@@ -41,23 +40,20 @@ void ShaderManager::setupShaderSource() {
 		shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		
 		try {
-			// open file
 			shaderFile.open(entry.path());
 			std::stringstream shaderStream;
 
-			// read file's buffer contents into stream
 			shaderStream << shaderFile.rdbuf();
 
-			// close file handler
 			shaderFile.close();
 
-			// convert stream into string
 			shaderCode = shaderStream.str();
 		}
 		catch (std::ifstream::failure e) {
-			std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
+			std::cout << "Error - Shader file not successfully read" << std::endl;
 		}
 
+		// get the name of the file
 		std::string entryPath = entry.path().string();
 		int index = (int)entryPath.size() - 1;
 		for (; index >= 0; index--) {
@@ -66,11 +62,8 @@ void ShaderManager::setupShaderSource() {
 				break;
 			}
 		}
-
-		// get the name of the file
 		std::string name = entryPath.substr(index);
 
-		// compile the code
 		compileShader(shaderCode, name);
 	}
 #else
@@ -82,7 +75,6 @@ void ShaderManager::setupShaderSource() {
 #endif
 }
 
-// Get the shader ID by passing in the file name
 unsigned int ShaderManager::getShaderID(std::string& shaderName) {
 	return shaderIndex[shaderName];
 }
@@ -104,11 +96,10 @@ void ShaderManager::compileShader(std::string& shaderCode, std::string& name) {
 	const char* shaderCodeC = shaderCode.c_str();
 	glShaderSource(shaderIndex[name], 1, &shaderCodeC, NULL);
 	glCompileShader(shaderIndex[name]);
-	// print compile errors if any
+	
 	checkCompileErrors(shaderIndex[name], name);
 }
 
-// Utility function for displaying errors if compilation went wrong
 void ShaderManager::checkCompileErrors(unsigned int shader, std::string& name) {
 	int success;
 	char infoLog[1024];
@@ -116,11 +107,10 @@ void ShaderManager::checkCompileErrors(unsigned int shader, std::string& name) {
 	if (!success)
 	{
 		glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-		std::cout << "ERROR::SHADER_COMPILATION_ERROR of file: " << name << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		std::cout << "Error - failed to compile file: " << name << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
 	}
 }
 
-// Delete all shaders
 void ShaderManager::cleanup() {
 	for (const auto& index : shaderIndex) {
 		std::cout << "Deleting shaders: " << index.first << std::endl;

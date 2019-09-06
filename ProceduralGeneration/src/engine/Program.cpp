@@ -3,11 +3,15 @@
 
 #include "ImGUILayer.h"
 
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
+
 #include <iostream>
 
 #include "Debug.h"
 using namespace Engine;
 
+// Static initialization
 unsigned int Program::SCREEN_WIDTH;
 unsigned int Program::SCREEN_HEIGHT;
 
@@ -95,10 +99,8 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 Program::~Program() {
 	std::cout << "Destroying window" << std::endl;
 
-	// cleanup ImGuiLayer
-	delete this->imGuiLayer;
+	delete this->imGuiLayer; // the destructor will clean ImGui up
 
-	// clears all previously allocated GLFW resources
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
@@ -164,7 +166,6 @@ void APIENTRY Engine::GLDebugMessageCallback(GLenum source, GLenum type, GLuint 
 
 }
 
-// Set the viewport size equal to the window size when the user resizes the window
 void Engine::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 	// This will be false when you minimize

@@ -1,7 +1,8 @@
 #pragma once
 
+namespace Engine { class Shader; }
+
 #include "Renderer.h"
-#include "Shader.h"
 
 #include <vector>
 #include <string>

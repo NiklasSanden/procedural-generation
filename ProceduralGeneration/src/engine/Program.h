@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ImGUILayer.h"
+namespace Engine { class ImGuiLayer; }
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
@@ -13,7 +13,6 @@ namespace Engine {
 
 	class Program {
 	public:
-		// Layers
 		ImGuiLayer* imGuiLayer;
 	public:
 		GLFWwindow* window;
@@ -21,6 +20,7 @@ namespace Engine {
 		Program(unsigned int screenWidth, unsigned int screenHeight);
 		~Program();
 
+		// Settings
 		static unsigned int SCREEN_WIDTH;
 		static unsigned int SCREEN_HEIGHT;
 	};

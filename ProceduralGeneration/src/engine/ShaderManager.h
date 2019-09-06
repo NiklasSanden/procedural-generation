@@ -19,7 +19,7 @@ namespace Engine {
 		std::vector<std::string> sourceCode;
 		ShaderManager(); // The constructor can still be private since it will only be called from within the setupShaderSource function
 
-	// Static
+	// static
 	private:
 		static std::unordered_map<std::string, unsigned int> shaderIndex;
 

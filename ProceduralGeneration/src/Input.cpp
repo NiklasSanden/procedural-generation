@@ -1,6 +1,7 @@
 
 #include "Input.h"
 
+#include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 
@@ -17,10 +18,13 @@ namespace ProceduralGeneration {
 	bool firstMouseCallback = true;
 	double mouseLastX = 0.0;
 	double mouseLastY = 0.0;
+	bool isMouseDisabled = true;
+	bool resetESCKey = true;
 }
 void Input::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 	// avoid big differences when starting the game and switching cursor modes
-	if (firstMouseCallback) {
+	// and don't do it when our mouse isn't being captured (so we don't look around when clicking UI)
+	if (firstMouseCallback || !isMouseDisabled) {
 		mouseLastX = xpos;
 		mouseLastY = ypos;
 		firstMouseCallback = false;
@@ -43,7 +47,7 @@ glm::vec2 Input::getMouseDelta() {
 }
 
 void Input::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-	this->scrollDelta -= (int)yoffset; // we only care about the yoffset of the scrollwheel
+	this->scrollDelta -= (int)yoffset;
 }
 int Input::getScrollDelta() {
 	int tempScrollDelta = this->scrollDelta;
@@ -51,12 +55,6 @@ int Input::getScrollDelta() {
 	return tempScrollDelta;
 }
 
-
-// Process input
-namespace ProceduralGeneration {
-	bool isMouseDisabled = true;
-	bool resetESCKey = true;
-}
 void Input::processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && resetESCKey) {
 		// Uncapture mouse

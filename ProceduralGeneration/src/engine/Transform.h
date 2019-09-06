@@ -1,8 +1,6 @@
 #pragma once
 
 #include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
 namespace Engine {
 	class Transform {
@@ -14,10 +12,8 @@ namespace Engine {
 		Transform() {};
 		~Transform() {};
 
-		// Get the model matrix
 		glm::mat4 getModelMatrix();
 
-		// Extract from matrices
 		glm::vec3 getPosition();
 		glm::quat getRotation();
 		glm::vec3 getScale();
@@ -26,7 +22,7 @@ namespace Engine {
 		glm::vec3 getUp();
 		glm::vec3 getDirection();
 
-		// Set values in matrices
+		
 		void setPosition(glm::vec3& position);
 		void setRotation(glm::quat& rotation);
 		void setScale(glm::vec3& scale);
@@ -35,12 +31,11 @@ namespace Engine {
 		void setUp(glm::vec3& up);
 		void setDirection(glm::vec3& front);
 
-		// Add to existing matrices
+		
 		void translate(glm::vec3& position);
 		void rotate(float angle, glm::vec3& axis);
 		void scale(glm::vec3& scale);
 
-		// Normalize rotationMatrix
 		void normalizeRotation();
 	};
 }

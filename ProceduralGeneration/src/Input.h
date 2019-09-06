@@ -1,9 +1,10 @@
 #pragma once
 
+struct GLFWwindow;
+
 #include "engine/InputBase.h"
 
-#include "GLFW/glfw3.h"
-#include "glm/glm.hpp"
+#include "glm/glm/vec2.hpp"
 
 namespace ProceduralGeneration {
 	class Input : public Engine::InputBase {

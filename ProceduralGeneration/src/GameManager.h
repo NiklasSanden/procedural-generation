@@ -1,11 +1,12 @@
 #pragma once
 
-#include "engine/Game.h"
-#include "engine/GameObject.h"
-#include "engine/Renderer.h"
-#include "Input.h"
+namespace Engine {
+	class Game;
+	class Renderer;
+}
+namespace ProceduralGeneration { class Input; }
 
-#include <iostream>
+#include "engine/GameObject.h"
 
 namespace ProceduralGeneration {
 	class GameManager : public Engine::GameObject {

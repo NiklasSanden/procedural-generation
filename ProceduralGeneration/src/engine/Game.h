@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Program.h"
-#include "GameObject.h"
-#include "InputBase.h"
-
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
+namespace Engine {
+	class Program;
+	class InputBase;
+	class GameObject;
+}
 
 #include <string>
 #include <vector>
@@ -29,6 +28,7 @@ namespace Engine {
 		void addGameObject(GameObject* gameObject);
 		void deleteGameObject(std::string& gameObjectName);
 		GameObject* findObjectWithName(std::string& gameObjectName);
+		
 		void startGame();
 	private:
 		void gameLoop();

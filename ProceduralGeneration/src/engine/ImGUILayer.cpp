@@ -1,5 +1,10 @@
 #include "ImGuiLayer.h"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
+#include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
 #include "Debug.h"
@@ -34,27 +39,22 @@ ImGuiLayer::ImGuiLayer(GLFWwindow* window) {
 }
 
 ImGuiLayer::~ImGuiLayer() {
-	// cleanup ImGUI
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 }
 
 void ImGuiLayer::begin() {
-	// ----------------------------------
-	// ImGUI
-	// Start the Dear ImGui frame
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 }
 
 void ImGuiLayer::end() {
-	// Render ImGUI
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	// ----------------------------------
 
+	// Viewports and docking extras
 	ImGuiIO& io = ImGui::GetIO();
 	// Update and Render additional Platform Windows
 	// (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
