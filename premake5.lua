@@ -38,7 +38,7 @@ project "ProceduralGeneration"
 
         -- includes
         "%{prj.name}/include/GLAD/glad.c",
-        "%{prj.name}/include/stb/stb_image.cpp",
+        "%{prj.name}/include/stb_image.cpp",
         "%{prj.name}/include/imgui/imgui.cpp",
         "%{prj.name}/include/imgui/imgui_demo.cpp",
         "%{prj.name}/include/imgui/imgui_draw.cpp",
