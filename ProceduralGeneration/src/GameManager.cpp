@@ -4,6 +4,7 @@
 #include "engine/ResourceManager.h"
 #include "Camera.h"
 #include "Cube.h"
+#include "Chunk.h"
 
 #include "imgui/imgui.h"
 
@@ -40,6 +41,10 @@ GameManager::GameManager(std::string& _name) : GameObject(_name) {
 	std::string cubeName = "Cube1";
 	Cube* cube = new Cube(cubeName);
 	this->gamePtr->addGameObject(cube);
+
+	/*std::string chunkName = "Chunk1";
+	Chunk* chunk = new Chunk(chunkName);
+	this->gamePtr->addGameObject(chunk);*/
 }
 
 GameManager::~GameManager() {
@@ -52,7 +57,7 @@ void GameManager::awake() {
 }
 
 void GameManager::update(float deltaTime) {
-
+	
 }
 
 void GameManager::fixedUpdate() {
@@ -61,6 +66,10 @@ void GameManager::fixedUpdate() {
 
 void GameManager::renderImGui() {
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-	bool showDemoWindow = true;
-	ImGui::ShowDemoWindow(&showDemoWindow);
+	/*bool showDemoWindow = true;
+	ImGui::ShowDemoWindow(&showDemoWindow);*/
+
+	ImGui::Begin("Test window");
+
+	ImGui::End();
 }

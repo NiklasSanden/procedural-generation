@@ -69,6 +69,68 @@ namespace ProceduralGeneration {
 	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
+	std::vector<glm::vec3> vertexArray{
+		glm::vec3(-0.5f, -0.5f, -0.5f),
+		glm::vec3(0.5f, -0.5f, -0.5f),
+		glm::vec3(0.5f,  0.5f, -0.5f),
+		glm::vec3(-0.5f,  0.5f, -0.5f),
+
+		glm::vec3(-0.5f, -0.5f,  0.5f),
+		glm::vec3(0.5f, -0.5f,  0.5f),
+		glm::vec3(0.5f,  0.5f,  0.5f),
+		glm::vec3(-0.5f,  0.5f,  0.5f),
+
+		glm::vec3(-0.5f,  0.5f,  0.5f),
+		glm::vec3(-0.5f,  0.5f, -0.5f),
+		glm::vec3(-0.5f, -0.5f, -0.5f),
+		glm::vec3(-0.5f, -0.5f,  0.5f),
+
+		glm::vec3(0.5f,  0.5f,  0.5f),
+		glm::vec3(0.5f,  0.5f, -0.5f),
+		glm::vec3(0.5f, -0.5f, -0.5f),
+		glm::vec3(0.5f, -0.5f,  0.5f),
+
+		glm::vec3(-0.5f, -0.5f, -0.5f),
+		glm::vec3(0.5f, -0.5f, -0.5f),
+		glm::vec3(0.5f, -0.5f,  0.5f),
+		glm::vec3(-0.5f, -0.5f,  0.5f),
+
+		glm::vec3(-0.5f,  0.5f, -0.5f),
+		glm::vec3(0.5f,  0.5f, -0.5f),
+		glm::vec3(0.5f,  0.5f,  0.5f),
+		glm::vec3(-0.5f,  0.5f,  0.5f),
+	};
+	std::vector<glm::vec2> texCoordArray{
+		glm::vec2(0.0f, 0.0f),
+		glm::vec2(1.0f, 0.0f),
+		glm::vec2(1.0f, 1.0f),
+		glm::vec2(0.0f, 1.0f),
+
+		glm::vec2(0.0f, 0.0f),
+		glm::vec2(1.0f, 0.0f),
+		glm::vec2(1.0f, 1.0f),
+		glm::vec2(0.0f, 1.0f),
+
+		glm::vec2(1.0f, 0.0f),
+		glm::vec2(1.0f, 1.0f),
+		glm::vec2(0.0f, 1.0f),
+		glm::vec2(0.0f, 0.0f),
+
+		glm::vec2(1.0f, 0.0f),
+		glm::vec2(1.0f, 1.0f),
+		glm::vec2(0.0f, 1.0f),
+		glm::vec2(0.0f, 0.0f),
+
+		glm::vec2(0.0f, 1.0f),
+		glm::vec2(1.0f, 1.0f),
+		glm::vec2(1.0f, 0.0f),
+		glm::vec2(0.0f, 0.0f),
+
+		glm::vec2(0.0f, 1.0f),
+		glm::vec2(1.0f, 1.0f),
+		glm::vec2(1.0f, 0.0f),
+		glm::vec2(0.0f, 0.0f),
+	};
 }
 
 Cube::Cube(std::string& name) : GameObject(name) {
@@ -78,28 +140,25 @@ Cube::Cube(std::string& name) : GameObject(name) {
 	// get shaderProgram for renderer
 	std::vector<std::string> shaderFiles = { "shader.vert", "shader.frag" };
 	std::string shaderProgramName = "CubeShader";
-	Engine::Shader* cubeShader = Engine::ResourceManager::createShaderProgram(shaderFiles, shaderProgramName);
-	this->renderer = new Engine::MeshRenderer(cubeShader);
-
-	// Setup VAO
-	glGenVertexArrays(1, &this->renderer->VAO);
-	glGenBuffers(1, &this->renderer->VBO);
-		
-	glBindVertexArray(this->renderer->VAO);
-		
-	glBindBuffer(GL_ARRAY_BUFFER, this->renderer->VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	this->renderer = new Engine::MeshRenderer(shaderFiles, shaderProgramName, vertexArray);
 	
-	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	
-	// texture coordinates
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	std::string textureName = "fire.jpg";
+	this->renderer->addTextureName(textureName);
+	this->renderer->setTexCoordArray(texCoordArray);
 
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	std::vector<unsigned int> indexArray{ 0, 1, 2, 0, 2, 3,
+										  4, 5, 6, 4, 6, 7, 
+										  8, 9, 10, 8, 10, 11, 
+										  12, 13, 14, 12, 14, 15,
+										  16, 17, 18, 16, 18, 19, 
+										  20, 21, 22, 20, 22, 23, };
+	this->renderer->setIndexArray(indexArray);
+
+	this->renderer->setupVertexArrayObject();
+}
+
+Cube::~Cube() {
+
 }
 
 void Cube::awake() {
@@ -143,25 +202,5 @@ void Cube::fixedUpdate() {
 }
 
 void Cube::render() {
-	// Setup uniforms
-	this->renderer->shaderProgram->use();
-	this->renderer->shaderProgram->setMat4("model", this->transform->getModelMatrix());
-	this->renderer->shaderProgram->setMat4("view", Camera::viewMatrix);
-	this->renderer->shaderProgram->setMat4("projection", Camera::projectionMatrix);
-	
-	// Textures
-	glActiveTexture(GL_TEXTURE0);
-	std::string textureName = "fire.jpg";
-	glBindTexture(GL_TEXTURE_2D, Engine::ResourceManager::getTexture(textureName)->ID);
-
-	// Use VAO
-	glBindVertexArray(this->renderer->VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-
-	// Unbind
-	glBindVertexArray(0);
-	this->renderer->shaderProgram->unbind();
-
-	// Renderer component
-	this->renderer->Render();
+	this->renderer->render(this->transform->getModelMatrix(), Camera::viewMatrix, Camera::projectionMatrix);
 }

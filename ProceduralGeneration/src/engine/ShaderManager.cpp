@@ -50,7 +50,7 @@ void ShaderManager::setupShaderSource() {
 			shaderCode = shaderStream.str();
 		}
 		catch (std::ifstream::failure e) {
-			std::cout << "Error - Shader file not successfully read" << std::endl;
+			std::cout << "---------> Error - Shader file not successfully read" << std::endl;
 		}
 
 		// get the name of the file
@@ -107,7 +107,7 @@ void ShaderManager::checkCompileErrors(unsigned int shader, std::string& name) {
 	if (!success)
 	{
 		glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-		std::cout << "Error - failed to compile file: " << name << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		std::cout << "---------> Error - failed to compile file: " << name << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
 	}
 }
 
