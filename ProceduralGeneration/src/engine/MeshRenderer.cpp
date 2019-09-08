@@ -15,7 +15,7 @@
 #include "Debug.h"
 using namespace Engine;
 
-MeshRenderer::MeshRenderer(std::vector<std::string>& shaderFiles, std::string& shaderProgramName, std::vector<glm::vec3>& _vertexArray, Material* _material) 
+MeshRenderer::MeshRenderer(const std::vector<std::string>& shaderFiles, const std::string& shaderProgramName, const std::vector<glm::vec3>& _vertexArray, Material* _material)
 	: Renderer(shaderFiles, shaderProgramName, _vertexArray, _material) {
 
 }
@@ -107,7 +107,7 @@ void MeshRenderer::setupVertexArrayObject() {
 	if (this->indexArray.size() > 0) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void MeshRenderer::render(glm::mat4& modelMatrix, glm::mat4& viewMatrix, glm::mat4& projectionMatrix, glm::mat3& normalMatrix) {
+void MeshRenderer::render(const glm::mat4& modelMatrix, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const glm::mat3& normalMatrix) {
 	if (this->VAO == 0) {
 		std::cout << "---------> Error - Trying to render (MeshRenderer) without first calling setupVertexArrayObject()" << std::endl;
 		return;
@@ -121,7 +121,6 @@ void MeshRenderer::render(glm::mat4& modelMatrix, glm::mat4& viewMatrix, glm::ma
 	this->shaderProgram->setMat4("projection", projectionMatrix);
 	this->shaderProgram->setMat3("normal", normalMatrix);
 	// material
-	this->shaderProgram->setVec3("material.ambient",	this->material->ambient);
 	this->shaderProgram->setVec3("material.diffuse",	this->material->diffuse);
 	this->shaderProgram->setVec3("material.specular",	this->material->specular);
 	this->shaderProgram->setFloat("material.shininess", this->material->shininess);

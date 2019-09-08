@@ -18,10 +18,9 @@ namespace ProceduralGeneration {
 		float movementSpeed = 3.0f;
 		float anglesRotatedX = 0.0f;
 	public:
-		Camera(std::string& name);
+		Camera(const std::string& name);
 		~Camera() {};
 
-		void awake() override;
 		void update(float deltaTime) override;
 		void fixedUpdate() override;
 		void render() override;

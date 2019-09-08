@@ -34,8 +34,7 @@ int main() {
 	ProceduralGeneration::GameManager::setGamePtr(game);
 
 	// add gameManager
-	std::string gameManagerName = "GameManager";
-	ProceduralGeneration::GameManager* gameManager = new ProceduralGeneration::GameManager(gameManagerName);
+	ProceduralGeneration::GameManager* gameManager = new ProceduralGeneration::GameManager("GameManager");
 	game->addGameObject(gameManager);
 
 	// start the game

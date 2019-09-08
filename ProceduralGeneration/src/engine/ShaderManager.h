@@ -23,14 +23,14 @@ namespace Engine {
 	private:
 		static std::unordered_map<std::string, unsigned int> shaderIndex;
 
-		static void compileShader(std::string& shaderCode, std::string& name);
+		static void compileShader(const std::string& shaderCode, const std::string& name);
 
-		static void checkCompileErrors(unsigned int shader, std::string& name);
+		static void checkCompileErrors(unsigned int shader, const std::string& name);
 
 	public:
 		static void setupShaderSource();
 
-		static unsigned int getShaderID(std::string& shaderName);
+		static unsigned int getShaderID(const std::string& shaderName);
 
 		static void cleanup();
 	};

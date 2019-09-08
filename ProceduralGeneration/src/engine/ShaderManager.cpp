@@ -75,11 +75,11 @@ void ShaderManager::setupShaderSource() {
 #endif
 }
 
-unsigned int ShaderManager::getShaderID(std::string& shaderName) {
+unsigned int ShaderManager::getShaderID(const std::string& shaderName) {
 	return shaderIndex[shaderName];
 }
 
-void ShaderManager::compileShader(std::string& shaderCode, std::string& name) {
+void ShaderManager::compileShader(const std::string& shaderCode, const std::string& name) {
 	std::cout << "Compiling shader: " << name << std::endl;
 
 	// the last 4 letters
@@ -100,7 +100,7 @@ void ShaderManager::compileShader(std::string& shaderCode, std::string& name) {
 	checkCompileErrors(shaderIndex[name], name);
 }
 
-void ShaderManager::checkCompileErrors(unsigned int shader, std::string& name) {
+void ShaderManager::checkCompileErrors(unsigned int shader, const std::string& name) {
 	int success;
 	char infoLog[1024];
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);

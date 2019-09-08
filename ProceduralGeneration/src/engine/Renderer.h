@@ -30,23 +30,23 @@ namespace Engine {
 		unsigned int VBO = 0;
 		unsigned int EBO = 0;
 	public:
-		Renderer(std::vector<std::string>& shaderFiles, std::string& shaderProgramName, std::vector<glm::vec3>& _vertexArray, Material* _material = nullptr);
+		Renderer(const std::vector<std::string>& shaderFiles, const std::string& shaderProgramName, const std::vector<glm::vec3>& _vertexArray, Material* _material = nullptr);
 		virtual ~Renderer(); // Does not need to delete shaderProgram as ResourceManager does that
 
 		virtual void setMaterial(Material* _material);
-		virtual void setVertexArray(std::vector<glm::vec3>& _vertexArray);
-		virtual void setNormalArray(std::vector<glm::vec3>& _normalArray);
-		virtual void setTexCoordArray(std::vector<glm::vec2>& _texCoordArray);
-		virtual void setIndexArray(std::vector<unsigned int>& _indexArray);
+		virtual void setVertexArray(const std::vector<glm::vec3>& _vertexArray);
+		virtual void setNormalArray(const std::vector<glm::vec3>& _normalArray);
+		virtual void setTexCoordArray(const std::vector<glm::vec2>& _texCoordArray);
+		virtual void setIndexArray(const std::vector<unsigned int>& _indexArray);
 		
-		virtual void addTextureName(std::string& textureName);
+		virtual void addTextureName(const std::string& textureName);
 
 		virtual void calculateNormals();
 
 		// setupVertexArrayObject and render are up to the child class to override
 		virtual void setupVertexArrayObject() {};
 
-		virtual void render(glm::mat4& modelMatrix, glm::mat4& viewMatrix, glm::mat4& projectionMatrix, glm::mat3& normalMatrix) {};
+		virtual void render(const glm::mat4& modelMatrix, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const glm::mat3& normalMatrix) {};
 
 	protected:
 		int getStrideValue();

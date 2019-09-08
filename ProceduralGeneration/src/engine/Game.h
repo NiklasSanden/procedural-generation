@@ -4,6 +4,7 @@ namespace Engine {
 	class Program;
 	class InputBase;
 	class GameObject;
+	class Light;
 }
 
 #include <string>
@@ -26,9 +27,9 @@ namespace Engine {
 		~Game();
 
 		void addGameObject(GameObject* gameObject);
-		void deleteGameObject(std::string& gameObjectName);
-		GameObject* findObjectWithName(std::string& gameObjectName);
-		
+		void deleteGameObject(const std::string& gameObjectName);
+		GameObject* findObjectWithName(const std::string& gameObjectName);
+
 		void startGame();
 	private:
 		void gameLoop();

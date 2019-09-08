@@ -21,12 +21,12 @@ namespace Engine {
 		
 		// Loads (and generates) all texture files in the "res/textures/" folder
 		static void loadAllTextures();
-		static Texture2D* loadTexture(const char* file, bool alpha, std::string& name);
-		static Texture2D* getTexture(std::string& name);
+		static Texture2D* loadTexture(const char* file, bool alpha, const std::string& name);
+		static Texture2D* getTexture(const std::string& name);
 		
 		// Creates a shaderProgram if the name doesn't already exist
-		static Shader* createShaderProgram(std::vector<std::string>& files, std::string& name);
-		static Shader* getShaderProgram(std::string& name);
+		static Shader* createShaderProgram(const std::vector<std::string>& files, const std::string& name);
+		static Shader* getShaderProgram(const std::string& name);
 		
 		static void cleanup();
 	private:

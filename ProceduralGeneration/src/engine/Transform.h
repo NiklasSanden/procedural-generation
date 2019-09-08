@@ -13,7 +13,7 @@ namespace Engine {
 		~Transform() {};
 
 		glm::mat4 getModelMatrix();
-		glm::mat3 getNormalMatrix(glm::mat4& modelMatrix, glm::mat4& viewMatrix);
+		glm::mat3 getNormalMatrix(const glm::mat4& modelMatrix, const glm::mat4& viewMatrix);
 
 		glm::vec3 getPosition();
 		glm::quat getRotation();
@@ -24,18 +24,18 @@ namespace Engine {
 		glm::vec3 getDirection();
 
 		
-		void setPosition(glm::vec3& position);
-		void setRotation(glm::quat& rotation);
-		void setScale(glm::vec3& scale);
+		void setPosition(const glm::vec3& position);
+		void setRotation(const glm::quat& rotation);
+		void setScale(const glm::vec3& scale);
 
-		void setRight(glm::vec3& right);
-		void setUp(glm::vec3& up);
-		void setDirection(glm::vec3& front);
+		void setRight(const glm::vec3& right);
+		void setUp(const glm::vec3& up);
+		void setDirection(const glm::vec3& front);
 
 		
-		void translate(glm::vec3& position);
-		void rotate(float angle, glm::vec3& axis);
-		void scale(glm::vec3& scale);
+		void translate(const glm::vec3& position);
+		void rotate(float angle, const glm::vec3& axis);
+		void scale(const glm::vec3& scale);
 
 		void normalizeRotation();
 	};

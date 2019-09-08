@@ -52,7 +52,7 @@ void ResourceManager::loadAllTextures() {
 	}
 }
 
-Texture2D* ResourceManager::loadTexture(const char* file, bool alpha, std::string& name) {
+Texture2D* ResourceManager::loadTexture(const char* file, bool alpha, const std::string& name) {
 	std::cout << "Loading texture: " << name << std::endl;
 
 	std::string filePath = "res/textures/" + std::string(file);
@@ -60,11 +60,11 @@ Texture2D* ResourceManager::loadTexture(const char* file, bool alpha, std::strin
 	return textures[name];
 }
 
-Texture2D* ResourceManager::getTexture(std::string& name) {
+Texture2D* ResourceManager::getTexture(const std::string& name) {
 	return textures[name];
 }
 
-Shader* ResourceManager::createShaderProgram(std::vector<std::string>& files, std::string& name) {
+Shader* ResourceManager::createShaderProgram(const std::vector<std::string>& files, const std::string& name) {
 	std::cout << "Creating shader program: " << name << std::endl;
 
 	// If a shaderProgram with that name doesn't exist
@@ -81,7 +81,7 @@ Shader* ResourceManager::createShaderProgram(std::vector<std::string>& files, st
 	return shaderPrograms[name];
 }
 
-Shader* ResourceManager::getShaderProgram(std::string& name) {
+Shader* ResourceManager::getShaderProgram(const std::string& name) {
 	return shaderPrograms[name];
 }
 
@@ -126,7 +126,7 @@ Texture2D* ResourceManager::loadTextureFromFile(const char* file, bool alpha) {
 		stbi_image_free(data);
 	}
 	else {
-		std::cout << "stb failed to read image: " << file << std::endl;
+		std::cout << "---------> Error - stb failed to read image: " << file << std::endl;
 	}
 	return texture;
 }

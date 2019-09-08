@@ -13,7 +13,7 @@ glm::mat4 Transform::getModelMatrix() {
 	return this->positionMatrix * glm::transpose(rotationMatrix) * this->scaleMatrix;
 }
 
-glm::mat3 Transform::getNormalMatrix(glm::mat4& modelMatrix, glm::mat4& viewMatrix) {
+glm::mat3 Transform::getNormalMatrix(const glm::mat4& modelMatrix, const glm::mat4& viewMatrix) {
 	// What this does can be read here: https://learnopengl.com/Lighting/Basic-Lighting
 	return glm::mat3(glm::transpose(glm::inverse(viewMatrix * modelMatrix)));
 }
@@ -42,45 +42,45 @@ glm::vec3 Transform::getDirection() {
 	return glm::vec3(this->rotationMatrix[0][2], this->rotationMatrix[1][2], this->rotationMatrix[2][2]);
 }
 
-void Transform::setPosition(glm::vec3& position) {
+void Transform::setPosition(const glm::vec3& position) {
 	this->positionMatrix[3][0] = position.x;
 	this->positionMatrix[3][1] = position.y;
 	this->positionMatrix[3][2] = position.z;
 }
 
-void Transform::setRotation(glm::quat& rotation) {
+void Transform::setRotation(const glm::quat& rotation) {
 	this->rotationMatrix = glm::mat4_cast(rotation);
 }
 
-void Transform::setScale(glm::vec3& scale) {
+void Transform::setScale(const glm::vec3& scale) {
 	this->scaleMatrix[0][0] = scale.x;
 	this->scaleMatrix[1][1] = scale.y;
 	this->scaleMatrix[2][2] = scale.z;
 }
 
-void Transform::setRight(glm::vec3& right) {
+void Transform::setRight(const glm::vec3& right) {
 	this->rotationMatrix[0][0] = right.x;
 	this->rotationMatrix[1][0] = right.y;
 	this->rotationMatrix[2][0] = right.z;
 }
-void Transform::setUp(glm::vec3& up) {
+void Transform::setUp(const glm::vec3& up) {
 	this->rotationMatrix[0][1] = up.x;
 	this->rotationMatrix[1][1] = up.y;
 	this->rotationMatrix[2][1] = up.z;
 }
-void Transform::setDirection(glm::vec3& direction) {
+void Transform::setDirection(const glm::vec3& direction) {
 	this->rotationMatrix[0][2] = direction.x;
 	this->rotationMatrix[1][2] = direction.y;
 	this->rotationMatrix[2][2] = direction.z;
 }
 
-void Transform::translate(glm::vec3& position) {
+void Transform::translate(const glm::vec3& position) {
 	this->positionMatrix[3][0] += position.x;
 	this->positionMatrix[3][1] += position.y;
 	this->positionMatrix[3][2] += position.z;
 }
 
-void Transform::rotate(float angle, glm::vec3& axis) {
+void Transform::rotate(float angle, const glm::vec3& axis) {
 	// Create a rotation matrix based on the desired rotations
 	glm::quat tempRot = glm::angleAxis(angle, axis);
 	setRotation(getRotation() * tempRot); // not commutative
@@ -89,7 +89,7 @@ void Transform::rotate(float angle, glm::vec3& axis) {
 	normalizeRotation();
 }
 
-void Transform::scale(glm::vec3& scale) {
+void Transform::scale(const glm::vec3& scale) {
 	this->scaleMatrix[0][0] *= scale.x;
 	this->scaleMatrix[1][1] *= scale.y;
 	this->scaleMatrix[2][2] *= scale.z;

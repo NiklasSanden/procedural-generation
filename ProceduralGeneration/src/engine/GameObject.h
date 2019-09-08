@@ -15,10 +15,9 @@ namespace Engine {
 	public:
 		std::string name = "null";
 
-		GameObject(std::string& _name);
+		GameObject(const std::string& _name);
 		virtual ~GameObject();
 
-		virtual void awake() {};
 		virtual void update(float deltaTime) {};
 		virtual void fixedUpdate() {};
 		virtual void render() {};

@@ -20,13 +20,9 @@ using namespace ProceduralGeneration;
 glm::mat4 Camera::viewMatrix = glm::mat4(1.0f);
 glm::mat4 Camera::projectionMatrix = glm::mat4(1.0f);
 
-Camera::Camera(std::string& name) : GameObject(name) {
+Camera::Camera(const std::string& name) : GameObject(name) {
 	this->transform = new Engine::Transform();
 	this->transform->translate(glm::vec3(0.0f, 0.0f, 5.0f));
-}
-
-void Camera::awake() {
-
 }
 
 void Camera::update(float deltaTime) {

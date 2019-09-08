@@ -9,7 +9,7 @@
 #include "Debug.h"
 using namespace Engine;
 
-GameObject::GameObject(std::string& _name) { 
+GameObject::GameObject(const std::string& _name) { 
 	this->name = _name; 
 }
 

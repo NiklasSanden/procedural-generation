@@ -41,10 +41,9 @@ Game::~Game() {
 void Game::addGameObject(GameObject* gameObject) {
 	std::cout << "Adding gameObject: " << gameObject->name << std::endl;
 	this->gameObjects.push_back(gameObject);
-	gameObject->awake();
 }
 
-void Game::deleteGameObject(std::string& gameObjectName) {
+void Game::deleteGameObject(const std::string& gameObjectName) {
 	for (int i = 0; i < this->gameObjects.size(); i++) {
 		if (this->gameObjects[i]->name == gameObjectName) {
 			std::cout << "Deleting gameObject: " << this->gameObjects[i]->name << std::endl,
@@ -56,7 +55,7 @@ void Game::deleteGameObject(std::string& gameObjectName) {
 	}
 }
 
-GameObject* Game::findObjectWithName(std::string& gameObjectName) {
+GameObject* Game::findObjectWithName(const std::string& gameObjectName) {
 	for (int i = 0; i < this->gameObjects.size(); i++) {
 		if (this->gameObjects[i]->name == gameObjectName) {
 			return this->gameObjects[i];
@@ -66,10 +65,6 @@ GameObject* Game::findObjectWithName(std::string& gameObjectName) {
 }
 
 void Game::startGame() {
-	for (int i = 0; i < this->gameObjects.size(); i++) {
-		this->gameObjects[i]->awake();
-	}
-
 	gameLoop();
 }
 

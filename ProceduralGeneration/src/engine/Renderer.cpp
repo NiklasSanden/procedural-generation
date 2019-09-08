@@ -14,7 +14,7 @@
 #include "Debug.h"
 using namespace Engine;
 
-Renderer::Renderer(std::vector<std::string>& shaderFiles, std::string& shaderProgramName, std::vector<glm::vec3>& _vertexArray, Material* _material) {
+Renderer::Renderer(const std::vector<std::string>& shaderFiles, const std::string& shaderProgramName, const std::vector<glm::vec3>& _vertexArray, Material* _material) {
 	this->shaderProgram = Engine::ResourceManager::createShaderProgram(shaderFiles, shaderProgramName);
 	this->vertexArray = _vertexArray;
 
@@ -61,23 +61,23 @@ void Renderer::calculateNormals() {
 	}
 }
 
-void Renderer::setVertexArray(std::vector<glm::vec3>& _vertexArray) {
+void Renderer::setVertexArray(const std::vector<glm::vec3>& _vertexArray) {
 	this->vertexArray = _vertexArray;
 }
 
-void Renderer::setNormalArray(std::vector<glm::vec3>& _normalArray) {
+void Renderer::setNormalArray(const std::vector<glm::vec3>& _normalArray) {
 	this->normalArray = _normalArray;
 }
 
-void Renderer::setTexCoordArray(std::vector<glm::vec2>& _texCoordArray) {
+void Renderer::setTexCoordArray(const std::vector<glm::vec2>& _texCoordArray) {
 	this->texCoordArray = _texCoordArray;
 }
 
-void Renderer::setIndexArray(std::vector<unsigned int>& _indexArray) {
+void Renderer::setIndexArray(const std::vector<unsigned int>& _indexArray) {
 	this->indexArray = _indexArray;
 }
 
-void Renderer::addTextureName(std::string& textureName) {
+void Renderer::addTextureName(const std::string& textureName) {
 	this->textureNames.push_back(textureName);
 }
 

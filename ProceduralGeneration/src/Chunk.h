@@ -5,11 +5,13 @@
 namespace ProceduralGeneration {
 	class Chunk : public Engine::GameObject {
 	private:
+		bool doneGeneratingChunk = false;
+
+		void generateChunk();
 	public:
-		Chunk(std::string& name);
+		Chunk(const std::string& name);
 		~Chunk();
 
-		void awake() override;
 		void update(float deltaTime) override;
 		void fixedUpdate() override;
 		void render() override;
