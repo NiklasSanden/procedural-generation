@@ -94,6 +94,7 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 	// OpenGL enable optional functionality
 	// --------------------------------------------------------------------------
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 }
 
 Program::~Program() {

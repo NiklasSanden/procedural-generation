@@ -13,6 +13,11 @@ glm::mat4 Transform::getModelMatrix() {
 	return this->positionMatrix * glm::transpose(rotationMatrix) * this->scaleMatrix;
 }
 
+glm::mat3 Transform::getNormalMatrix(glm::mat4& modelMatrix, glm::mat4& viewMatrix) {
+	// What this does can be read here: https://learnopengl.com/Lighting/Basic-Lighting
+	return glm::mat3(glm::transpose(glm::inverse(viewMatrix * modelMatrix)));
+}
+
 glm::vec3 Transform::getPosition() {
 	return glm::vec3(this->positionMatrix[3][0], this->positionMatrix[3][1], this->positionMatrix[3][2]);
 }

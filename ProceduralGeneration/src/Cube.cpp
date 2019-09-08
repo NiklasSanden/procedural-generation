@@ -138,21 +138,24 @@ Cube::Cube(std::string& name) : GameObject(name) {
 	this->transform = new Engine::Transform();
 
 	// get shaderProgram for renderer
-	std::vector<std::string> shaderFiles = { "shader.vert", "shader.frag" };
+	std::vector<std::string> shaderFiles = { "default.vert", "default.frag" };
 	std::string shaderProgramName = "CubeShader";
 	this->renderer = new Engine::MeshRenderer(shaderFiles, shaderProgramName, vertexArray);
 	
-	std::string textureName = "fire.jpg";
+	// texture
+	/*std::string textureName = "fire.jpg";
 	this->renderer->addTextureName(textureName);
-	this->renderer->setTexCoordArray(texCoordArray);
+	this->renderer->setTexCoordArray(texCoordArray);*/
 
-	std::vector<unsigned int> indexArray{ 0, 1, 2, 0, 2, 3,
+	std::vector<unsigned int> indexArray{ 0, 2, 1, 0, 3, 2,
 										  4, 5, 6, 4, 6, 7, 
 										  8, 9, 10, 8, 10, 11, 
-										  12, 13, 14, 12, 14, 15,
+										  12, 14, 13, 12, 15, 14,
 										  16, 17, 18, 16, 18, 19, 
-										  20, 21, 22, 20, 22, 23, };
+										  20, 22, 21, 20, 23, 22, };
 	this->renderer->setIndexArray(indexArray);
+	
+	this->renderer->calculateNormals();
 
 	this->renderer->setupVertexArrayObject();
 }
@@ -202,5 +205,12 @@ void Cube::fixedUpdate() {
 }
 
 void Cube::render() {
-	this->renderer->render(this->transform->getModelMatrix(), Camera::viewMatrix, Camera::projectionMatrix);
+	this->renderer->shaderProgram->use();
+	this->renderer->shaderProgram->setVec3("light.position", glm::vec3(2.0f, 2.0f, 2.0f));
+	this->renderer->shaderProgram->setVec3("light.ambient",  glm::vec3(0.2f, 0.2f, 0.2f));
+	this->renderer->shaderProgram->setVec3("light.diffuse",  glm::vec3(1.0f, 1.0f, 1.0f));
+	this->renderer->shaderProgram->setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+
+	glm::mat4 modelMatrix = this->transform->getModelMatrix();
+	this->renderer->render(modelMatrix, Camera::viewMatrix, Camera::projectionMatrix, this->transform->getNormalMatrix(modelMatrix, Camera::viewMatrix));
 }

@@ -13,6 +13,7 @@ namespace Engine {
 		~Transform() {};
 
 		glm::mat4 getModelMatrix();
+		glm::mat3 getNormalMatrix(glm::mat4& modelMatrix, glm::mat4& viewMatrix);
 
 		glm::vec3 getPosition();
 		glm::quat getRotation();

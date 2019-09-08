@@ -47,7 +47,8 @@ void Chunk::fixedUpdate() {
 }
 
 void Chunk::render() {
-	this->renderer->render(this->transform->getModelMatrix(), Camera::viewMatrix, Camera::projectionMatrix);
+	glm::mat4 modelMatrix = this->transform->getModelMatrix();
+	this->renderer->render(modelMatrix, Camera::viewMatrix, Camera::projectionMatrix, this->transform->getNormalMatrix(modelMatrix, Camera::viewMatrix));
 }
 
 void Chunk::renderImGui() {

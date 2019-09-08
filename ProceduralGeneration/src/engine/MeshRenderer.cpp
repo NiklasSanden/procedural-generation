@@ -2,6 +2,7 @@
 #include "Shader.h"
 #include "ResourceManager.h"
 #include "Texture2D.h"
+#include "Material.h"
 
 #include "glad/glad.h"
 #include "glm/glm.hpp"
@@ -14,7 +15,8 @@
 #include "Debug.h"
 using namespace Engine;
 
-MeshRenderer::MeshRenderer(std::vector<std::string>& shaderFiles, std::string& shaderProgramName, std::vector<glm::vec3>& _vertexArray) : Renderer(shaderFiles, shaderProgramName, _vertexArray) {
+MeshRenderer::MeshRenderer(std::vector<std::string>& shaderFiles, std::string& shaderProgramName, std::vector<glm::vec3>& _vertexArray, Material* _material) 
+	: Renderer(shaderFiles, shaderProgramName, _vertexArray, _material) {
 
 }
 
@@ -75,10 +77,14 @@ void MeshRenderer::setupVertexArrayObject() {
 	glEnableVertexAttribArray(vertexAttributeCounter);
 	vertexAttributeCounter++;
 
-	// TODO: normals - don't know how they work yet though
-	// ---------------------------------------------------
+	// normals attribute
+	if (this->normalArray.size() > 0) {
+		glVertexAttribPointer(vertexAttributeCounter, 3, GL_FLOAT, GL_FALSE, getStrideValue(), getNormalArrayOffsetPtr());
+		glEnableVertexAttribArray(vertexAttributeCounter);
+		vertexAttributeCounter++;
+	}
 
-	// texture coordinates
+	// texture coordinates attribute
 	if (this->texCoordArray.size() > 0) {
 		glVertexAttribPointer(vertexAttributeCounter, 2, GL_FLOAT, GL_FALSE, getStrideValue(), getTexCoordArrayOffsetPtr());
 		glEnableVertexAttribArray(vertexAttributeCounter);
@@ -101,7 +107,7 @@ void MeshRenderer::setupVertexArrayObject() {
 	if (this->indexArray.size() > 0) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void MeshRenderer::render(glm::mat4& modelMatrix, glm::mat4& viewMatrix, glm::mat4& projectionMatrix) {
+void MeshRenderer::render(glm::mat4& modelMatrix, glm::mat4& viewMatrix, glm::mat4& projectionMatrix, glm::mat3& normalMatrix) {
 	if (this->VAO == 0) {
 		std::cout << "---------> Error - Trying to render (MeshRenderer) without first calling setupVertexArrayObject()" << std::endl;
 		return;
@@ -113,6 +119,12 @@ void MeshRenderer::render(glm::mat4& modelMatrix, glm::mat4& viewMatrix, glm::ma
 	this->shaderProgram->setMat4("model", modelMatrix);
 	this->shaderProgram->setMat4("view", viewMatrix);
 	this->shaderProgram->setMat4("projection", projectionMatrix);
+	this->shaderProgram->setMat3("normal", normalMatrix);
+	// material
+	this->shaderProgram->setVec3("material.ambient",	this->material->ambient);
+	this->shaderProgram->setVec3("material.diffuse",	this->material->diffuse);
+	this->shaderProgram->setVec3("material.specular",	this->material->specular);
+	this->shaderProgram->setFloat("material.shininess", this->material->shininess);
 
 	// Textures
 	for (int i = 0; i < this->textureNames.size(); i++) {
