@@ -11,3 +11,6 @@
 	path = ProceduralGeneration/for-building/imgui
 	url = https://github.com/ocornut/imgui
 	branch = docking
+[submodule "ProceduralGeneration/for-building/PhysX"]
+	path = ProceduralGeneration/for-building/PhysX
+	url = https://github.com/NVIDIAGameWorks/PhysX
