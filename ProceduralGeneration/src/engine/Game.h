@@ -9,6 +9,7 @@ namespace Engine {
 
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 namespace Engine {
 	class Game {
@@ -28,6 +29,7 @@ namespace Engine {
 
 		void addGameObject(GameObject* gameObject);
 		void deleteGameObject(const std::string& gameObjectName);
+		void deleteGameObjects(const std::unordered_set<std::string>& gameObjectNames);
 		GameObject* findObjectWithName(const std::string& gameObjectName);
 
 		void startGame();

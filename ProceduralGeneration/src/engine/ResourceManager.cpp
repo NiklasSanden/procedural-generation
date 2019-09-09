@@ -65,10 +65,10 @@ Texture2D* ResourceManager::getTexture(const std::string& name) {
 }
 
 Shader* ResourceManager::createShaderProgram(const std::vector<std::string>& files, const std::string& name) {
-	std::cout << "Creating shader program: " << name << std::endl;
-
 	// If a shaderProgram with that name doesn't exist
 	if (shaderPrograms.find(name) == shaderPrograms.end()) {
+		std::cout << "Creating shader program: " << name << std::endl;
+
 		std::vector<unsigned int> shaderIDs(files.size());
 		for (int i = 0; i < files.size(); i++) {
 			shaderIDs[i] = ShaderManager::getShaderID(files[i]);

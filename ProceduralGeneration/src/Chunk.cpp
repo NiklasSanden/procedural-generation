@@ -14,6 +14,7 @@
 #include "Camera.h"
 #include "GameManager.h"
 #include "Input.h"
+#include "ChunkManager.h"
 
 #include "glad/glad.h"
 #include "glm/glm.hpp"
@@ -23,13 +24,18 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <vector>
 
 #include "engine/Debug.h"
 using namespace ProceduralGeneration;
 
-Chunk::Chunk(const std::string& name) : GameObject(name) {
+Chunk::Chunk(const std::string& name, const glm::vec3& position, ChunkManager* _chunkManager) : GameObject(name) {
+	this->chunkManager = _chunkManager;
+	
 	// setup components
 	this->transform = new Engine::Transform();
+	this->transform->translate(position);
+	this->transform->scale(glm::vec3(this->chunkManager->chunkLength / 1.2f));
 
 	generateChunk();
 }
@@ -48,6 +54,13 @@ void Chunk::fixedUpdate() {
 
 void Chunk::render() {
 	if (!this->doneGeneratingChunk) return;
+
+	// Check to see if possible that the chunk might be seen by the camera
+	glm::vec3 margin = -GameManager::getPlayer()->transform->getDirection() * this->chunkManager->chunkDistaceToCorner;
+	glm::vec3 difference = this->transform->getPosition() - GameManager::getPlayer()->transform->getPosition() + margin;
+	if (glm::dot(difference, -GameManager::getPlayer()->transform->getDirection()) <= 0.0f) {
+		return;
+	}
 
 	// used in multiple function calls
 	glm::mat4 modelMatrix = this->transform->getModelMatrix();
@@ -87,15 +100,48 @@ void Chunk::renderImGui() {
 
 void Chunk::generateChunk() {
 	// renderer
-	std::vector<glm::vec3> vertexArray{ glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 1.0f, -1.0f) };
-	
+	std::vector<glm::vec3> vertexArray{
+		glm::vec3(-0.5f, -0.5f, -0.5f),
+		glm::vec3(0.5f, -0.5f, -0.5f),
+		glm::vec3(0.5f,  0.5f, -0.5f),
+		glm::vec3(-0.5f,  0.5f, -0.5f),
 
+		glm::vec3(-0.5f, -0.5f,  0.5f),
+		glm::vec3(0.5f, -0.5f,  0.5f),
+		glm::vec3(0.5f,  0.5f,  0.5f),
+		glm::vec3(-0.5f,  0.5f,  0.5f),
 
+		glm::vec3(-0.5f,  0.5f,  0.5f),
+		glm::vec3(-0.5f,  0.5f, -0.5f),
+		glm::vec3(-0.5f, -0.5f, -0.5f),
+		glm::vec3(-0.5f, -0.5f,  0.5f),
+
+		glm::vec3(0.5f,  0.5f,  0.5f),
+		glm::vec3(0.5f,  0.5f, -0.5f),
+		glm::vec3(0.5f, -0.5f, -0.5f),
+		glm::vec3(0.5f, -0.5f,  0.5f),
+
+		glm::vec3(-0.5f, -0.5f, -0.5f),
+		glm::vec3(0.5f, -0.5f, -0.5f),
+		glm::vec3(0.5f, -0.5f,  0.5f),
+		glm::vec3(-0.5f, -0.5f,  0.5f),
+
+		glm::vec3(-0.5f,  0.5f, -0.5f),
+		glm::vec3(0.5f,  0.5f, -0.5f),
+		glm::vec3(0.5f,  0.5f,  0.5f),
+		glm::vec3(-0.5f,  0.5f,  0.5f),
+	};
+
+	std::vector<unsigned int> indexArray{ 0, 2, 1, 0, 3, 2,
+									  4, 5, 6, 4, 6, 7,
+									  8, 9, 10, 8, 10, 11,
+									  12, 14, 13, 12, 15, 14,
+									  16, 17, 18, 16, 18, 19,
+									  20, 22, 21, 20, 23, 22, };
 
 
 	this->renderer = new Engine::MeshRenderer({ "chunk.vert", "chunk.frag" }, "ChunkShader", vertexArray);
 
-	std::vector<unsigned int> indexArray{ 0, 1, 2 };
 	this->renderer->setIndexArray(indexArray);
 
 	this->renderer->calculateNormals();

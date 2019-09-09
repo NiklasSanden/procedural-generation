@@ -16,6 +16,8 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
+#include <unordered_set>
 
 #include "Debug.h"
 using namespace Engine;
@@ -46,13 +48,29 @@ void Game::addGameObject(GameObject* gameObject) {
 void Game::deleteGameObject(const std::string& gameObjectName) {
 	for (int i = 0; i < this->gameObjects.size(); i++) {
 		if (this->gameObjects[i]->name == gameObjectName) {
-			std::cout << "Deleting gameObject: " << this->gameObjects[i]->name << std::endl,
+			std::cout << "Deleting gameObject: " << this->gameObjects[i]->name << std::endl;
 	
 			delete this->gameObjects[i];
 
 			this->gameObjects.erase(this->gameObjects.begin() + i);
 		}
 	}
+}
+
+void Game::deleteGameObjects(const std::unordered_set<std::string>& gameObjectNames) {
+	std::vector<GameObject*> newGameObjectList;
+
+	for (int i = 0; i < this->gameObjects.size(); i++) {
+		if (gameObjectNames.find(this->gameObjects[i]->name) == gameObjectNames.end()) {
+			newGameObjectList.push_back(this->gameObjects[i]);
+		}
+		else {
+			std::cout << "Deleting gameObject: " << this->gameObjects[i]->name << std::endl;
+			delete this->gameObjects[i];
+		}
+	}
+
+	this->gameObjects = newGameObjectList;
 }
 
 GameObject* Game::findObjectWithName(const std::string& gameObjectName) {

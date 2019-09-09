@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "engine/Debug.h"
 using namespace ProceduralGeneration;
@@ -38,7 +39,10 @@ void ChunkManager::update(float deltaTime) {
 	glm::vec3 roundedPlayerPosition = glm::round(playerPosition / this->chunkLength);
 
 	// This will keep track of all the old loaded chunks, and in the loop will remove all that should still be rendered. The once remaining will be removed
-	std::unordered_map<std::string, std::string> oldLoadedChunks = this->loadedChunks;
+	std::unordered_set<std::string> oldLoadedChunks;
+	for (auto& chunk : loadedChunks) {
+		oldLoadedChunks.insert(chunk.second);
+	}
 
 	// Notice that left, down and front are negative. That is because they will be used in the for loop, and will be added to the roundedPlayerPosition
 	int chunksInRangeUp = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -54,28 +58,40 @@ void ChunkManager::update(float deltaTime) {
 			for (int z = chunksInRangeFront; z <= chunksInRangeBack; z++) {
 				
 				glm::vec3 currentChunk = glm::vec3(roundedPlayerPosition.x + x, roundedPlayerPosition.y + y, roundedPlayerPosition.z + z);
-				std::string currentChunkName = vec3ToString(currentChunk);
+				std::string currentChunkPosition = vec3ToString(currentChunk);
+				std::string chunkName = "Chunk: " + currentChunkPosition;
+				glm::vec3 asd = currentChunk * this->chunkLength;
 
-				if (glm::length2((currentChunk - roundedPlayerPosition) * this->chunkLength) <= this->viewDistanceSqrd) {
-					if (this->loadedChunks.find(currentChunkName) == this->loadedChunks.end()) {
-						Chunk* chunk = new Chunk("Chunk (" + currentChunkName + ")");
+				if (glm::length2((currentChunk - roundedPlayerPosition) * this->chunkLength) <= (this->viewDistance + this->chunkDistaceToCorner) * (this->viewDistance + this->chunkDistaceToCorner)) {
+					if (this->loadedChunks.find(currentChunkPosition) == this->loadedChunks.end()) {
+						Chunk* chunk = new Chunk(chunkName, currentChunk * this->chunkLength, this);
 						GameManager::getGamePtr()->addGameObject(chunk);
-						this->loadedChunks[currentChunkName] = "Chunk (" + currentChunkName + ")";
+						this->loadedChunks[currentChunkPosition] = chunkName;
+					}
+					else {
+						// Remove from oldLoadedChunks
+						auto& it = oldLoadedChunks.find(chunkName);
+						if (it != oldLoadedChunks.end()) {
+							oldLoadedChunks.erase(it);
+						}
 					}
 				}
-				/*else {
-					if (this->loadedChunks.find(currentChunkName) != this->loadedChunks.end()) {
-						GameManager::getGamePtr()->deleteGameObject(loadedChunks[currentChunkName]);
-						this->loadedChunks.erase(currentChunkName);
+				else {
+					if (this->loadedChunks.find(currentChunkPosition) != this->loadedChunks.end()) {
+						this->loadedChunks.erase(currentChunkPosition);
 					}
-				}*/
+				}
 			}
 		}
 	}
+
+	// Delete the chunks
+	if (oldLoadedChunks.size() > 0)
+		GameManager::getGamePtr()->deleteGameObjects(oldLoadedChunks);
 }
 
 std::string ChunkManager::vec3ToString(const glm::vec3& vector) {
-	return "(" + std::to_string((int)vector.x) + ", " + std::to_string((int)vector.y) + ", " + std::to_string((int)vector.z) + ")";
+	return "(" + std::to_string((int)std::roundf(vector.x)) + ", " + std::to_string((int)std::roundf(vector.y)) + ", " + std::to_string((int)std::roundf(vector.z)) + ")";
 }
 
 int ChunkManager::chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector) {
