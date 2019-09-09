@@ -6,7 +6,10 @@ namespace Engine {
 	class DirectionalLight;
 	class PointLight;
 }
-namespace ProceduralGeneration { class Input; }
+namespace ProceduralGeneration { 
+	class Input;
+	class Camera;
+}
 
 #include "engine/GameObject.h"
 
@@ -20,6 +23,8 @@ namespace ProceduralGeneration {
 		static Input* inputPtr;
 		static Engine::DirectionalLight* directionalLight;
 		static std::vector<Engine::PointLight*> pointLights;
+
+		static Camera* player;
 	public:
 		static Engine::Game* getGamePtr();
 		static void setGamePtr(Engine::Game* _gamePtr);
@@ -28,6 +33,8 @@ namespace ProceduralGeneration {
 
 		static Engine::DirectionalLight* getDirectionalLight();
 		static std::vector<Engine::PointLight*> getPointLights();
+
+		static Camera* getPlayer();
 
 	// instanced part
 	public:

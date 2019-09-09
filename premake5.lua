@@ -45,12 +45,6 @@ project "ProceduralGeneration"
         "%{prj.name}/include/imgui/imgui_widgets.cpp",
         "%{prj.name}/include/imgui/imgui_impl_glfw.cpp",
         "%{prj.name}/include/imgui/imgui_impl_opengl3.cpp"
-
-        -- not necessary
-        --"%{prj.name}/include/**.h",
-        --"%{prj.name}/include/**.cpp", 
-        --"%{prj.name}/include/**.c"
-        --"%{prj.name}/include/**.hpp"
     }
 
     includedirs
@@ -59,18 +53,25 @@ project "ProceduralGeneration"
         "%{prj.name}/include",
         "%{prj.name}/include/GLAD",
         "%{prj.name}/include/glm",
-        "%{prj.name}/include/stb"
+        "%{prj.name}/include/stb",
+        "%{prj.name}/include/PhysX"
     }
 
     libdirs
     {
-        "%{prj.name}/lib"
+        "%{prj.name}/lib",
+        "%{prj.name}/lib/PhysX"
     }
 
     links
     {
-        "glfw3.lib"
-        --"opengl32.lib"
+        "glfw3.lib",
+        
+        "PhysX_64.lib",
+        "PhysXCommon_64.lib",
+        "PhysXCooking_64.lib",
+        "PhysXExtensions_static_64.lib",
+        "PhysXFoundation_64.lib"
     }
 
     postbuildcommands

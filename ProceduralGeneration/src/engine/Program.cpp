@@ -6,6 +6,8 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
+#include "extensions/PxDefaultAllocator.h"	   // This implements the required PxAllocatorCallback for us
+
 #include <iostream>
 
 #include "Debug.h"

@@ -5,7 +5,7 @@
 #include "engine/Lights.h"
 #include "Camera.h"
 #include "Cube.h"
-#include "Chunk.h"
+#include "ChunkManager.h"
 
 #include "imgui/imgui.h"
 
@@ -20,6 +20,7 @@ Engine::Game* GameManager::gamePtr = nullptr;
 Input* GameManager::inputPtr = nullptr;
 Engine::DirectionalLight* GameManager::directionalLight = nullptr;
 std::vector<Engine::PointLight*> GameManager::pointLights;
+Camera* GameManager::player = nullptr;
 
 Engine::Game* GameManager::getGamePtr() {
 	return gamePtr;
@@ -43,32 +44,38 @@ std::vector<Engine::PointLight*> GameManager::getPointLights() {
 	return pointLights;
 }
 
+Camera* GameManager::getPlayer() {
+	return player;
+}
+
 GameManager::GameManager(const std::string& _name) : GameObject(_name) {
 	Engine::ResourceManager::loadAllTextures();
 
-	Camera* camera = new Camera("Camera");
-	this->gamePtr->addGameObject(camera); // the game class will deallocate the memory
+	player = new Camera("Camera");
+	this->gamePtr->addGameObject(player); // the game class will deallocate the memory
 
-	Cube* cube = new Cube("Cube1");
+	Cube* cube = new Cube("TestCube");
 	this->gamePtr->addGameObject(cube);
 	
+	ChunkManager* chunkManager = new ChunkManager("ChunkManager");
+	this->gamePtr->addGameObject(chunkManager);
+
+	// Lights
 	this->directionalLight = new Engine::DirectionalLight("Directional Light", glm::vec3(-0.2f, -1.0f, -0.3f), glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	this->gamePtr->addGameObject(directionalLight);
 
-	this->pointLights.push_back(new Engine::PointLight("Point Light1", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 50.0f));
-	this->gamePtr->addGameObject(pointLights.back());
-
-	/*Chunk* chunk = new Chunk("Chunk1");
-	this->gamePtr->addGameObject(chunk);*/
+	/*this->pointLights.push_back(new Engine::PointLight("Point Light1", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 50.0f));
+	this->gamePtr->addGameObject(pointLights.back());*/
 }
 
 GameManager::~GameManager() {
 	
 }
 
+float savedDeltaTime = 0.0f;
 // instance
 void GameManager::update(float deltaTime) {
-	
+	savedDeltaTime = deltaTime;
 }
 
 void GameManager::fixedUpdate() {
@@ -77,10 +84,12 @@ void GameManager::fixedUpdate() {
 
 void GameManager::renderImGui() {
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-	/*bool showDemoWindow = true;
-	ImGui::ShowDemoWindow(&showDemoWindow);*/
+	//bool showDemoWindow = true;
+	//ImGui::ShowDemoWindow(&showDemoWindow);
 
 	ImGui::Begin("Test window");
+
+	ImGui::Text(std::to_string(1.0f / savedDeltaTime).c_str());
 
 	ImGui::End();
 }
