@@ -95,7 +95,7 @@ void MeshRenderer::setupVertexArrayObject() {
 	if (this->indexArray.size() > 0) {
 		glGenBuffers(1, &this->EBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexArray.size() * sizeof(unsigned int), this->indexArray.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indexArray.size() * sizeof(unsigned int), this->indexArray.data(), GL_STATIC_DRAW);
 		// We cannot unbind it here, since the vertexArrayObject keeps track of the binded EBO at the end, and would therefore not use this
 		// Unbinding happens at the end of the function
 	}

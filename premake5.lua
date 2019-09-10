@@ -104,6 +104,10 @@ project "ProceduralGeneration"
         }
     
     filter "configurations:Release"
-        defines "CFG_RELEASE"
+        defines 
+        {
+            "CFG_RELEASE",
+            "NDEBUG"
+        }
         runtime "Release"
         optimize "On"

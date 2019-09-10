@@ -8,6 +8,8 @@ namespace ProceduralGeneration {
 
 #include "glm/glm.hpp"
 
+#include <vector>
+
 namespace ProceduralGeneration {
 	class Chunk : public Engine::GameObject {
 	private:
@@ -21,7 +23,8 @@ namespace ProceduralGeneration {
 
 		void update(float deltaTime) override;
 		void fixedUpdate() override;
-		void render() override;
-		void renderImGui() override;
+
+		// 
+		void getArraysForRendering(std::vector<glm::vec3>*& _vertexArray, std::vector<unsigned int>*& _indexArray, std::vector<glm::vec3>*& _normalArray);
 	};
 }

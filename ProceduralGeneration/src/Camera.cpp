@@ -79,7 +79,7 @@ void Camera::update(float deltaTime) {
 	// Update Matrices
 	// -----------------------------
 	// projection matrix
-	projectionMatrix = glm::perspective(glm::radians(60.0f), (float)Engine::Program::SCREEN_WIDTH / Engine::Program::SCREEN_HEIGHT, 0.1f, 100.0f);
+	projectionMatrix = glm::perspective(glm::radians(60.0f), (float)Engine::Program::SCREEN_WIDTH / Engine::Program::SCREEN_HEIGHT, 0.1f, 200.0f);
 
 	// view matrix
 	viewMatrix = glm::lookAt(this->transform->getPosition(), this->transform->getPosition() - this->transform->getDirection(), glm::vec3(0.0f, 1.0f, 0.0f));
