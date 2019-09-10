@@ -13,6 +13,9 @@
 
 #include "glad/glad.h"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 #include "glm/glm.hpp"
 #include "glm/gtx/norm.hpp"
 
@@ -76,7 +79,8 @@ void ChunkManager::update(float deltaTime) {
 				glm::vec3 currentChunk = glm::vec3(roundedPlayerPosition.x + x, roundedPlayerPosition.y + y, roundedPlayerPosition.z + z);
 				std::string currentChunkPosition = vec3ToString(currentChunk);
 				std::string chunkName = "Chunk: " + currentChunkPosition;
-				glm::vec3 asd = currentChunk * this->chunkLength;
+
+				// TODO: There is currently a bug that is immediately visible at (0, 0, 4) and around there, where blocks are gone but still in loadedChunks
 
 				if (glm::length2((currentChunk - roundedPlayerPosition) * this->chunkLength) <= (this->viewDistance + this->chunkDistaceToCorner) * (this->viewDistance + this->chunkDistaceToCorner)) {
 					if (this->loadedChunks.find(currentChunkPosition) == this->loadedChunks.end()) {
@@ -233,4 +237,19 @@ void ChunkManager::render() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	this->shaderProgram->unbind();
+}
+
+void ChunkManager::renderImGui() {
+	{
+		static float f = 70.0f;
+
+		ImGui::Begin("Settings");
+
+		ImGui::SliderFloat("View distance", &f, 0.0f, 200.0f);            
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+
+		this->viewDistance = f; this->viewDistanceSqrd = f * f;
+	}
 }

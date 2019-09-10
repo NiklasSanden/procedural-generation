@@ -46,7 +46,7 @@ namespace ProceduralGeneration {
 
 		void update(float deltaTime) override;
 		void render() override;
-		void renderImGui() override {};
+		void renderImGui() override;
 	private:
 		std::string vec3ToString(const glm::vec3& vector);
 
