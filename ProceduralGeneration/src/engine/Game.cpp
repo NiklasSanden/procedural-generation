@@ -34,21 +34,21 @@ Game::~Game() {
 	ResourceManager::cleanup();
 
 	for (int i = 0; i < this->gameObjects.size(); i++) {
-		std::cout << "Deleting gameObject: " << this->gameObjects[i]->name << std::endl;
+		LogManager::Log("Deleting gameObject: " + this->gameObjects[i]->name);
 		delete this->gameObjects[i];
 	}
 	this->gameObjects.clear();
 }
 
 void Game::addGameObject(GameObject* gameObject) {
-	std::cout << "Adding gameObject: " << gameObject->name << std::endl;
+	LogManager::Log("Adding gameObject: " + gameObject->name);
 	this->gameObjects.push_back(gameObject);
 }
 
 void Game::deleteGameObject(const std::string& gameObjectName) {
 	for (int i = 0; i < this->gameObjects.size(); i++) {
 		if (this->gameObjects[i]->name == gameObjectName) {
-			std::cout << "Deleting gameObject: " << this->gameObjects[i]->name << std::endl;
+			LogManager::Log("Deleting gameObject: " + this->gameObjects[i]->name);
 	
 			delete this->gameObjects[i];
 
@@ -65,7 +65,7 @@ void Game::deleteGameObjects(const std::unordered_set<std::string>& gameObjectNa
 			newGameObjectList.push_back(this->gameObjects[i]);
 		}
 		else {
-			std::cout << "Deleting gameObject: " << this->gameObjects[i]->name << std::endl;
+			LogManager::Log("Deleting gameObject: " + this->gameObjects[i]->name);
 			delete this->gameObjects[i];
 		}
 	}

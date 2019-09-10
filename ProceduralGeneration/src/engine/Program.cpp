@@ -18,7 +18,7 @@ unsigned int Program::SCREEN_WIDTH;
 unsigned int Program::SCREEN_HEIGHT;
 
 Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
-	std::cout << "Creating window" << std::endl;
+	LogManager::Log("Creating window");
 	SCREEN_WIDTH = screenWidth;
 	SCREEN_HEIGHT = screenHeight;
 
@@ -38,7 +38,7 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 
 	this->window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "ProceduralGeneration", NULL, NULL);
 	if (this->window == nullptr) {
-		std::cout << "Failed to create GLFW window" << std::endl;
+		LogManager::LogError("Failed to create GLFW window");
 		glfwTerminate();
 		throw std::exception();
 	}
@@ -56,7 +56,7 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 	// GLAD Setup
 	// --------------------------------------------------------------------------
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		std::cout << "Failed to initialize GLAD" << std::endl;
+		LogManager::LogError("Failed to initialize GLAD");
 		throw std::exception();
 	}
 
@@ -73,14 +73,14 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 	// error handling
 #ifdef CFG_DEBUG
 	if (glDebugMessageCallback) {
-		std::cout << "Register OpenGL debug callback\n" << std::endl;
+		LogManager::Log("Register OpenGL debug callback\n");
 		glEnable(GL_DEBUG_OUTPUT); // GL_DEBUG_OUTPUT_SYNCHRONOUS
 		glDebugMessageCallback(GLDebugMessageCallback, nullptr);
 		GLuint unusedIds = 0;
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unusedIds, true);
 	}
 	else
-		std::cout << "glDebugMessageCallback not available\n" << std::endl;
+		LogManager::LogError("glDebugMessageCallback not available");
 #endif
 
 	// window resizing
@@ -100,7 +100,7 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 }
 
 Program::~Program() {
-	std::cout << "Destroying window" << std::endl;
+	LogManager::Log("Destroying window");
 
 	delete this->imGuiLayer; // the destructor will clean ImGui up
 
@@ -110,7 +110,7 @@ Program::~Program() {
 
 // GLFW error handling
 void Engine::glfwErrorCallback(int error, const char* description) {
-	std::cout << "--------------------\nGLFW Error: " << error << "\nDescription: " << description << "\n--------------------" << std::endl;
+	LogManager::LogError("\nGLFW Error: " + std::to_string(error) + "\nDescription: " + description + "\n--------------------");
 }
 
 // OpenGL error handling
@@ -123,50 +123,50 @@ void APIENTRY Engine::GLDebugMessageCallback(GLenum source, GLenum type, GLuint 
 	// Useless nvidia notification
 	if (id == 131185) return;
 
-	std::cout << "---------------------opengl-callback-start------------" << std::endl;
-	std::cout << "message: " << msg << std::endl;
-	std::cout << "type: ";
+	std::string finalMessage = "OpenGL\n";
+	finalMessage += "---------------------opengl-callback-start------------";
+	finalMessage += "message: " + std::string(msg);
+	finalMessage += "\ntype: ";
 	switch (type) {
 	case GL_DEBUG_TYPE_ERROR:
-		std::cout << "ERROR";
+		finalMessage += "ERROR";
 		break;
 	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-		std::cout << "DEPRECATED_BEHAVIOR";
+		finalMessage += "DEPRECATED_BEHAVIOR";
 		break;
 	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-		std::cout << "UNDEFINED_BEHAVIOR";
+		finalMessage += "UNDEFINED_BEHAVIOR";
 		break;
 	case GL_DEBUG_TYPE_PORTABILITY:
-		std::cout << "PORTABILITY";
+		finalMessage += "PORTABILITY";
 		break;
 	case GL_DEBUG_TYPE_PERFORMANCE:
-		std::cout << "PERFORMANCE";
+		finalMessage += "PERFORMANCE";
 		break;
 	case GL_DEBUG_TYPE_OTHER:
-		std::cout << "OTHER";
+		finalMessage += "OTHER";
 		break;
 	}
-	std::cout << std::endl;
 
-	std::cout << "id: " << id << std::endl;
-	std::cout << "severity: ";
+	finalMessage += "\nid: " + std::to_string(id);
+	finalMessage += "\nseverity: ";
 	switch (severity) {
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
-		std::cout << "Notification";
+		finalMessage += "Notification";
 		break;
 	case GL_DEBUG_SEVERITY_LOW:
-		std::cout << "LOW";
+		finalMessage += "LOW";
 		break;
 	case GL_DEBUG_SEVERITY_MEDIUM:
-		std::cout << "MEDIUM";
+		finalMessage += "MEDIUM";
 		break;
 	case GL_DEBUG_SEVERITY_HIGH:
-		std::cout << "HIGH";
+		finalMessage += "HIGH";
 		break;
 	}
-	std::cout << std::endl;
-	std::cout << "---------------------opengl-callback-end--------------\n" << std::endl;
+	finalMessage += "\n---------------------opengl-callback-end--------------\n\n";
 
+	LogManager::LogError(finalMessage);
 }
 
 void Engine::framebuffer_size_callback(GLFWwindow* window, int width, int height) {

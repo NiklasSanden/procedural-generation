@@ -14,7 +14,6 @@ GameObject::GameObject(const std::string& _name) {
 }
 
 GameObject::~GameObject() {
-	// std::cout << "Deleting components from gameObject: " << name << std::endl;
 	delete this->renderer;
 	delete this->transform;
 }

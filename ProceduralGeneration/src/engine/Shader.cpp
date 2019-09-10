@@ -89,7 +89,7 @@ void Shader::checkLinkingErrors() {
 	if (!success)
 	{
 		glGetProgramInfoLog(this->ID, 1024, NULL, infoLog);
-		std::cout << "---------> Error linking program" << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		LogManager::LogError("Linking program\n" + std::string(infoLog) + "\n-- --------------------------------------------------- --");
 	}
 }
 

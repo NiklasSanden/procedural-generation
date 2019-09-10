@@ -39,7 +39,7 @@ void Renderer::setMaterial(Material* _material) {
 // TODO: If the indexArray is empty, still calculate the normals by going through vertices 3 by 3
 void Renderer::calculateNormals() { 
 	if (this->indexArray.size() == 0) {
-		std::cout << "---------> Error - Trying to calculate normals while indexArray is empty: currently not supported" << std::endl;
+		LogManager::LogError("Trying to calculate normals while indexArray is empty : currently not supported");
 		return;
 	}
 

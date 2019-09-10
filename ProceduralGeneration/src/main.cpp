@@ -5,6 +5,9 @@
 #include "Input.h"
 #include "GameManager.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtx/norm.hpp"
+
 #include <iostream>
 #include <string>
 
@@ -18,7 +21,7 @@ int main() {
 		// Automatically call _CrtDumpMemoryLeaks() when the application is done
 		// All static variables will have been cleared by then as well
 		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-		std::cout << "Memory leaks will be sent to output\n---------------------------" << std::endl;
+		LogManager::Log("Memory leaks will be sent to output\n---------------------------");
 	#endif
 #endif
 
@@ -40,7 +43,7 @@ int main() {
 	// start the game
 	game->startGame();
 
-	std::cout << "---------------------------\nCleanup\n---------------------------" << std::endl;
+	LogManager::Log("---------------------------\nCleanup\n---------------------------");
 
 	// Cleanup
 	delete game;
@@ -49,7 +52,7 @@ int main() {
 	
 
 	// Done
-	std::cout << "---------------------------\nDone - Press enter to close\n---------------------------" << std::endl;
+	LogManager::Log("---------------------------\nDone - Press enter to close\n---------------------------");
 	std::cin.get();
 	return 0;
 }
@@ -182,7 +185,6 @@ int main() {
 //	}
 //	else
 //	{
-//		std::cout << "Failed to load texture" << std::endl;
 //	}
 //	stbi_image_free(data);
 //
@@ -206,7 +208,6 @@ int main() {
 //	}
 //	else
 //	{
-//		std::cout << "Failed to load texture" << std::endl;
 //	}
 //	stbi_image_free(data2);
 //
@@ -254,7 +255,6 @@ int main() {
 //		// FPS counter
 //		/*count++;
 //		if (glfwGetTime() - oldTime > 1.0) {
-//			std::cout << "FPS is: " << count << std::endl;
 //			count = 0;
 //			oldTime = glfwGetTime();
 //		}*/
@@ -327,7 +327,6 @@ int main() {
 //	glfwTerminate();
 //
 //
-//	std::cout << "---------------------------\nDone - Press enter to close\n---------------------------" << std::endl;
 //	std::cin.get();
 //	return 0;
 //

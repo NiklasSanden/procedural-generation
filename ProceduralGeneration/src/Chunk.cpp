@@ -105,14 +105,30 @@ void Chunk::generateChunk() {
 
 	this->renderer->calculateNormals();
 
+
+	if (this->renderer->vertexArray.size() != this->renderer->normalArray.size()) {
+		Engine::LogManager::LogError("VertexArray doesn't have the same size as normalArray in ChunkManager");
+		return;
+	}
+	// Precalculate vertexAttributes
+	this->vertexAttributes.reserve(this->renderer->vertexArray.size() * 3 + this->renderer->normalArray.size() * 3);
+	for (unsigned int i = 0; i < this->renderer->vertexArray.size(); i++) {
+		this->vertexAttributes.push_back(this->renderer->vertexArray[i].x);
+		this->vertexAttributes.push_back(this->renderer->vertexArray[i].y);
+		this->vertexAttributes.push_back(this->renderer->vertexArray[i].z);
+
+		this->vertexAttributes.push_back(this->renderer->normalArray[i].x);
+		this->vertexAttributes.push_back(this->renderer->normalArray[i].y);
+		this->vertexAttributes.push_back(this->renderer->normalArray[i].z);
+	}
+
 	this->doneGeneratingChunk = true;
 }
 
-void Chunk::getArraysForRendering(std::vector<glm::vec3>*& _vertexArray, std::vector<unsigned int>*& _indexArray, std::vector<glm::vec3>*& _normalArray) {
+void Chunk::getArraysForRendering(std::vector<float>*& _vertexAttributes, std::vector<unsigned int>*& _indexArray) {
 	if (!this->doneGeneratingChunk) {
-		_vertexArray = nullptr;
+		_vertexAttributes = nullptr;
 		_indexArray = nullptr;
-		_normalArray = nullptr;
 		return;
 	}
 
@@ -120,13 +136,11 @@ void Chunk::getArraysForRendering(std::vector<glm::vec3>*& _vertexArray, std::ve
 	glm::vec3 margin = -GameManager::getPlayer()->transform->getDirection() * this->chunkManager->chunkDistaceToCorner;
 	glm::vec3 difference = this->transform->getPosition() - GameManager::getPlayer()->transform->getPosition() + margin;
 	if (glm::dot(difference, -GameManager::getPlayer()->transform->getDirection()) <= 0.0f) {
-		_vertexArray = nullptr;
+		_vertexAttributes = nullptr;
 		_indexArray = nullptr;
-		_normalArray = nullptr;
 		return;
 	}
 	
-	_vertexArray = &this->renderer->vertexArray;
+	_vertexAttributes = &this->vertexAttributes;
 	_indexArray = &this->renderer->indexArray;
-	_normalArray = &this->renderer->normalArray;
 }

@@ -35,7 +35,7 @@ void extractSourceCode() {
 			shaderCode = shaderStream.str();
 		}
 		catch (std::ifstream::failure e) {
-			std::cout << "---------> Error - Failed to extract shader source code of file: " << entry.path() << std::endl;
+			Engine::LogManager::LogError("Failed to extract shader source code of file : " + entry.path().string());
 		}
 
 		// get the name of the file

@@ -53,7 +53,7 @@ void ResourceManager::loadAllTextures() {
 }
 
 Texture2D* ResourceManager::loadTexture(const char* file, bool alpha, const std::string& name) {
-	std::cout << "Loading texture: " << name << std::endl;
+	LogManager::Log("Loading texture: " + name);
 
 	std::string filePath = "res/textures/" + std::string(file);
 	textures[name] = loadTextureFromFile(filePath.c_str(), alpha);
@@ -67,7 +67,7 @@ Texture2D* ResourceManager::getTexture(const std::string& name) {
 Shader* ResourceManager::createShaderProgram(const std::vector<std::string>& files, const std::string& name) {
 	// If a shaderProgram with that name doesn't exist
 	if (shaderPrograms.find(name) == shaderPrograms.end()) {
-		std::cout << "Creating shader program: " << name << std::endl;
+		LogManager::Log("Creating shader program: " + name);
 
 		std::vector<unsigned int> shaderIDs(files.size());
 		for (int i = 0; i < files.size(); i++) {
@@ -88,14 +88,14 @@ Shader* ResourceManager::getShaderProgram(const std::string& name) {
 void ResourceManager::cleanup() {
 	// The destructors will call glDeleteTextures(1, &this->ID);
 	for (auto texture : textures) {
-		std::cout << "Deleting texture: " << texture.first << std::endl;
+		LogManager::Log("Deleting texture: " + texture.first);
 		delete texture.second;
 	}
 	textures.clear();
 
 	// Delete all shaderPrograms
 	for (auto shaderProgram : shaderPrograms) {
-		std::cout << "Deleting shaderProgram: " << shaderProgram.first << std::endl;
+		LogManager::Log("Deleting shaderProgram: " + shaderProgram.first);
 		delete shaderProgram.second;
 	}
 	shaderPrograms.clear();
@@ -126,7 +126,7 @@ Texture2D* ResourceManager::loadTextureFromFile(const char* file, bool alpha) {
 		stbi_image_free(data);
 	}
 	else {
-		std::cout << "---------> Error - stb failed to read image: " << file << std::endl;
+		LogManager::LogError("stb failed to read image: " + std::string(file));
 	}
 	return texture;
 }

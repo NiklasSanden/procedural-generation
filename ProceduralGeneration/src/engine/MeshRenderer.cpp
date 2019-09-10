@@ -27,13 +27,13 @@ MeshRenderer::~MeshRenderer() {
 void MeshRenderer::setupVertexArrayObject() {
 	// The vertexArray cannot be empty since it is needed in vertex shaders
 	if (this->vertexArray.size() == 0) {
-		std::cout << "---------> Error - vertexArray empty" << std::endl;
+		LogManager::LogError("VertexArray empty");
 		return;
 	}
 	// All of the arrays have to be the same size, excluding empty ones
 	if ((this->vertexArray.size() != this->normalArray.size()	&& this->normalArray.size()	  != 0) ||
 		(this->vertexArray.size() != this->texCoordArray.size() && this->texCoordArray.size() != 0)) {
-		std::cout << "---------> Error - The vertexArray, normalArray, and texCoordArray are not the same size (excluding empty ones)" << std::endl;
+		LogManager::LogError("The vertexArray, normalArray, and texCoordArray are not the same size (excluding empty ones)");
 		return;
 	}
 	
@@ -109,7 +109,7 @@ void MeshRenderer::setupVertexArrayObject() {
 
 void MeshRenderer::render(const glm::mat4& modelMatrix, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix, const glm::mat3& normalMatrix) {
 	if (this->VAO == 0) {
-		std::cout << "---------> Error - Trying to render (MeshRenderer) without first calling setupVertexArrayObject()" << std::endl;
+		LogManager::LogError("Trying to render (MeshRenderer) without first calling setupVertexArrayObject()");
 		return;
 	}
 	if (this->vertexArray.size() == 0) return; // We might want to display a message, but that could clog up the console if we are working on an object that calls render without wanting to render

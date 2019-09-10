@@ -50,7 +50,7 @@ void ShaderManager::setupShaderSource() {
 			shaderCode = shaderStream.str();
 		}
 		catch (std::ifstream::failure e) {
-			std::cout << "---------> Error - Shader file not successfully read" << std::endl;
+			LogManager::LogError("Shader file not successfully read");
 		}
 
 		// get the name of the file
@@ -80,7 +80,7 @@ unsigned int ShaderManager::getShaderID(const std::string& shaderName) {
 }
 
 void ShaderManager::compileShader(const std::string& shaderCode, const std::string& name) {
-	std::cout << "Compiling shader: " << name << std::endl;
+	LogManager::Log("Compiling shader: " + name);
 
 	// the last 4 letters
 	std::string extension = name.substr(name.size() - 4);
@@ -107,13 +107,13 @@ void ShaderManager::checkCompileErrors(unsigned int shader, const std::string& n
 	if (!success)
 	{
 		glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-		std::cout << "---------> Error - failed to compile file: " << name << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		LogManager::LogError("Failed to compile file: " + name + "\n" + std::string(infoLog) + "\n -- --------------------------------------------------- -- ");
 	}
 }
 
 void ShaderManager::cleanup() {
 	for (const auto& index : shaderIndex) {
-		std::cout << "Deleting shaders: " << index.first << std::endl;
+		LogManager::Log("Deleting shaders: " + index.first);
 		glDeleteShader(index.second);
 	}
 }

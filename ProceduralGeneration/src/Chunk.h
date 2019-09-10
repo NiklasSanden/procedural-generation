@@ -15,6 +15,7 @@ namespace ProceduralGeneration {
 	private:
 		ChunkManager* chunkManager = nullptr;
 		bool doneGeneratingChunk = false;
+		std::vector<float> vertexAttributes;
 
 		void generateChunk();
 	public:
@@ -25,6 +26,6 @@ namespace ProceduralGeneration {
 		void fixedUpdate() override;
 
 		// 
-		void getArraysForRendering(std::vector<glm::vec3>*& _vertexArray, std::vector<unsigned int>*& _indexArray, std::vector<glm::vec3>*& _normalArray);
+		void getArraysForRendering(std::vector<float>*& _vertexAttributes, std::vector<unsigned int>*& _indexArray);
 	};
 }

@@ -1,4 +1,7 @@
 #pragma once
+
+#include "engine/LogManager.h"
+
 // Checks _DEBUG which is only on Microsoft Visual Studio c++ - just like crtdbg
 #ifdef _DEBUG
 	#define _CRTDBG_MAP_ALLOC

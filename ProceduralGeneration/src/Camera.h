@@ -15,7 +15,7 @@ namespace ProceduralGeneration {
 	// instance
 	private:
 		// settings
-		float movementSpeed = 3.0f;
+		float movementSpeed = 10.0f;
 		float anglesRotatedX = 0.0f;
 	public:
 		Camera(const std::string& name);

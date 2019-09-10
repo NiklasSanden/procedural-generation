@@ -21,7 +21,7 @@ namespace ProceduralGeneration {
 	class ChunkManager : public Engine::GameObject {
 	public:
 		// Settings
-		float chunkLength = 20.0f;
+		float chunkLength = 30.0f;
 		float viewDistance = 100.0f;
 		float updateChunksPlayerPositionThreshold = 1.0f;
 		// Variables from settings
@@ -50,7 +50,7 @@ namespace ProceduralGeneration {
 	private:
 		std::string vec3ToString(const glm::vec3& vector);
 
-		int chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector);
+		int chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector, const glm::vec3& playerPosition);
 	
 		void addChunk(Chunk* chunk);
 		void deleteChunks(const std::unordered_set<std::string>& chunkNames);

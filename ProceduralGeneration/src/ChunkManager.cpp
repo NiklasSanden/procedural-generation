@@ -64,12 +64,12 @@ void ChunkManager::update(float deltaTime) {
 	}
 
 	// Notice that left, down and front are negative. That is because they will be used in the for loop, and will be added to the roundedPlayerPosition
-	int chunksInRangeUp = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, 1.0f, 0.0f));
-	int chunksInRangeDown = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, -1.0f, 0.0f));
-	int chunksInRangeRight = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f));
-	int chunksInRangeLeft = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f));
-	int chunksInRangeFront = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f));
-	int chunksInRangeBack = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f));
+	int chunksInRangeUp = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, 1.0f, 0.0f), playerPosition);
+	int chunksInRangeDown = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, -1.0f, 0.0f), playerPosition);
+	int chunksInRangeRight = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition);
+	int chunksInRangeLeft = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition);
+	int chunksInRangeFront = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition);
+	int chunksInRangeBack = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition);
 
 	// Loop through all of the chunks that could be in range
 	for (int y = chunksInRangeDown; y <= chunksInRangeUp; y++) {
@@ -80,9 +80,7 @@ void ChunkManager::update(float deltaTime) {
 				std::string currentChunkPosition = vec3ToString(currentChunk);
 				std::string chunkName = "Chunk: " + currentChunkPosition;
 
-				// TODO: There is currently a bug that is immediately visible at (0, 0, 4) and around there, where blocks are gone but still in loadedChunks
-
-				if (glm::length2((currentChunk - roundedPlayerPosition) * this->chunkLength) <= (this->viewDistance + this->chunkDistaceToCorner) * (this->viewDistance + this->chunkDistaceToCorner)) {
+				if (glm::length2((currentChunk * this->chunkLength) - playerPosition) <= (this->viewDistance + this->chunkDistaceToCorner) * (this->viewDistance + this->chunkDistaceToCorner)) {
 					if (this->loadedChunks.find(currentChunkPosition) == this->loadedChunks.end()) {
 						Chunk* chunk = new Chunk(chunkName, currentChunk * this->chunkLength, this);
 						addChunk(chunk);
@@ -97,11 +95,6 @@ void ChunkManager::update(float deltaTime) {
 						}
 					}
 				}
-				else {
-					if (this->loadedChunks.find(currentChunkPosition) != this->loadedChunks.end()) {
-						this->loadedChunks.erase(currentChunkPosition);
-					}
-				}
 			}
 		}
 	}
@@ -111,18 +104,23 @@ void ChunkManager::update(float deltaTime) {
 		deleteChunks(oldLoadedChunks);
 		GameManager::getGamePtr()->deleteGameObjects(oldLoadedChunks);
 	}
+	for (auto it = this->loadedChunks.begin(); it != this->loadedChunks.end(); )
+	{
+		if (oldLoadedChunks.find(it->second) != oldLoadedChunks.end()) { this->loadedChunks.erase(it++); }
+		else { ++it; }
+	}
 }
 
 std::string ChunkManager::vec3ToString(const glm::vec3& vector) {
 	return "(" + std::to_string((int)std::roundf(vector.x)) + ", " + std::to_string((int)std::roundf(vector.y)) + ", " + std::to_string((int)std::roundf(vector.z)) + ")";
 }
 
-int ChunkManager::chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector) {
+int ChunkManager::chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector, const glm::vec3& playerPosition) {
 	glm::vec3 currentPosition = startPosition + incrementVector;
 	
 	int answer = 0;
 	while (true) {
-		if (glm::length2((currentPosition - startPosition) * this->chunkLength) <= this->viewDistanceSqrd) {
+		if (glm::length2((currentPosition * this->chunkLength) - playerPosition) <= (this->viewDistance + this->chunkDistaceToCorner) * (this->viewDistance + this->chunkDistaceToCorner)) {
 			answer++;
 			currentPosition += incrementVector;
 		}
@@ -177,45 +175,9 @@ void ChunkManager::render() {
 	this->shaderProgram->setFloat("material.shininess", this->material->shininess);
 
 	
-	// Setup VBO and EBO for all chunks
-	std::vector<float> vertexAttributes;
-	std::vector<unsigned int> allIndicesArray;
-	int amountOfVertices = 0;
-	for (auto& chunk : this->loadedChunksPtr) {
-		std::vector<glm::vec3>* vertexArray;
-		std::vector<unsigned int>* indexArray;
-		std::vector<glm::vec3>* normalArray;
-		chunk->getArraysForRendering(vertexArray, indexArray, normalArray);
-
-		if (vertexArray == nullptr) continue;
-
-		if (vertexArray->size() != normalArray->size()) {
-			std::cout << "---------> Error - VertexArray doesn't have the same size as normalArray in ChunkManager" << std::endl;
-			return;
-		}
-
-		allIndicesArray.reserve(allIndicesArray.size() + indexArray->size());
-		for (int i = 0; i < indexArray->size(); i++) {
-			allIndicesArray.push_back((*indexArray)[i] + amountOfVertices);
-		}
-
-		amountOfVertices += (int)vertexArray->size();
-
-		for (unsigned int i = 0; i < vertexArray->size(); i++) {
-			vertexAttributes.push_back((*vertexArray)[i].x);
-			vertexAttributes.push_back((*vertexArray)[i].y);
-			vertexAttributes.push_back((*vertexArray)[i].z);
-
-			vertexAttributes.push_back((*normalArray)[i].x);
-			vertexAttributes.push_back((*normalArray)[i].y);
-			vertexAttributes.push_back((*normalArray)[i].z);
-		}
-	}
-
+	// Setup OpenGL objects
 	glBindVertexArray(this->VAO);
-
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertexAttributes.size() * sizeof(float), vertexAttributes.data(), GL_DYNAMIC_DRAW);
 
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -227,12 +189,21 @@ void ChunkManager::render() {
 
 	// index array
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, allIndicesArray.size() * sizeof(unsigned int), allIndicesArray.data(), GL_DYNAMIC_DRAW);
 
+	for (auto& chunk : this->loadedChunksPtr) {
+		std::vector<float>* vertexAttributes;
+		std::vector<unsigned int>* indexArray;
+		chunk->getArraysForRendering(vertexAttributes, indexArray);
 
-	// Render all chunks
-	glDrawElements(GL_TRIANGLES, (GLsizei)allIndicesArray.size(), GL_UNSIGNED_INT, 0);
+		if (vertexAttributes == nullptr) continue;
 
+		// Render chunk
+		glBufferData(GL_ARRAY_BUFFER, vertexAttributes->size() * sizeof(float), vertexAttributes->data(), GL_DYNAMIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexArray->size() * sizeof(unsigned int), indexArray->data(), GL_DYNAMIC_DRAW);
+		glDrawElements(GL_TRIANGLES, (GLsizei)indexArray->size(), GL_UNSIGNED_INT, 0);
+	}
+
+	// Unbind
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -241,11 +212,11 @@ void ChunkManager::render() {
 
 void ChunkManager::renderImGui() {
 	{
-		static float f = 70.0f;
+		static float f = this->viewDistance;
 
 		ImGui::Begin("Settings");
 
-		ImGui::SliderFloat("View distance", &f, 0.0f, 200.0f);            
+		ImGui::SliderFloat("View distance", &f, 0.0f, 300.0f);            
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
