@@ -221,6 +221,7 @@ void ChunkManager::renderImGui() {
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
 
+		//TODO: Super weird bug. If I uncomment this, then rendering ImGUI takes over 6 ms when the slider is 300.0f
 		this->viewDistance = viewDistanceSlider; this->viewDistanceSqrd = viewDistanceSlider * viewDistanceSlider;
 	}
 }
