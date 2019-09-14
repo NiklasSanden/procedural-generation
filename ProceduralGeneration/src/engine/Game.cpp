@@ -141,7 +141,7 @@ bool Game::render() {
 
 		// render ImGui
 		ImGui::Begin("frames");
-		ImGui::Text("Application average %.3f ms/frame", time * 1000.0);
+		ImGui::Text("Application average %.3f ms/frame", time * 1000.0f);
 		ImGui::End();
 		double tempTime = glfwGetTime();
 		this->program->imGuiLayer->end();

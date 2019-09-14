@@ -7,6 +7,7 @@
 #include "engine/Shader.h"
 #include "engine/Material.h"
 #include "engine/ResourceManager.h"
+#include "engine/MeshRenderer.h"
 #include "GameManager.h"
 #include "Camera.h"
 #include "Chunk.h"
@@ -159,6 +160,11 @@ void ChunkManager::render() {
 	}
 	else { // let the shader know that a directional light doesn't exist
 		this->shaderProgram->setBool("directionalLight.exists", false);
+	}
+	// point lights
+	// we have to tell the shader that point lights don't exist
+	for (int i = 0; i < 4; i++) {
+		this->renderer->shaderProgram->setBool("pointLights[" + std::to_string(i) + "].exists", false);
 	}
 
 	

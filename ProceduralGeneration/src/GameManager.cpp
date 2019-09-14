@@ -6,6 +6,7 @@
 #include "Camera.h"
 #include "Cube.h"
 #include "ChunkManager.h"
+#include "MarchingCubesManager.h"
 
 #include "imgui/imgui.h"
 
@@ -57,8 +58,11 @@ GameManager::GameManager(const std::string& _name) : GameObject(_name) {
 	Cube* cube = new Cube("TestCube");
 	this->gamePtr->addGameObject(cube);
 	
-	ChunkManager* chunkManager = new ChunkManager("ChunkManager");
-	this->gamePtr->addGameObject(chunkManager);
+	MarchingCubesManager* cubesManager = new MarchingCubesManager("MarchingCubesManager");
+	this->gamePtr->addGameObject(cubesManager);
+
+	/*ChunkManager* chunkManager = new ChunkManager("ChunkManager");
+	this->gamePtr->addGameObject(chunkManager);*/
 
 	// Lights
 	this->directionalLight = new Engine::DirectionalLight("Directional Light", glm::vec3(-0.2f, -1.0f, -0.3f), glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
