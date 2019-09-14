@@ -51,7 +51,6 @@ void ImGuiLayer::begin() {
 }
 
 void ImGuiLayer::end() {
-	double time = glfwGetTime();
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -67,5 +66,4 @@ void ImGuiLayer::end() {
 		ImGui::RenderPlatformWindowsDefault();
 		glfwMakeContextCurrent(backup_current_context);
 	}
-	std::cout << (glfwGetTime() - time) * 1000.0f << std::endl;
 }

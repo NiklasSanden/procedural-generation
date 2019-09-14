@@ -1,0 +1,5 @@
+For marching cubes:
+	Each chunk should have the same vertex buffer, just the coordinates for each cell
+	Then use instancing with different model matrices to render all of them (render as points)
+	Then use a geometry shader to transform each cell into up to 12 vertices
+	The fragment shader will work as usual

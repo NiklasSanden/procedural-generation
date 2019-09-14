@@ -92,7 +92,6 @@ void Game::gameLoop() {
 		// input
 		this->inputPtr->processInput(this->program->window);
 
-		this->program->imGuiLayer->begin();
 		// physics simulations
 		while (this->physicsTimeSimulated < glfwGetTime()) {
 			fixedUpdate();
@@ -128,7 +127,7 @@ double time = 0.0;
 bool Game::render() {
 	if (!glfwWindowShouldClose(this->program->window)) {
 		// setup new frame for ImGui
-		//this->program->imGuiLayer->begin();
+		this->program->imGuiLayer->begin();
 
 		// clear screen
 		glClearColor(0.2f, 0.25f, 0.4f, 1.0f);
@@ -139,7 +138,6 @@ bool Game::render() {
 			this->gameObjects[i]->render();
 			this->gameObjects[i]->renderImGui();
 		}
-		
 
 		// render ImGui
 		ImGui::Begin("frames");
