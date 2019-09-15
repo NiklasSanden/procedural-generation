@@ -55,8 +55,8 @@ GameManager::GameManager(const std::string& _name) : GameObject(_name) {
 	player = new Camera("Camera");
 	this->gamePtr->addGameObject(player); // the game class will deallocate the memory
 
-	Cube* cube = new Cube("TestCube");
-	this->gamePtr->addGameObject(cube);
+	/*Cube* cube = new Cube("TestCube");
+	this->gamePtr->addGameObject(cube);*/
 	
 	MarchingCubesManager* cubesManager = new MarchingCubesManager("MarchingCubesManager");
 	this->gamePtr->addGameObject(cubesManager);

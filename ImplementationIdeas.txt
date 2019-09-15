@@ -3,3 +3,9 @@ For marching cubes:
 	Then use instancing with different model matrices to render all of them (render as points)
 	Then use a geometry shader to transform each cell into up to 12 vertices
 	The fragment shader will work as usual
+TODO:
+	When adding the chunks that should be rendered as instances, 
+	make sure to loop through them around the player like a circle, 
+	instead of from bottom, left, back to top, right, front
+	Otherwise we draw over previously drawn fragments when looking in one direction, 
+	and not in the other, which makes the framerate inconsistent depending on where we are facing

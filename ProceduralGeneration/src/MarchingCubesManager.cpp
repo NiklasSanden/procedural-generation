@@ -105,6 +105,14 @@ void MarchingCubesManager::update(float deltaTime) {
 	// Allocate memory (3 as a factor since we are storing the vec3s as floats)
 	this->chunkPositionVectors.reserve((long long)3 * ((long long)chunksInRangeUp - chunksInRangeDown + 1) * ((long long)chunksInRangeRight - chunksInRangeLeft + 1) * ((long long)chunksInRangeBack - chunksInRangeFront + 1));
 
+	// Used by all chunks to determine if it can be seen or not
+	float marginScale = 0.0f;
+	// get a point that has the coordinates (0.0, 1.0, x.x, x,x) in clip space
+	glm::vec4 newPoint = glm::vec4(playerPosition + -player->transform->getDirection() + player->transform->getUp() * glm::tan(glm::radians(30.0f)), 1.0f); // 30 is half of our FOV
+	newPoint += glm::vec4(player->transform->getUp() * this->chunkDistaceToCorner, 0.0f); // with an offset of chunkDistaceToCorner
+	newPoint = Camera::projectionMatrix * Camera::viewMatrix * newPoint;
+	marginScale = newPoint.y / newPoint.w;
+
 	// Loop through all of the chunks that could be in range
 	for (int y = chunksInRangeDown; y <= chunksInRangeUp; y++) {
 		for (int x = chunksInRangeLeft; x <= chunksInRangeUp; x++) {
@@ -113,26 +121,41 @@ void MarchingCubesManager::update(float deltaTime) {
 				glm::vec3 currentChunkPos = glm::vec3(roundedPlayerPosition.x + x, roundedPlayerPosition.y + y, roundedPlayerPosition.z + z);
 				glm::vec3 currentChunkWorldPos = currentChunkPos * this->chunkLength;
 
+				//if (currentChunkPos.x != 0 || currentChunkPos.y != 0 || currentChunkPos.z != 0) continue;
 				if (glm::length2(currentChunkWorldPos - playerPosition) <= (this->viewDistance + this->chunkDistaceToCorner) * (this->viewDistance + this->chunkDistaceToCorner)) {
-
 					// Check to see if possible that the chunk might be seen by the camera
-					glm::vec3 margin = -player->transform->getDirection() * this->chunkDistaceToCorner;
-					glm::vec3 difference = currentChunkWorldPos - playerPosition + margin;
-					if (glm::dot(difference, -player->transform->getDirection()) <= 0.0f) {
+					// check 1: behind
+					glm::vec3 pointInView = playerPosition + -player->transform->getDirection() * glm::max(this->viewDistance, 1.0f);
+					glm::vec3 positionInChunk = currentChunkWorldPos;
+					positionInChunk.x = positionInChunk.x < pointInView.x ? glm::min(positionInChunk.x + this->chunkLength / 2.0f, pointInView.x) : glm::max(positionInChunk.x - this->chunkLength / 2.0f, pointInView.x);
+					positionInChunk.y = positionInChunk.y < pointInView.y ? glm::min(positionInChunk.y + this->chunkLength / 2.0f, pointInView.y) : glm::max(positionInChunk.y - this->chunkLength / 2.0f, pointInView.y);
+					positionInChunk.z = positionInChunk.z < pointInView.z ? glm::min(positionInChunk.z + this->chunkLength / 2.0f, pointInView.z) : glm::max(positionInChunk.z - this->chunkLength / 2.0f, pointInView.z);
+					if (glm::dot(positionInChunk - playerPosition, -player->transform->getDirection()) <= 0.0f) {
 						continue;
 					}
 
-					glm::vec3 chunkPositionWorld = currentChunkPos * this->chunkLength;
-					this->chunkPositionVectors.push_back(chunkPositionWorld.x);
-					this->chunkPositionVectors.push_back(chunkPositionWorld.y);
-					this->chunkPositionVectors.push_back(chunkPositionWorld.z);
+					// check 2: fov angle (more expensive)
+					glm::vec4 chunkMiddle = glm::vec4(currentChunkWorldPos, 1.0f);
+					float newMarginScale = marginScale / glm::abs(glm::dot(player->transform->getDirection(), currentChunkWorldPos - playerPosition));
+					
+					chunkMiddle = Camera::projectionMatrix * Camera::viewMatrix * chunkMiddle;
+					chunkMiddle.x /= chunkMiddle.w;
+					chunkMiddle.y /= chunkMiddle.w;
+					if (glm::length2(currentChunkWorldPos - playerPosition) > this->chunkDistanceToCornerSqrd && 
+						(chunkMiddle.x < -1.0f - newMarginScale || chunkMiddle.x > 1.0f + newMarginScale || chunkMiddle.y < -1.0f - newMarginScale || chunkMiddle.y > 1.0f + newMarginScale)) {
+						continue;
+					}
+					// -------------------------------------------------------------------
+
+					this->chunkPositionVectors.push_back(currentChunkWorldPos.x);
+					this->chunkPositionVectors.push_back(currentChunkWorldPos.y);
+					this->chunkPositionVectors.push_back(currentChunkWorldPos.z);
 				}
 			}
 		}
 	}
 
 	//std::cout << (glfwGetTime() - tempTime) * 1000.0f << std::endl;
-	//std::cout << "Visible chunks: " << std::to_string(this->chunkPositionVectors.size() / 3) << " - Amount of cubes: " << std::to_string(this->chunkPositionVectors.size() / 3 * this->cellPositionVectors.size() / 3) << std::endl;
 }
 
 int MarchingCubesManager::chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector, const glm::vec3& playerPosition) {
@@ -226,6 +249,7 @@ void MarchingCubesManager::renderImGui() {
 
 		std::string chunkInfo = "Visible chunks: " + std::to_string(this->chunkPositionVectors.size() / 3) + " - Amount of cubes: " + std::to_string(this->chunkPositionVectors.size() / 3 * this->cellPositionVectors.size() / 3);
 		ImGui::Text(chunkInfo.c_str());
+
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
 

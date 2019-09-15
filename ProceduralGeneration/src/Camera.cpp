@@ -38,11 +38,11 @@ void Camera::update(float deltaTime) {
 	}
 	
 	this->transform->rotate(mouseDelta.x, glm::vec3(0.0f, 1.0f, 0.0f));
-	this->transform->rotate(-mouseDelta.y, this->transform->getRight());
+	glm::vec3 rightXZ = glm::normalize(glm::vec3(this->transform->getRight().x, 0.0f, this->transform->getRight().z));
+	this->transform->rotate(-mouseDelta.y, rightXZ);
 
 	// now that we've looked around, get the front and right vector
 	glm::vec3 front = -this->transform->getDirection();
-	glm::vec3 right = this->transform->getRight();
 	glm::vec3 frontXZ = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
 
 	anglesRotatedX = glm::angle(glm::normalize(front), glm::normalize(glm::vec3(front.x, 0.0, front.z)));
@@ -67,7 +67,7 @@ void Camera::update(float deltaTime) {
 	if (glm::abs(movement.x) > 0.1f || glm::abs(movement.y) > 0.1f) {
 		movement = glm::normalize(movement);
 		this->transform->translate(frontXZ * movement.y * this->movementSpeed * deltaTime);
-		this->transform->translate(right * movement.x * this->movementSpeed * deltaTime);
+		this->transform->translate(rightXZ * movement.x * this->movementSpeed * deltaTime);
 	}
 
 	// up and down

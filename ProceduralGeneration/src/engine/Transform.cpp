@@ -96,6 +96,9 @@ void Transform::scale(const glm::vec3& scale) {
 }
 
 void Transform::normalizeRotation() {
+	setRight(glm::cross(getUp(), getDirection()));
+	setDirection(glm::cross(getRight(), getUp()));
+
 	setRight(glm::normalize(getRight()));
 	setUp(glm::normalize(getUp()));
 	setDirection(glm::normalize(getDirection()));
