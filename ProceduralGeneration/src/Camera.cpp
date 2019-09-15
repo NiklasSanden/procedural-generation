@@ -27,26 +27,18 @@ Camera::Camera(const std::string& name) : GameObject(name) {
 }
 
 void Camera::update(float deltaTime) {
-	// Stop from being able to roll:
-	glm::mat4 rotationMatrix = glm::mat4(this->transform->getRotation());
-	rotationMatrix[1][0] = 0.0f;
-	this->transform->setRotation(rotationMatrix);
-	this->transform->normalizeRotation();
-
 	// Looking around
 	glm::vec2 mouseDelta = GameManager::getInputPtr()->getMouseDelta();
 	// Make sure your neck is intact
-	if (anglesRotatedX + mouseDelta.y > glm::pi<float>() / 2.0f - 0.1f) {
-		//mouseDelta.y = (glm::pi<float>() / 2.0f - 0.1f) - anglesRotatedX;
-		mouseDelta.y = 0;
+	if (anglesRotatedX + mouseDelta.y > glm::pi<float>() / 2.0f - 0.1f && mouseDelta.y > 0.0f) {
+		mouseDelta.y = (glm::pi<float>() / 2.0f - 0.1f) - anglesRotatedX;
 	}
-	else if (anglesRotatedX + mouseDelta.y < -glm::pi<float>() / 2.0f + 0.1f) {
-		//mouseDelta.y = (-glm::pi<float>() / 2.0f + 0.1f) - anglesRotatedX;
-		mouseDelta.y = 0;
+	else if (anglesRotatedX + mouseDelta.y < -glm::pi<float>() / 2.0f + 0.1f && mouseDelta.y < 0.0f) {
+		mouseDelta.y = (-glm::pi<float>() / 2.0f + 0.1f) - anglesRotatedX;
 	}
 	
 	this->transform->rotate(mouseDelta.x, glm::vec3(0.0f, 1.0f, 0.0f));
-	this->transform->rotate(mouseDelta.y, this->transform->getRight());
+	this->transform->rotate(-mouseDelta.y, this->transform->getRight());
 
 	// now that we've looked around, get the front and right vector
 	glm::vec3 front = -this->transform->getDirection();
@@ -54,7 +46,7 @@ void Camera::update(float deltaTime) {
 	glm::vec3 frontXZ = glm::normalize(glm::vec3(front.x, 0.0f, front.z));
 
 	anglesRotatedX = glm::angle(glm::normalize(front), glm::normalize(glm::vec3(front.x, 0.0, front.z)));
-	if (front.y > 0.0f) 
+	if (front.y < 0.0f) 
 		anglesRotatedX *= -1;
 
 	// Movement

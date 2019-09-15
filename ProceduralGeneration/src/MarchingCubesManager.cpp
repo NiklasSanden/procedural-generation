@@ -84,14 +84,10 @@ void MarchingCubesManager::calculateCellPositions() {
 }
 
 void MarchingCubesManager::update(float deltaTime) {
+	//double tempTime = glfwGetTime();
 	Camera* player = GameManager::getPlayer();
 
 	glm::vec3 playerPosition = player->transform->getPosition();
-
-	/*if (glm::length2(this->oldPlayerPosition - playerPosition) < this->updateChunksPlayerPositionThresholdSqrd) {
-		return;
-	}
-	this->oldPlayerPosition = playerPosition;*/
 
 	// Clear old chunks
 	this->chunkPositionVectors.clear();
@@ -135,6 +131,7 @@ void MarchingCubesManager::update(float deltaTime) {
 		}
 	}
 
+	//std::cout << (glfwGetTime() - tempTime) * 1000.0f << std::endl;
 	//std::cout << "Visible chunks: " << std::to_string(this->chunkPositionVectors.size() / 3) << " - Amount of cubes: " << std::to_string(this->chunkPositionVectors.size() / 3 * this->cellPositionVectors.size() / 3) << std::endl;
 }
 
@@ -227,6 +224,8 @@ void MarchingCubesManager::renderImGui() {
 		ImGui::SliderFloat("Chunk length", &chunkLengthSlider, 1.0f, 100.0f);
 		ImGui::SliderInt("Cells per axis", &cellsPerAxisSlider, 1, 100);
 
+		std::string chunkInfo = "Visible chunks: " + std::to_string(this->chunkPositionVectors.size() / 3) + " - Amount of cubes: " + std::to_string(this->chunkPositionVectors.size() / 3 * this->cellPositionVectors.size() / 3);
+		ImGui::Text(chunkInfo.c_str());
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
 

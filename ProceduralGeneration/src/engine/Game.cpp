@@ -126,6 +126,7 @@ void Game::fixedUpdate() {
 double time = 0.0;
 bool Game::render() {
 	if (!glfwWindowShouldClose(this->program->window)) {
+		double tempTime = glfwGetTime();
 		// setup new frame for ImGui
 		this->program->imGuiLayer->begin();
 
@@ -141,9 +142,8 @@ bool Game::render() {
 
 		// render ImGui
 		ImGui::Begin("frames");
-		ImGui::Text("Application average %.3f ms/frame", time * 1000.0f);
+		ImGui::Text("Rendering time %.3f ms/frame", time * 1000.0f);
 		ImGui::End();
-		double tempTime = glfwGetTime();
 		this->program->imGuiLayer->end();
 		time = glfwGetTime() - tempTime;
 		// show what has been rendered

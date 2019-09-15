@@ -31,7 +31,7 @@ void Input::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 	}
 
 	float xOffset = (float)(xpos - mouseLastX);
-	float yOffset = (float)(ypos - mouseLastY);
+	float yOffset = (float)(mouseLastY - ypos);
 	mouseLastX = xpos;
 	mouseLastY = ypos;
 	
