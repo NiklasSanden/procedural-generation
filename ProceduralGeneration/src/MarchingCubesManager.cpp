@@ -108,28 +108,28 @@ void MarchingCubesManager::update(float deltaTime) {
 
 	// Used by all chunks to determine if it can be seen or not
 	// calculate horizontal fov from vertical: https://www.gamedev.net/forums/topic/361241-horizontal-fov/
-	float verticalFov = glm::radians(Camera::verticalFov);
+	float halfVerticalFov = glm::radians(Camera::verticalFov / 2.0f);
 	float aspectRatio = (float)Engine::Program::SCREEN_WIDTH / Engine::Program::SCREEN_HEIGHT;
-	float horizontalFov = 2.0f * glm::atan(glm::tan(verticalFov * 0.5f) * aspectRatio);
-	glm::vec3 rightProjectionNormal = glm::normalize(glm::cross(player->transform->getUp(), glm::angleAxis(-horizontalFov, player->transform->getUp()) * -player->transform->getDirection()));
-	glm::vec3 leftProjectionNormal = glm::normalize(glm::cross(glm::angleAxis(horizontalFov, player->transform->getUp()) * -player->transform->getDirection(), player->transform->getUp()));
+	float halfHorizontalFov = 2.0f * glm::atan(glm::tan(halfVerticalFov * 0.5f) * aspectRatio);
+	glm::vec3 rightProjectionNormal = glm::normalize(glm::cross(player->transform->getUp(), glm::angleAxis(-halfHorizontalFov, player->transform->getUp()) * -player->transform->getDirection()));
+	glm::vec3 leftProjectionNormal = glm::normalize(glm::cross(glm::angleAxis(halfHorizontalFov, player->transform->getUp()) * -player->transform->getDirection(), player->transform->getUp()));
 
-	glm::vec3 upProjectionNormal = glm::normalize(glm::cross(glm::angleAxis(verticalFov, player->transform->getRight()) * -player->transform->getDirection(), player->transform->getRight()));
-	glm::vec3 downProjectionNormal = glm::normalize(glm::cross(player->transform->getRight(), glm::angleAxis(-verticalFov, player->transform->getRight()) * -player->transform->getDirection()));
+	glm::vec3 upProjectionNormal = glm::normalize(glm::cross(glm::angleAxis(halfVerticalFov, player->transform->getRight()) * -player->transform->getDirection(), player->transform->getRight()));
+	glm::vec3 downProjectionNormal = glm::normalize(glm::cross(player->transform->getRight(), glm::angleAxis(-halfVerticalFov, player->transform->getRight()) * -player->transform->getDirection()));
 
 	// Loop through all of the chunks that could be in range
 	for (int y = chunksInRangeDown; y <= chunksInRangeUp; y++) {
 		for (int x = chunksInRangeLeft; x <= chunksInRangeUp; x++) {
 			for (int z = chunksInRangeFront; z <= chunksInRangeBack; z++) {
 
-				glm::vec3 currentChunkPos = glm::vec3(roundedPlayerPosition.x + x, roundedPlayerPosition.y + y, roundedPlayerPosition.z + z);
-				glm::vec3 currentChunkWorldPos = currentChunkPos * this->chunkLength;
+				glm::vec3 currentChunkCoords = glm::vec3(roundedPlayerPosition.x + x, roundedPlayerPosition.y + y, roundedPlayerPosition.z + z);
+				glm::vec3 currentChunkWorldPos = currentChunkCoords * this->chunkLength;
 
-				if (currentChunkPos.x != 0 || currentChunkPos.y != 0 || currentChunkPos.z != 0) continue;
-				if (glm::length2(currentChunkWorldPos - playerPosition) <= (this->viewDistance + this->chunkDistaceToCorner) * (this->viewDistance + this->chunkDistaceToCorner)) {
+				//if (currentChunkPos.x != 0 || currentChunkPos.y != 0 || currentChunkPos.z != 0) continue;
+				if (glm::length2(currentChunkWorldPos - playerPosition) <= (Camera::viewDistance + this->chunkDistaceToCorner) * (Camera::viewDistance + this->chunkDistaceToCorner)) {
 					// Check to see if possible that the chunk might be seen by the camera
 					// check 1: behind
-					glm::vec3 pointInView = playerPosition + -player->transform->getDirection() * glm::max(this->viewDistance, 1.0f);
+					glm::vec3 pointInView = playerPosition + -player->transform->getDirection() * glm::max(Camera::viewDistance, 1.0f);
 					glm::vec3 positionInChunk = currentChunkWorldPos;
 					positionInChunk.x = positionInChunk.x < pointInView.x ? glm::min(positionInChunk.x + this->chunkLength / 2.0f, pointInView.x) : glm::max(positionInChunk.x - this->chunkLength / 2.0f, pointInView.x);
 					positionInChunk.y = positionInChunk.y < pointInView.y ? glm::min(positionInChunk.y + this->chunkLength / 2.0f, pointInView.y) : glm::max(positionInChunk.y - this->chunkLength / 2.0f, pointInView.y);
@@ -138,28 +138,26 @@ void MarchingCubesManager::update(float deltaTime) {
 						continue;
 					}
 
-					// check 2: fov angle (more expensive)
-					//glm::vec4 chunkMiddle = glm::vec4(currentChunkWorldPos, 1.0f);
-					glm::vec3 playerToChunkPos = currentChunkPos - playerPosition;
+					// check 2: View frustum culling (more expensive)
+					glm::vec3 playerToChunkPos = currentChunkWorldPos - playerPosition;
 					float rightProjectionDot = glm::dot(rightProjectionNormal, playerToChunkPos);
 					float leftProjectionDot = glm::dot(leftProjectionNormal, playerToChunkPos);
 					float upProjectionDot = glm::dot(upProjectionNormal, playerToChunkPos);
 					float downProjectionDot = glm::dot(downProjectionNormal, playerToChunkPos);
 					
-					/*chunkMiddle = Camera::projectionMatrix * Camera::viewMatrix * chunkMiddle;
-					chunkMiddle.x /= chunkMiddle.w;
-					chunkMiddle.y /= chunkMiddle.w;*/
-					//std::cout << chunkMiddle.x << " - " << newMarginScaleX << ", " << chunkMiddle.y << " - " << newMarginScaleY << std::endl;
-					if (rightProjectionDot + this->chunkDistaceToCorner < 0.0f ||
-						leftProjectionDot + this->chunkDistaceToCorner < 0.0f ||
-						upProjectionDot + this->chunkDistaceToCorner < 0.0f ||
-						downProjectionDot + this->chunkDistaceToCorner < 0.0f) {
+					if (halfHorizontalFov > glm::pi<float>() / 2.0f) { // If the  is greater than pi / 2.0f, then we only skip if both rightProjectionDot and leftProjectionDot is negative
+						if (downProjectionDot + this->chunkDistaceToCorner < 0.0f ||
+							upProjectionDot + this->chunkDistaceToCorner < 0.0f ||
+							(rightProjectionDot + this->chunkDistaceToCorner < 0.0f && leftProjectionDot + this->chunkDistaceToCorner < 0.0f)) {
+							continue;
+						}
+					}
+					else if (rightProjectionDot + this->chunkDistaceToCorner < 0.0f ||
+							leftProjectionDot + this->chunkDistaceToCorner < 0.0f ||
+							upProjectionDot + this->chunkDistaceToCorner < 0.0f ||
+							downProjectionDot + this->chunkDistaceToCorner < 0.0f) {
 						continue;
 					}
-					/*if (glm::length2(currentChunkWorldPos - playerPosition) > this->chunkDistanceToCornerSqrd && 
-						(chunkMiddle.x < -1.0f - newMarginScaleX || chunkMiddle.x > 1.0f + newMarginScaleX || chunkMiddle.y < -1.0f - newMarginScaleY || chunkMiddle.y > 1.0f + newMarginScaleY)) {
-						continue;
-					}*/
 					// -------------------------------------------------------------------
 
 					this->chunkPositionVectors.push_back(currentChunkWorldPos.x);
@@ -178,7 +176,7 @@ int MarchingCubesManager::chunksInRangeDirection(const glm::vec3& startPosition,
 
 	int answer = 0;
 	while (true) {
-		if (glm::length2((currentPosition * this->chunkLength) - playerPosition) <= (this->viewDistance + this->chunkDistaceToCorner) * (this->viewDistance + this->chunkDistaceToCorner)) {
+		if (glm::length2((currentPosition * this->chunkLength) - playerPosition) <= (Camera::viewDistance + this->chunkDistaceToCorner) * (Camera::viewDistance + this->chunkDistaceToCorner)) {
 			answer++;
 			currentPosition += incrementVector;
 		}
@@ -248,7 +246,8 @@ void MarchingCubesManager::render() {
 
 void MarchingCubesManager::renderImGui() {
 	{
-		static float viewDistanceSlider = this->viewDistance;
+		static float verticalFov = Camera::verticalFov;
+		static float viewDistanceSlider = Camera::viewDistance;
 
 		static int cellsPerAxisSlider = this->cellsPerAxis;
 		static int oldCellsPerAxisSlider = cellsPerAxisSlider;
@@ -256,11 +255,17 @@ void MarchingCubesManager::renderImGui() {
 		static float chunkLengthSlider = this->chunkLength;
 		static float oldChunkLengthSlider = chunkLengthSlider;
 
+		static bool keepCellRatio = true;
+		static float ratio = chunkLengthSlider / cellsPerAxisSlider;
+		static bool oldKeepCellRatio = keepCellRatio;
+
 		ImGui::Begin("Settings");
 
-		ImGui::SliderFloat("View distance", &viewDistanceSlider, 0.0f, 300.0f);
+		ImGui::SliderFloat("Vertical FOV", &verticalFov, 1.0f, 120.0f);
+		ImGui::SliderFloat("View distance", &viewDistanceSlider, 0.0f, 500.0f);
 		ImGui::SliderFloat("Chunk length", &chunkLengthSlider, 1.0f, 100.0f);
 		ImGui::SliderInt("Cells per axis", &cellsPerAxisSlider, 1, 100);
+		ImGui::Checkbox("Keep ratio", &keepCellRatio);
 
 		std::string chunkInfo = "Visible chunks: " + std::to_string(this->chunkPositionVectors.size() / 3) + " - Amount of cubes: " + std::to_string(this->chunkPositionVectors.size() / 3 * this->cellPositionVectors.size() / 3);
 		ImGui::Text(chunkInfo.c_str());
@@ -269,11 +274,22 @@ void MarchingCubesManager::renderImGui() {
 		ImGui::End();
 
 		
-		this->viewDistance = viewDistanceSlider; this->viewDistanceSqrd = viewDistanceSlider * viewDistanceSlider;
+		Camera::verticalFov = verticalFov;
+		Camera::viewDistance = viewDistanceSlider; this->viewDistanceSqrd = viewDistanceSlider * viewDistanceSlider;
 
+		// Update cells if settings were changed
 		if (cellsPerAxisSlider != oldCellsPerAxisSlider || chunkLengthSlider != oldChunkLengthSlider) {
 			this->chunkLength = chunkLengthSlider;
 			this->cellsPerAxis = cellsPerAxisSlider;
+
+			if (keepCellRatio) {
+				if (cellsPerAxisSlider != oldCellsPerAxisSlider) {
+					chunkLengthSlider = glm::clamp(cellsPerAxisSlider * ratio, 1.0f, 100.0f);
+				}
+				else {
+					cellsPerAxisSlider = glm::clamp((int)(chunkLengthSlider / ratio), 1, 100);
+				}
+			}
 
 			this->chunkDistaceToCorner = glm::sqrt((this->chunkLength / 2.0f) * (this->chunkLength / 2.0f) + (this->chunkLength / 2.0f) * (this->chunkLength / 2.0f) + (this->chunkLength / 2.0f) * (this->chunkLength / 2.0f));
 			this->chunkDistanceToCornerSqrd = this->chunkDistaceToCorner * this->chunkDistaceToCorner;
@@ -282,6 +298,14 @@ void MarchingCubesManager::renderImGui() {
 
 			oldCellsPerAxisSlider = cellsPerAxisSlider;
 			oldChunkLengthSlider = chunkLengthSlider;
+		}
+
+		// Update ratio if keepRatio was turned on
+		if (keepCellRatio != oldKeepCellRatio) {
+			if (keepCellRatio) {
+				ratio = chunkLengthSlider / cellsPerAxisSlider;
+			}
+			oldKeepCellRatio = keepCellRatio;
 		}
 	}
 }

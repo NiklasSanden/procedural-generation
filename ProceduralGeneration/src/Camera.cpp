@@ -21,6 +21,7 @@ using namespace ProceduralGeneration;
 glm::mat4 Camera::viewMatrix = glm::mat4(1.0f);
 glm::mat4 Camera::projectionMatrix = glm::mat4(1.0f);
 float Camera::verticalFov = 60.0f;
+float Camera::viewDistance = 100.0f;
 
 Camera::Camera(const std::string& name) : GameObject(name) {
 	this->transform = new Engine::Transform();
@@ -84,7 +85,7 @@ void Camera::update(float deltaTime) {
 	// Update Matrices
 	// -----------------------------
 	// projection matrix
-	projectionMatrix = glm::perspective(glm::radians(verticalFov), (float)Engine::Program::SCREEN_WIDTH / Engine::Program::SCREEN_HEIGHT, 0.1f, 400.0f);
+	projectionMatrix = glm::perspective(glm::radians(verticalFov), (float)Engine::Program::SCREEN_WIDTH / Engine::Program::SCREEN_HEIGHT, 0.1f, viewDistance);
 
 	// view matrix
 	viewMatrix = glm::lookAt(this->transform->getPosition(), this->transform->getPosition() - this->transform->getDirection(), glm::vec3(0.0f, 1.0f, 0.0f));

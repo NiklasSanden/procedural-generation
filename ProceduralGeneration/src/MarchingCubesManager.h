@@ -18,12 +18,11 @@ namespace ProceduralGeneration {
 		// Settings
 		float chunkLength = 9.0f;
 		int cellsPerAxis = 3;
-		float viewDistance = 50.0f;
 		// Variables from settings
 		float chunkDistaceToCorner = glm::sqrt((chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f));
 		float chunkDistanceToCornerSqrd = chunkDistaceToCorner * chunkDistaceToCorner;
 
-		float viewDistanceSqrd = viewDistance * viewDistance;
+		float viewDistanceSqrd = 0.0f;
 
 	private:
 		std::vector<float> chunkPositionVectors;
