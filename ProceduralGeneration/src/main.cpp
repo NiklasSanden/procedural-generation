@@ -26,7 +26,7 @@ int main() {
 #endif
 
 	// Window
-	Program* program = new Program(600, 600);
+	Program* program = new Program(800, 600);
 	// Input
 	ProceduralGeneration::Input* input = new ProceduralGeneration::Input(program->window);
 	setInputPtr(input); // For callbacks

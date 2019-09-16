@@ -12,6 +12,7 @@ namespace ProceduralGeneration {
 	public:
 		static glm::mat4 viewMatrix;
 		static glm::mat4 projectionMatrix;
+		static float verticalFov;
 	// instance
 	private:
 		// settings
