@@ -21,7 +21,7 @@ int main() {
 		// Automatically call _CrtDumpMemoryLeaks() when the application is done
 		// All static variables will have been cleared by then as well
 		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-		LogManager::Log("Memory leaks will be sent to output\n---------------------------");
+		LogManager::Log("Memory leaks will be sent to output at exit\n---------------------------");
 	#endif
 #endif
 

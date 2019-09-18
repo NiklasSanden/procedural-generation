@@ -141,8 +141,9 @@ bool Game::render() {
 		}
 
 		// render ImGui
-		ImGui::Begin("frames");
+		ImGui::Begin("Game Performance");
 		ImGui::Text("Rendering time %.3f ms/frame", time * 1000.0f);
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
 		this->program->imGuiLayer->end();
 		time = glfwGetTime() - tempTime;

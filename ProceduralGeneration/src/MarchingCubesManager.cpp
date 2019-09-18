@@ -110,7 +110,7 @@ void MarchingCubesManager::update(float deltaTime) {
 	// calculate horizontal fov from vertical: https://www.gamedev.net/forums/topic/361241-horizontal-fov/
 	float halfVerticalFov = glm::radians(Camera::verticalFov / 2.0f);
 	float aspectRatio = (float)Engine::Program::SCREEN_WIDTH / Engine::Program::SCREEN_HEIGHT;
-	float halfHorizontalFov = 2.0f * glm::atan(glm::tan(halfVerticalFov * 0.5f) * aspectRatio);
+	float halfHorizontalFov = 2.0f * glm::atan(glm::tan(glm::radians(Camera::verticalFov) * 0.5f) * aspectRatio) / 2.0f;
 	glm::vec3 rightProjectionNormal = glm::normalize(glm::cross(player->transform->getUp(), glm::angleAxis(-halfHorizontalFov, player->transform->getUp()) * -player->transform->getDirection()));
 	glm::vec3 leftProjectionNormal = glm::normalize(glm::cross(glm::angleAxis(halfHorizontalFov, player->transform->getUp()) * -player->transform->getDirection(), player->transform->getUp()));
 
@@ -145,14 +145,7 @@ void MarchingCubesManager::update(float deltaTime) {
 					float upProjectionDot = glm::dot(upProjectionNormal, playerToChunkPos);
 					float downProjectionDot = glm::dot(downProjectionNormal, playerToChunkPos);
 					
-					if (halfHorizontalFov > glm::pi<float>() / 2.0f) { // If the  is greater than pi / 2.0f, then we only skip if both rightProjectionDot and leftProjectionDot is negative
-						if (downProjectionDot + this->chunkDistaceToCorner < 0.0f ||
-							upProjectionDot + this->chunkDistaceToCorner < 0.0f ||
-							(rightProjectionDot + this->chunkDistaceToCorner < 0.0f && leftProjectionDot + this->chunkDistaceToCorner < 0.0f)) {
-							continue;
-						}
-					}
-					else if (rightProjectionDot + this->chunkDistaceToCorner < 0.0f ||
+					if (rightProjectionDot + this->chunkDistaceToCorner < 0.0f ||
 							leftProjectionDot + this->chunkDistaceToCorner < 0.0f ||
 							upProjectionDot + this->chunkDistaceToCorner < 0.0f ||
 							downProjectionDot + this->chunkDistaceToCorner < 0.0f) {
@@ -245,6 +238,7 @@ void MarchingCubesManager::render() {
 }
 
 void MarchingCubesManager::renderImGui() {
+	// Chunk settings
 	{
 		static float verticalFov = Camera::verticalFov;
 		static float viewDistanceSlider = Camera::viewDistance;
@@ -259,18 +253,20 @@ void MarchingCubesManager::renderImGui() {
 		static float ratio = chunkLengthSlider / cellsPerAxisSlider;
 		static bool oldKeepCellRatio = keepCellRatio;
 
-		ImGui::Begin("Settings");
+		ImGui::Begin("Chunk Settings");
 
-		ImGui::SliderFloat("Vertical FOV", &verticalFov, 1.0f, 120.0f);
+		ImGui::SliderFloat("Vertical FOV", &verticalFov, 1.0f, 179.0f);
+		float aspectRatio = (float)Engine::Program::SCREEN_WIDTH / Engine::Program::SCREEN_HEIGHT;
+		ImGui::Text("Horizontal Fov: %.3f", glm::degrees(2.0f * glm::atan(glm::tan(glm::radians(Camera::verticalFov) * 0.5f) * aspectRatio)));
+
 		ImGui::SliderFloat("View distance", &viewDistanceSlider, 0.0f, 500.0f);
 		ImGui::SliderFloat("Chunk length", &chunkLengthSlider, 1.0f, 100.0f);
 		ImGui::SliderInt("Cells per axis", &cellsPerAxisSlider, 1, 100);
 		ImGui::Checkbox("Keep ratio", &keepCellRatio);
 
-		std::string chunkInfo = "Visible chunks: " + std::to_string(this->chunkPositionVectors.size() / 3) + " - Amount of cubes: " + std::to_string(this->chunkPositionVectors.size() / 3 * this->cellPositionVectors.size() / 3);
-		ImGui::Text(chunkInfo.c_str());
+		ImGui::Text(("Visible chunks: " + std::to_string(this->chunkPositionVectors.size() / 3)).c_str());
+		ImGui::Text(("Amount of cubes: " + std::to_string(this->chunkPositionVectors.size() / 3 * this->cellPositionVectors.size() / 3)).c_str());
 
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
 
 		
@@ -307,5 +303,11 @@ void MarchingCubesManager::renderImGui() {
 			}
 			oldKeepCellRatio = keepCellRatio;
 		}
+	}
+	// Noise settings
+	{
+		ImGui::Begin("Noise Settings");
+
+		ImGui::End();
 	}
 }
