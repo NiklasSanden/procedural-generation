@@ -79,7 +79,11 @@ project "ProceduralGeneration"
         -- resources
         "{RMDIR} ../bin/" .. outputdir .. "/%{prj.name}/res",
         "{MKDIR} ../bin/" .. outputdir .. "/%{prj.name}/res",
-        "{COPY} res ../bin/" .. outputdir .. "/%{prj.name}/res"
+        "{COPY} res ../bin/" .. outputdir .. "/%{prj.name}/res",
+
+        -- shaders
+        "{MKDIR} ../bin/" .. outputdir .. "/%{prj.name}/res/shaders",
+        "{COPY} src/shaders ../bin/" .. outputdir .. "/%{prj.name}/res/shaders"
     }
 
     filter "system:windows"
@@ -91,17 +95,13 @@ project "ProceduralGeneration"
         }
 
     filter "configurations:Debug"
-        defines "CFG_DEBUG"
+        defines 
+        { 
+            "CFG_DEBUG",
+            "DEBUG"
+        }
         runtime "Debug"
         symbols "On"
-
-        postbuildcommands 
-        { 
-            -- shaders for debug
-            "{RMDIR} ../bin/" .. outputdir .. "/%{prj.name}/src/shaders",
-            "{MKDIR} ../bin/" .. outputdir .. "/%{prj.name}/src/shaders",
-            "{COPY} src/shaders ../bin/" .. outputdir .. "/%{prj.name}/src/shaders"
-        }
     
     filter "configurations:Release"
         defines 

@@ -10,13 +10,6 @@
 // and resources are static and no public constructor is defined.
 namespace Engine {
 	class ShaderManager {
-	// Although this is supposed to be a static singleton, this is the exception...
-	private:
-		// FileNames and sourceCode are used when not reading the source code from files
-		// They will not be static so that they don't have to sit in memory throughout the entire application's lifespan.
-		// They will only be used once and then deallocated when the object gets removed from the stack
-		std::vector<std::string> fileNames;
-		std::vector<std::string> sourceCode;
 		ShaderManager(); // The constructor can still be private since it will only be called from within the setupShaderSource function
 
 	// static

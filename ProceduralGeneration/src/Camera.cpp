@@ -21,7 +21,7 @@ using namespace ProceduralGeneration;
 glm::mat4 Camera::viewMatrix = glm::mat4(1.0f);
 glm::mat4 Camera::projectionMatrix = glm::mat4(1.0f);
 float Camera::verticalFov = 60.0f;
-float Camera::viewDistance = 100.0f;
+float Camera::viewDistance = 25.0f;
 
 Camera::Camera(const std::string& name) : GameObject(name) {
 	this->transform = new Engine::Transform();

@@ -48,12 +48,6 @@ MarchingCubesManager::MarchingCubesManager(const std::string& name) : GameObject
 	// ----------------------
 
 	calculateCellPositions();
-
-	for (int i = 0; i > -10000; i--) {
-		if ((i & 255) > 255) {
-			std::cout << i << " --- " << (i & 255) << std::endl;
-		}
-	}
 }
 
 MarchingCubesManager::~MarchingCubesManager() {
@@ -131,7 +125,7 @@ void MarchingCubesManager::update(float deltaTime) {
 				glm::vec3 currentChunkCoords = glm::vec3(roundedPlayerPosition.x + x, roundedPlayerPosition.y + y, roundedPlayerPosition.z + z);
 				glm::vec3 currentChunkWorldPos = currentChunkCoords * this->chunkLength;
 
-				//if (currentChunkPos.x != 0 || currentChunkPos.y != 0 || currentChunkPos.z != 0) continue;
+				if (currentChunkCoords.x != 0 || currentChunkCoords.y != 0 || currentChunkCoords.z != 0) continue;
 				if (glm::length2(currentChunkWorldPos - playerPosition) <= (Camera::viewDistance + this->chunkDistaceToCorner) * (Camera::viewDistance + this->chunkDistaceToCorner)) {
 					// Check to see if possible that the chunk might be seen by the camera
 					// check 1: behind

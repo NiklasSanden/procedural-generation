@@ -37,8 +37,8 @@ void main() {
 		vs_out.noiseValues[i] = octavePerlin(vs_out.vertexPositions[i].x + aChunkPosition.x + aCellPos.x, 
 											 vs_out.vertexPositions[i].y + aChunkPosition.y + aCellPos.y, 
 											 vs_out.vertexPositions[i].z + aChunkPosition.z + aCellPos.z, 
-											 1,
-											 1.0);
+											 3,
+											 0.5);
 	}
 }
 
@@ -48,7 +48,7 @@ float octavePerlin(float x, float y, float z, int octaves, float persistence) {
 	z = abs(z + 100000.0);
 
 	float total = 0.0;
-	float frequency = 1.0;
+	float frequency = 0.2;
 	float amplitude = 1.0;
 	float maxValue = 0.0;			// Used for normalizing result to 0.0 - 1.0
 	for (int i = 0; i < octaves; i++) {
