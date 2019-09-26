@@ -48,6 +48,12 @@ MarchingCubesManager::MarchingCubesManager(const std::string& name) : GameObject
 	// ----------------------
 
 	calculateCellPositions();
+
+	for (int i = 0; i > -10000; i--) {
+		if ((i & 255) > 255) {
+			std::cout << i << " --- " << (i & 255) << std::endl;
+		}
+	}
 }
 
 MarchingCubesManager::~MarchingCubesManager() {
