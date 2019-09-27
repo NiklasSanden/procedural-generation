@@ -4,6 +4,7 @@
 
 #include "Input.h"
 #include "GameManager.h"
+#include "Tables.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtx/norm.hpp"
@@ -25,6 +26,8 @@ int main() {
 	#endif
 #endif
 
+	// Tables
+	ProceduralGeneration::Tables* tables = new ProceduralGeneration::Tables();
 	// Window
 	Program* program = new Program(800, 600);
 	// Input
@@ -49,6 +52,7 @@ int main() {
 	delete game;
 	delete program;
 	delete input;
+	delete tables;
 	
 
 	// Done
