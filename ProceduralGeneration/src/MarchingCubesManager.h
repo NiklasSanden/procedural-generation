@@ -35,7 +35,6 @@ namespace ProceduralGeneration {
 		unsigned int VAO = 0;
 		unsigned int VBO = 0;
 		unsigned int instancedVBO = 0;
-		unsigned int UBO = 0;
 	public:
 		MarchingCubesManager(const std::string& name);
 		~MarchingCubesManager();

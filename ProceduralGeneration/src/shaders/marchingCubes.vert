@@ -2,18 +2,14 @@
 layout (location = 0) in vec3 aCellPos;
 layout (location = 1) in vec3 aChunkPosition;
 
-layout (std140, binding = 0) uniform tables {
-	int permutations[256 * 2]; // 0    - 8192
-	int triTable[256 * 16];	   // 8192 - 73728
-};
+uniform sampler1D permutations;
+uniform float cellLength;
 
 out VS_OUT{
 	vec3 chunkPosition;
 	vec3 vertexPositions[8];
 	float noiseValues[8];
 } vs_out;
-
-uniform float cellLength;
 
 float octavePerlin(float x, float y, float z, int octaves, float persistence);
 float perlin(float x, float y, float z);
@@ -76,14 +72,14 @@ float perlin(float x, float y, float z) {
 	float w = fade(zf);
 															
 	int aaa, aba, aab, abb, baa, bba, bab, bbb;
-	aaa = permuations[permuations[permuations[xi    ] + yi    ] + zi    ];
-	aba = permuations[permuations[permuations[xi    ] + yi + 1] + zi    ];
-	aab = permuations[permuations[permuations[xi    ] + yi    ] + zi + 1];
-	abb = permuations[permuations[permuations[xi    ] + yi + 1] + zi + 1];
-	baa = permuations[permuations[permuations[xi + 1] + yi    ] + zi    ];
-	bba = permuations[permuations[permuations[xi + 1] + yi + 1] + zi    ];
-	bab = permuations[permuations[permuations[xi + 1] + yi    ] + zi + 1];
-	bbb = permuations[permuations[permuations[xi + 1] + yi + 1] + zi + 1];
+//	aaa = permutations[permutations[permutations[xi    ] + yi    ] + zi    ];
+//	aba = permutations[permutations[permutations[xi    ] + yi + 1] + zi    ];
+//	aab = permutations[permutations[permutations[xi    ] + yi    ] + zi + 1];
+//	abb = permutations[permutations[permutations[xi    ] + yi + 1] + zi + 1];
+//	baa = permutations[permutations[permutations[xi + 1] + yi    ] + zi    ];
+//	bba = permutations[permutations[permutations[xi + 1] + yi + 1] + zi    ];
+//	bab = permutations[permutations[permutations[xi + 1] + yi    ] + zi + 1];
+//	bbb = permutations[permutations[permutations[xi + 1] + yi + 1] + zi + 1];
 	
 	float x1, x2, y1, y2;
 	x1 = lerp(	grad (aaa, xf      , yf  , zf),				// The gradient function calculates the dot product between a pseudorandom

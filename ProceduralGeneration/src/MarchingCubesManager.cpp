@@ -33,7 +33,6 @@ MarchingCubesManager::MarchingCubesManager(const std::string& name) : GameObject
 	glGenVertexArrays(1, &this->VAO);
 	glGenBuffers(1, &this->VBO);
 	glGenBuffers(1, &this->instancedVBO);
-	glGenBuffers(1, &this->UBO);
 
 	// Setup attribute pointers
 	glBindVertexArray(this->VAO);
@@ -46,10 +45,6 @@ MarchingCubesManager::MarchingCubesManager(const std::string& name) : GameObject
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribDivisor(1, 1); // tell OpenGL this is an instanced vertex attribute.
-
-	// Setup Tables (uniform buffer object)
-	glBindBuffer(GL_UNIFORM_BUFFER, this->UBO);
-	glBufferData(GL_UNIFORM_BUFFER, 73728, Tables::combinedTable, GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
