@@ -5,7 +5,7 @@
 namespace ProceduralGeneration {
 	class Tables {
 	public:
-		static signed char* triangulationTable;
+		static unsigned int* triangulationTable;
 		static unsigned int textureTriangulationTableID;
 		
 		static int* permutations;

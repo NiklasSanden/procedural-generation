@@ -50,12 +50,21 @@ MarchingCubesManager::MarchingCubesManager(const std::string& name) : GameObject
 
 MarchingCubesManager::~MarchingCubesManager() {
 	delete this->material;
+	for (auto pair : this->noiseTextures3D) {
+		delete pair.second;
+	}
 
 	glDeleteVertexArrays(1, &this->VAO);
 	glDeleteBuffers(1, &this->VBO);
 }
 
 void MarchingCubesManager::calculateCellPositions() {
+	// We'll have to regenerate the noies anyway
+	for (auto pair : this->noiseTextures3D) {
+		delete pair.second;
+	}
+	this->noiseTextures3D.clear();
+
 	this->cellPositionVectors.clear();
 
 	for (int x = 0; x < this->cellsPerAxis; x++) {
@@ -63,7 +72,7 @@ void MarchingCubesManager::calculateCellPositions() {
 			for (int z = 0; z < this->cellsPerAxis; z++) {
 				float xFloat = x - this->cellsPerAxis / 2.0f;
 				float yFloat = y - this->cellsPerAxis / 2.0f;
-				float zFloat = -(z - this->cellsPerAxis / 2.0f); // invert since the positive z-axis is facing you - and we want to start in the bottom, left and back corner
+				float zFloat = z - this->cellsPerAxis / 2.0f;
 
 				this->cellPositionVectors.push_back(xFloat * (this->chunkLength / (float)this->cellsPerAxis));
 				this->cellPositionVectors.push_back(yFloat * (this->chunkLength / (float)this->cellsPerAxis));
@@ -88,7 +97,7 @@ void MarchingCubesManager::update(float deltaTime) {
 	glm::vec3 playerPosition = player->transform->getPosition();
 
 	// Clear old chunks
-	this->chunkPositionVectors.clear();
+	this->activeChunks.clear();
 
 	glm::vec3 roundedPlayerPosition = glm::round(playerPosition / this->chunkLength);
 
@@ -101,7 +110,7 @@ void MarchingCubesManager::update(float deltaTime) {
 	int chunksInRangeBack = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition);
 
 	// Allocate memory (3 as a factor since we are storing the vec3s as floats)
-	this->chunkPositionVectors.reserve((long long)3 * ((long long)chunksInRangeUp - chunksInRangeDown + 1) * ((long long)chunksInRangeRight - chunksInRangeLeft + 1) * ((long long)chunksInRangeBack - chunksInRangeFront + 1));
+	this->activeChunks.reserve((long long)3 * ((long long)chunksInRangeUp - chunksInRangeDown + 1) * ((long long)chunksInRangeRight - chunksInRangeLeft + 1) * ((long long)chunksInRangeBack - chunksInRangeFront + 1));
 
 	// Used by all chunks to determine if it can be seen or not
 	// calculate horizontal fov from vertical: https://www.gamedev.net/forums/topic/361241-horizontal-fov/
@@ -122,7 +131,7 @@ void MarchingCubesManager::update(float deltaTime) {
 				glm::vec3 currentChunkCoords = glm::vec3(roundedPlayerPosition.x + x, roundedPlayerPosition.y + y, roundedPlayerPosition.z + z);
 				glm::vec3 currentChunkWorldPos = currentChunkCoords * this->chunkLength;
 
-				//if (currentChunkCoords.x != 0 || currentChunkCoords.y != 0 || currentChunkCoords.z != 0) continue;
+				if ((currentChunkCoords.x != 0 && currentChunkCoords.x != 1) || currentChunkCoords.y != 0 || (currentChunkCoords.z != 0 && currentChunkCoords.z != 1)) continue;
 				if (glm::length2(currentChunkWorldPos - playerPosition) <= (Camera::viewDistance + this->chunkDistaceToCorner) * (Camera::viewDistance + this->chunkDistaceToCorner)) {
 					// Check to see if possible that the chunk might be seen by the camera
 					// check 1: behind
@@ -150,7 +159,10 @@ void MarchingCubesManager::update(float deltaTime) {
 					}
 					// -------------------------------------------------------------------
 
-					this->chunkPositionVectors.push_back(currentChunkWorldPos);
+					this->activeChunks.push_back(MarchingCubesChunk(std::to_string(currentChunkCoords.x) + ", " + std::to_string(currentChunkCoords.y) + ", " + std::to_string(currentChunkCoords.z), currentChunkWorldPos));
+					if (this->noiseTextures3D.find(this->activeChunks.back().name) == this->noiseTextures3D.end()) {
+						this->noiseTextures3D[this->activeChunks.back().name] = new NoiseTexture3D(this->activeChunks.back().position, this->cellsPerAxis + 1, this->chunkLength / this->cellsPerAxis);
+					}
 				}
 			}
 		}
@@ -211,27 +223,25 @@ void MarchingCubesManager::render() {
 	this->shaderProgram->setFloat("material.shininess", this->material->shininess);
 	
 	// triangulationTable
-	Tables::activateTriangulationTable(GL_TEXTURE1);
+	Tables::activateTriangulationTable(GL_TEXTURE0);
 
 	// Setup OpenGL objects
 	glBindVertexArray(this->VAO);
 
 	// the positions are done in calculateCellPositions() since they are static
 	// ------------------------------------------------------------------------
-	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+	//glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
 	//glBufferData(GL_ARRAY_BUFFER, this->cellPositionVectors.size() * sizeof(float), this->cellPositionVectors.data(), GL_STATIC_DRAW);
 
-	NoiseTexture3D* temp = new NoiseTexture3D(this->cellsPerAxis, this->cellsPerAxis, this->cellsPerAxis);
-	for (int i = 0; i < chunkPositionVectors.size(); i++) {
+	for (int i = 0; i < this->activeChunks.size(); i++) {
 		// Unique
 		// set the position
-		this->shaderProgram->setVec3("chunkPosition", chunkPositionVectors[i]);
+		this->shaderProgram->setVec3("chunkPosition", this->activeChunks[i].position);
 		// set the noise
-		temp->activate(GL_TEXTURE0);
+		this->noiseTextures3D[this->activeChunks[i].name]->activate(GL_TEXTURE0);
 
-		glDrawArrays(GL_POINTS, 0, this->cellPositionVectors.size() / 3);
+		glDrawArrays(GL_POINTS, 0, (int)(this->cellPositionVectors.size() / 3));
 	}
-	delete temp;
 
 	// Unbind
 	glBindVertexArray(0);
@@ -270,8 +280,8 @@ void MarchingCubesManager::renderImGui() {
 		ImGui::SliderInt("Cells per axis", &cellsPerAxisSlider, 1, 100);
 		ImGui::Checkbox("Keep ratio", &keepCellRatio);
 
-		ImGui::Text(("Visible chunks: " + std::to_string(this->chunkPositionVectors.size())).c_str());
-		ImGui::Text(("Amount of cubes: " + std::to_string(this->chunkPositionVectors.size() * this->cellPositionVectors.size() / 3)).c_str());
+		ImGui::Text(("Visible chunks: " + std::to_string(this->activeChunks.size())).c_str());
+		ImGui::Text(("Amount of cubes: " + std::to_string(this->activeChunks.size() * this->cellPositionVectors.size() / 3)).c_str());
 
 		ImGui::End();
 

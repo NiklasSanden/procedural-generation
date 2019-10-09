@@ -14,9 +14,18 @@ namespace ProceduralGeneration {
 
 #include <string>
 #include <vector>
+#include <set>
 #include <unordered_map>
 
 namespace ProceduralGeneration {
+	struct MarchingCubesChunk {
+	public:
+		std::string name;
+		glm::vec3 position;
+		float distanceToPlayer;
+		MarchingCubesChunk(const std::string& _name, const glm::vec3& _position) : name(_name), position(_position), distanceToPlayer(0.0f) {}
+	};
+
 	class MarchingCubesManager : public Engine::GameObject {
 	public:
 		// Settings
@@ -29,7 +38,7 @@ namespace ProceduralGeneration {
 		float viewDistanceSqrd = 0.0f;
 
 	private:
-		std::vector<glm::vec3> chunkPositionVectors;
+		std::vector<MarchingCubesChunk> activeChunks;
 		std::vector<float> cellPositionVectors;
 		std::unordered_map<std::string, NoiseTexture3D*> noiseTextures3D;
 

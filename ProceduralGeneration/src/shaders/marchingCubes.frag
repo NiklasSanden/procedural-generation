@@ -3,6 +3,7 @@ out vec4 FragColour;
 
 in vec3 FragPosView;
 in vec3 Normal;
+in vec4 GeomColour;
 
 struct Material {
 	vec3 diffuse;   // diffuse and ambient is the same on the material
@@ -42,8 +43,10 @@ vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewD
 
 void main()
 {
-	FragColour = vec4(1.0, 0.0, 0.0, 1.0);
-	return;
+	//FragColour = GeomColour;
+	//FragColour = vec4(clamp(GeomColour.x, 0.0, 1.0), clamp(GeomColour.y, 0.0, 1.0), clamp(GeomColour.z, 0.0, 1.0), 1.0);
+	//FragColour = vec4(1.0, 0.0, 0.0, 1.0);
+	//return;
 
     vec3 normal = normalize(Normal);
     vec3 viewDirection = normalize(-FragPosView);
