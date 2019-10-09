@@ -42,8 +42,8 @@ vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewD
 
 void main()
 {
-	FragColour = vec4(1.0, 0.0, 0.0, 1.0);
-	return;
+	//FragColour = vec4(0.5, 0.0, 0.0, 1.0);
+	//return;
 
     vec3 normal = normalize(Normal);
     vec3 viewDirection = normalize(-FragPosView);

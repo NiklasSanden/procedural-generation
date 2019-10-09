@@ -1,10 +1,10 @@
-#include "engine/Program.h"
-#include "engine/Game.h"
-#include "engine/InputBase.h"
+#include "engine/misc/Program.h"
+#include "engine/misc/Game.h"
+#include "engine/misc/InputBase.h"
 
-#include "Input.h"
-#include "GameManager.h"
-#include "Tables.h"
+#include "setup/Input.h"
+#include "setup/GameManager.h"
+#include "data/Tables.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtx/norm.hpp"
@@ -12,7 +12,7 @@
 #include <iostream>
 #include <string>
 
-#include "engine/Debug.h"
+#include "engine/misc/Debug.h"
 using namespace Engine;
 
 int main() {
@@ -26,10 +26,10 @@ int main() {
 	#endif
 #endif
 
-	// Tables
-	ProceduralGeneration::Tables* tables = new ProceduralGeneration::Tables();
 	// Window
 	Program* program = new Program(800, 600);
+	// Tables
+	ProceduralGeneration::Tables* tables = new ProceduralGeneration::Tables();
 	// Input
 	ProceduralGeneration::Input* input = new ProceduralGeneration::Input(program->window);
 	setInputPtr(input); // For callbacks

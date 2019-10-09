@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#include "engine/Debug.h"
+#include "engine/misc/Debug.h"
 using namespace Engine;
 
 void PxDefaultErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line) {
