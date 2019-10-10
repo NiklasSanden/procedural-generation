@@ -3,6 +3,7 @@ out vec4 FragColour;
 
 in vec3 FragPosView;
 in vec3 Normal;
+in vec3 WorldNormal;
 
 struct Material {
 	vec3 diffuse;   // diffuse and ambient is the same on the material
@@ -51,8 +52,9 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
 	vec3 reflectDirection = reflect(-lightDirection, normal);
 	float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), material.shininess);
 	// combine
-	vec3 ambient  = light.ambient * material.diffuse; 
-	vec3 diffuse  = light.diffuse * difference * material.diffuse;
+	vec3 newDiffuse = vec3(abs(WorldNormal.x), abs(WorldNormal.y), abs(WorldNormal.z));
+	vec3 ambient  = light.ambient * newDiffuse; 
+	vec3 diffuse  = light.diffuse * difference * newDiffuse;
 	vec3 specular = light.specular * spec * material.specular;
 
 	return (ambient + diffuse + specular);

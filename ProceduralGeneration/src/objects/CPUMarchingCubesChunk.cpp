@@ -50,7 +50,7 @@ CPUMarchingCubesChunk::~CPUMarchingCubesChunk() {
 }
 
 void CPUMarchingCubesChunk::draw() {
-	if (this->indexArray.size() == 0) {
+	if (this->isGenerated == false) {
 		Engine::LogManager::LogError("Trying to draw chunk: " + this->name + " without generating it first!");
 		return;
 	}
@@ -105,11 +105,12 @@ void CPUMarchingCubesChunk::generateChunk(float chunkLength, int cellsPerAxis) {
 					else {
 						glm::vec3 vertexPosition = lerpVector(cornerA, cornerB, noise[cornerA.x][cornerA.y][cornerA.z], noise[cornerB.x][cornerB.y][cornerB.z], this->surfaceLevel);
 						vertexPosition *= cellLength;
-						vertexPosition -= glm::vec3(chunkLength / 2.0f, chunkLength / 2.0f, chunkLength / 2.0f);
+						vertexPosition += position;
+						vertexPosition -= glm::vec3((chunkLength + 2 * cellLength) / 2.0f, (chunkLength + 2 * cellLength) / 2.0f, (chunkLength + 2 * cellLength) / 2.0f);
 
 						// If both corners are within the margin
 						if (cornerA.x > 0 && cornerB.x > 0 && cornerA.y > 0 && cornerB.y > 0 && cornerA.z > 0 && cornerB.z > 0 &&
-							cornerA.x < cellsPerAxis + 1 && cornerB.x < cellsPerAxis + 1 && cornerA.y < cellsPerAxis + 1 && cornerB.y < cellsPerAxis + 1 && cornerA.z < cellsPerAxis + 1 && cornerB.z < cellsPerAxis + 1) {
+							cornerA.x < cellsPerAxis + 2 && cornerB.x < cellsPerAxis + 2 && cornerA.y < cellsPerAxis + 2 && cornerB.y < cellsPerAxis + 2 && cornerA.z < cellsPerAxis + 2 && cornerB.z < cellsPerAxis + 2) {
 							existingVertices[vertexID] = (int)(this->vertexPositions.size() / 3);
 							temporaryIndices.push_back((int)(this->vertexPositions.size() / 3));
 
@@ -161,6 +162,8 @@ void CPUMarchingCubesChunk::generateChunk(float chunkLength, int cellsPerAxis) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // this AFTER glBindVertexArray(0)
+
+	this->isGenerated = true;
 }
 
 void CPUMarchingCubesChunk::generateNoise(int cellsPerAxis, float cellLength, const glm::vec3& position, std::vector<std::vector<std::vector<float>>>& noise) {
@@ -171,7 +174,21 @@ void CPUMarchingCubesChunk::generateNoise(int cellsPerAxis, float cellLength, co
 				float yFloat = y - (cellsPerAxis + 2) / 2.0f; yFloat *= cellLength;
 				float zFloat = z - (cellsPerAxis + 2) / 2.0f; zFloat *= cellLength;
 
-				noise[x][y][z] = Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.5f);
+				noise[x][y][z] = Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.5f);
+			}
+		}
+	}
+
+	// Remove lonely points
+	for (int xCount = 1; xCount < cellsPerAxis + 2; xCount++) {
+		for (int yCount = 1; yCount < cellsPerAxis + 2; yCount++) {
+			for (int zCount = 1; zCount < cellsPerAxis + 2; zCount++) {
+				if (noise[xCount + 1ll][yCount][zCount] < surfaceLevel && noise[xCount - 1ll][yCount][zCount] < surfaceLevel &&
+					noise[xCount][yCount + 1ll][zCount] < surfaceLevel && noise[xCount][yCount - 1ll][zCount] < surfaceLevel &&
+					noise[xCount][yCount][zCount + 1ll] < surfaceLevel && noise[xCount][yCount][zCount - 1ll] < surfaceLevel) {
+					
+					noise[xCount][yCount][zCount] = 0.0f;
+				}
 			}
 		}
 	}
@@ -181,18 +198,29 @@ void CPUMarchingCubesChunk::calculateNormals(const std::vector<int>& indices, co
 	std::vector<glm::vec3> normalArray(this->vertexPositions.size() / 3, glm::vec3(0.0f));
 
 	for (int i = 0; i < indices.size(); i += 3) {
-		glm::vec3 vertexA = indices[i + 0ll] < 0 ? marginVertices[glm::abs(indices[i + 0ll]) - 1ll] : glm::vec3(this->vertexPositions[indices[i + 0ll] * 3ll + 1ll], this->vertexPositions[indices[i + 0ll] * 3ll + 1ll], this->vertexPositions[indices[i + 0ll] * 3ll + 1ll]);
-		glm::vec3 vertexB = indices[i + 1ll] < 0 ? marginVertices[glm::abs(indices[i + 1ll]) - 1ll] : glm::vec3(this->vertexPositions[indices[i + 1ll] * 3ll + 1ll], this->vertexPositions[indices[i + 1ll] * 3ll + 1ll], this->vertexPositions[indices[i + 1ll] * 3ll + 1ll]);
-		glm::vec3 vertexC = indices[i + 2ll] < 0 ? marginVertices[glm::abs(indices[i + 2ll]) - 1ll] : glm::vec3(this->vertexPositions[indices[i + 2ll] * 3ll + 1ll], this->vertexPositions[indices[i + 2ll] * 3ll + 1ll], this->vertexPositions[indices[i + 2ll] * 3ll + 1ll]);
+		glm::vec3 vertexA = indices[i + 0ll] < 0 ? marginVertices[glm::abs(indices[i + 0ll]) - 1ll] : glm::vec3(this->vertexPositions[indices[i + 0ll] * 3ll + 0ll], this->vertexPositions[indices[i + 0ll] * 3ll + 1ll], this->vertexPositions[indices[i + 0ll] * 3ll + 2ll]);
+		glm::vec3 vertexB = indices[i + 1ll] < 0 ? marginVertices[glm::abs(indices[i + 1ll]) - 1ll] : glm::vec3(this->vertexPositions[indices[i + 1ll] * 3ll + 0ll], this->vertexPositions[indices[i + 1ll] * 3ll + 1ll], this->vertexPositions[indices[i + 1ll] * 3ll + 2ll]);
+		glm::vec3 vertexC = indices[i + 2ll] < 0 ? marginVertices[glm::abs(indices[i + 2ll]) - 1ll] : glm::vec3(this->vertexPositions[indices[i + 2ll] * 3ll + 0ll], this->vertexPositions[indices[i + 2ll] * 3ll + 1ll], this->vertexPositions[indices[i + 2ll] * 3ll + 2ll]);
 	
-		glm::vec3 normal = glm::normalize(glm::cross(vertexB - vertexA, vertexC - vertexA));
-		if (indices[i + 0ll] >= 0) normalArray[indices[i + 0ll]] += normal;
-		if (indices[i + 1ll] >= 0) normalArray[indices[i + 1ll]] += normal;
-		if (indices[i + 2ll] >= 0) normalArray[indices[i + 2ll]] += normal;
+		glm::vec3 AB = vertexB - vertexA;
+		glm::vec3 AC = vertexC - vertexA;
+
+		glm::vec3 normal = glm::normalize(glm::cross(AB, AC));
+
+		float area = glm::abs(glm::sqrt(glm::pow(AB.y * AC.z - AB.z * AC.y, 2) +
+										glm::pow(AB.z * AC.x - AB.x * AC.z, 2) +
+										glm::pow(AB.x * AC.y - AB.y * AC.x, 2))) / 2.0f;
+
+		if (area == 0.0f) {
+			Engine::LogManager::LogError("Area is zero");
+		}
+		if (indices[i + 0ll] >= 0) normalArray[indices[i + 0ll]] += normal / area;
+		if (indices[i + 1ll] >= 0) normalArray[indices[i + 1ll]] += normal / area;
+		if (indices[i + 2ll] >= 0) normalArray[indices[i + 2ll]] += normal / area;
 	}
 
 	for (int i = 0; i < normalArray.size(); i++) {
-		normalArray[i] = -glm::normalize(normalArray[i]);
+		normalArray[i] = glm::normalize(normalArray[i]);
 
 		this->normals.push_back(normalArray[i].x);
 		this->normals.push_back(normalArray[i].y);
@@ -201,6 +229,6 @@ void CPUMarchingCubesChunk::calculateNormals(const std::vector<int>& indices, co
 }
 
 glm::vec3 CPUMarchingCubesChunk::lerpVector(glm::vec3 a, glm::vec3 b, float aValue, float bValue, float surfaceLevel) {
-	//return (a + b) / 2.0;
+	//return (a + b) / 2.0f;
 	return a + ((surfaceLevel - aValue) / (bValue - aValue)) * (b - a);
 }

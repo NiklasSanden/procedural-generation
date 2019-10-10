@@ -212,7 +212,7 @@ void CPUMarchingCubesManager::renderImGui() {
 
 		ImGui::SliderFloat("View distance", &viewDistanceSlider, 1.0f, 500.0f);
 		ImGui::SliderFloat("Chunk length", &chunkLengthSlider, 1.0f, 100.0f);
-		ImGui::SliderInt("Cells per axis", &cellsPerAxisSlider, 1, 100);
+		ImGui::SliderInt("Cells per axis", &cellsPerAxisSlider, 1, 200);
 		ImGui::Checkbox("Keep ratio", &keepCellRatio);
 
 		ImGui::Text(("Visible chunks: " + std::to_string(this->activeChunks.size())).c_str());

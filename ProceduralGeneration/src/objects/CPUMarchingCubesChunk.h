@@ -12,6 +12,8 @@ namespace ProceduralGeneration {
 		unsigned int VBOPos;
 		unsigned int VBONormals;
 		unsigned int EBO;
+
+		bool isGenerated = false;
 	public:
 		CPUMarchingCubesChunk(const std::string& _name, const glm::vec3& _coordinates);
 		~CPUMarchingCubesChunk();

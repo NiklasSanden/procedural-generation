@@ -135,7 +135,7 @@ void MarchingCubesManager::update(float deltaTime) {
 				glm::vec3 currentChunkWorldPos = currentChunkCoords * this->chunkLength;
 
 				//if ((currentChunkCoords.x != 0 && currentChunkCoords.x != 1) || (currentChunkCoords.y != 0 && currentChunkCoords.y != 1) || (currentChunkCoords.z != 0 && currentChunkCoords.z != 1)) continue;
-				//if (currentChunkCoords.x != 0 || currentChunkCoords.y != 0 || currentChunkCoords.z != 0) continue;
+				if (currentChunkCoords.x != 0 || currentChunkCoords.y != 0 || currentChunkCoords.z != 0) continue;
 				if (glm::length2(currentChunkWorldPos - playerPosition) <= (farthestViewDistance + this->chunkDistanceToCorner) * (farthestViewDistance + this->chunkDistanceToCorner)) {
 					// Check to see if possible that the chunk might be seen by the camera
 					// check 1: behind
