@@ -32,8 +32,8 @@ namespace ProceduralGeneration {
 		float chunkLength = 9.0f;
 		int cellsPerAxis = 3;
 		// Variables from settings
-		float chunkDistaceToCorner = glm::sqrt((chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f));
-		float chunkDistanceToCornerSqrd = chunkDistaceToCorner * chunkDistaceToCorner;
+		float chunkDistanceToCorner = glm::sqrt((chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f));
+		float chunkDistanceToCornerSqrd = chunkDistanceToCorner * chunkDistanceToCorner;
 
 		float viewDistanceSqrd = 0.0f;
 
@@ -55,7 +55,7 @@ namespace ProceduralGeneration {
 		void render() override;
 		void renderImGui() override;
 	private:
-		int chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector, const glm::vec3& playerPosition);
+		int chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector, const glm::vec3& playerPosition, float farthestViewDistance);
 
 		void calculateCellPositions();
 	};

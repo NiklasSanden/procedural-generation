@@ -20,9 +20,9 @@ namespace ProceduralGeneration {
 			std::vector<float> data;
 			data.reserve((long long)width * width * width);
 
-			for (int x = 0; x < width; x++) {
+			for (int z = 0; z < width; z++) {
 				for (int y = 0; y < width; y++) {
-					for (int z = 0; z < width; z++) {
+					for (int x = 0; x < width; x++) {
 						float xFloat = x - (width - 1) / 2.0f; xFloat *= cellLength;
 						float yFloat = y - (width - 1) / 2.0f; yFloat *= cellLength;
 						float zFloat = z - (width - 1) / 2.0f; zFloat *= cellLength;
