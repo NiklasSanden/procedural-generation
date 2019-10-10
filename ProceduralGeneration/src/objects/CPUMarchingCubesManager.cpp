@@ -1,4 +1,5 @@
 #include "objects/CPUMarchingCubesManager.h"
+#include "objects/CPUMarchingCubesChunk.h"
 
 #include "engine/misc/Game.h"
 #include "engine/resources/ResourceManager.h"
@@ -11,6 +12,7 @@
 #include "setup/GameManager.h"
 #include "setup/Camera.h"
 #include "data/Tables.h"
+#include "data/NoiseTexture.h"
 
 #include "imgui/imgui.h"
 #include "glm/glm.hpp"
@@ -26,66 +28,23 @@ using namespace ProceduralGeneration;
 
 CPUMarchingCubesManager::CPUMarchingCubesManager(const std::string& name) : GameObject(name) {
 	// Shader program
-	this->shaderProgram = Engine::ResourceManager::createShaderProgram({ "cpuMarchingCubes.vert", "cpuMarchingCubes.frag" }, "MarchingCubesShader");
+	this->shaderProgram = Engine::ResourceManager::createShaderProgram({ "cpuMarchingCubes.vert", "cpuMarchingCubes.frag" }, "CPUMarchingCubesShader");
 	// Material
 	this->material = new Engine::Material();
-
-	glGenVertexArrays(1, &this->VAO);
-	glGenBuffers(1, &this->VBO);
-	glGenBuffers(1, &this->instancedVBO);
-
-	// Setup attribute pointers
-	glBindVertexArray(this->VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, this->instancedVBO);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribDivisor(1, 1); // tell OpenGL this is an instanced vertex attribute.
-
-	glBindVertexArray(0);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	// ----------------------
-
-	calculateCellPositions();
 }
 
 CPUMarchingCubesManager::~CPUMarchingCubesManager() {
 	delete this->material;
-
-	glDeleteVertexArrays(1, &this->VAO);
-	glDeleteBuffers(1, &this->VBO);
-	glDeleteBuffers(1, &this->instancedVBO);
+	for (auto pair : this->generatedChunks) {
+		delete pair.second;
+	}
 }
 
-void CPUMarchingCubesManager::calculateCellPositions() {
-	this->cellPositionVectors.clear();
-
-	for (int x = 0; x < this->cellsPerAxis; x++) {
-		for (int y = 0; y < this->cellsPerAxis; y++) {
-			for (int z = 0; z < this->cellsPerAxis; z++) {
-				float xFloat = x - this->cellsPerAxis / 2.0f;
-				float yFloat = y - this->cellsPerAxis / 2.0f;
-				float zFloat = -(z - this->cellsPerAxis / 2.0f); // invert since the positive z-axis is facing you - and we want to start in the bottom, left and back corner
-
-				this->cellPositionVectors.push_back(xFloat * (this->chunkLength / (float)this->cellsPerAxis));
-				this->cellPositionVectors.push_back(yFloat * (this->chunkLength / (float)this->cellsPerAxis));
-				this->cellPositionVectors.push_back(zFloat * (this->chunkLength / (float)this->cellsPerAxis));
-			}
-		}
+void CPUMarchingCubesManager::regenerateChunks() {
+	for (auto pair : this->generatedChunks) {
+		delete pair.second;
 	}
-
-	glBindVertexArray(this->VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-
-	glBufferData(GL_ARRAY_BUFFER, this->cellPositionVectors.size() * sizeof(float), this->cellPositionVectors.data(), GL_STATIC_DRAW);
-
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	this->generatedChunks.clear();
 }
 
 void CPUMarchingCubesManager::update(float deltaTime) {
@@ -95,20 +54,9 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 	glm::vec3 playerPosition = player->transform->getPosition();
 
 	// Clear old chunks
-	this->chunkPositionVectors.clear();
+	this->activeChunks.clear();
 
 	glm::vec3 roundedPlayerPosition = glm::round(playerPosition / this->chunkLength);
-
-	// Notice that left, down and front are negative. That is because they will be used in the for loop, and will be added to the roundedPlayerPosition
-	int chunksInRangeUp = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, 1.0f, 0.0f), playerPosition);
-	int chunksInRangeDown = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, -1.0f, 0.0f), playerPosition);
-	int chunksInRangeRight = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition);
-	int chunksInRangeLeft = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition);
-	int chunksInRangeFront = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition);
-	int chunksInRangeBack = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition);
-
-	// Allocate memory (3 as a factor since we are storing the vec3s as floats)
-	this->chunkPositionVectors.reserve((long long)3 * ((long long)chunksInRangeUp - chunksInRangeDown + 1) * ((long long)chunksInRangeRight - chunksInRangeLeft + 1) * ((long long)chunksInRangeBack - chunksInRangeFront + 1));
 
 	// Used by all chunks to determine if it can be seen or not
 	// calculate horizontal fov from vertical: https://www.gamedev.net/forums/topic/361241-horizontal-fov/
@@ -121,16 +69,31 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 	glm::vec3 upProjectionNormal = glm::normalize(glm::cross(glm::angleAxis(halfVerticalFov, player->transform->getRight()) * -player->transform->getDirection(), player->transform->getRight()));
 	glm::vec3 downProjectionNormal = glm::normalize(glm::cross(player->transform->getRight(), glm::angleAxis(-halfVerticalFov, player->transform->getRight()) * -player->transform->getDirection()));
 
+	// Since the view distance is how far away a plane is, we need the distance to the farthest point on that plane
+	float farthestViewDistance = (Camera::viewDistance / glm::cos(halfHorizontalFov)) / glm::cos(halfVerticalFov);
+
+	// Notice that left, down and front are negative. That is because they will be used in the for loop, and will be added to the roundedPlayerPosition
+	int chunksInRangeUp = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, 1.0f, 0.0f), playerPosition, farthestViewDistance);
+	int chunksInRangeDown = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, -1.0f, 0.0f), playerPosition, farthestViewDistance);
+	int chunksInRangeRight = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance);
+	int chunksInRangeLeft = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance);
+	int chunksInRangeFront = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance);
+	int chunksInRangeBack = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance);
+
+	// Allocate memory (3 as a factor since we are storing the vec3s as floats)
+	this->activeChunks.reserve((long long)3 * ((long long)chunksInRangeUp - chunksInRangeDown + 1) * ((long long)chunksInRangeRight - chunksInRangeLeft + 1) * ((long long)chunksInRangeBack - chunksInRangeFront + 1));
+
 	// Loop through all of the chunks that could be in range
 	for (int y = chunksInRangeDown; y <= chunksInRangeUp; y++) {
-		for (int x = chunksInRangeLeft; x <= chunksInRangeUp; x++) {
+		for (int x = chunksInRangeLeft; x <= chunksInRangeRight; x++) {
 			for (int z = chunksInRangeFront; z <= chunksInRangeBack; z++) {
 
 				glm::vec3 currentChunkCoords = glm::vec3(roundedPlayerPosition.x + x, roundedPlayerPosition.y + y, roundedPlayerPosition.z + z);
 				glm::vec3 currentChunkWorldPos = currentChunkCoords * this->chunkLength;
 
+				//if ((currentChunkCoords.x != 0 && currentChunkCoords.x != 1) || (currentChunkCoords.y != 0 && currentChunkCoords.y != 1) || (currentChunkCoords.z != 0 && currentChunkCoords.z != 1)) continue;
 				if (currentChunkCoords.x != 0 || currentChunkCoords.y != 0 || currentChunkCoords.z != 0) continue;
-				if (glm::length2(currentChunkWorldPos - playerPosition) <= (Camera::viewDistance + this->chunkDistaceToCorner) * (Camera::viewDistance + this->chunkDistaceToCorner)) {
+				if (glm::length2(currentChunkWorldPos - playerPosition) <= (farthestViewDistance + this->chunkDistanceToCorner) * (farthestViewDistance + this->chunkDistanceToCorner)) {
 					// Check to see if possible that the chunk might be seen by the camera
 					// check 1: behind
 					glm::vec3 pointInView = playerPosition + -player->transform->getDirection() * glm::max(Camera::viewDistance, 1.0f);
@@ -148,18 +111,21 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 					float leftProjectionDot = glm::dot(leftProjectionNormal, playerToChunkPos);
 					float upProjectionDot = glm::dot(upProjectionNormal, playerToChunkPos);
 					float downProjectionDot = glm::dot(downProjectionNormal, playerToChunkPos);
-					
-					if (rightProjectionDot + this->chunkDistaceToCorner < 0.0f ||
-							leftProjectionDot + this->chunkDistaceToCorner < 0.0f ||
-							upProjectionDot + this->chunkDistaceToCorner < 0.0f ||
-							downProjectionDot + this->chunkDistaceToCorner < 0.0f) {
+
+					if (rightProjectionDot + this->chunkDistanceToCorner < 0.0f ||
+						leftProjectionDot + this->chunkDistanceToCorner < 0.0f ||
+						upProjectionDot + this->chunkDistanceToCorner < 0.0f ||
+						downProjectionDot + this->chunkDistanceToCorner < 0.0f) {
 						continue;
 					}
 					// -------------------------------------------------------------------
 
-					this->chunkPositionVectors.push_back(currentChunkWorldPos.x);
-					this->chunkPositionVectors.push_back(currentChunkWorldPos.y);
-					this->chunkPositionVectors.push_back(currentChunkWorldPos.z);
+					std::string currentChunkName = std::to_string(currentChunkCoords.x) + ", " + std::to_string(currentChunkCoords.y) + ", " + std::to_string(currentChunkCoords.z);
+					if (this->generatedChunks.find(currentChunkName) == this->generatedChunks.end()) {
+						this->generatedChunks[currentChunkName] = new CPUMarchingCubesChunk(currentChunkName, currentChunkCoords);
+						this->generatedChunks[currentChunkName]->generateChunk(this->chunkLength, this->cellsPerAxis);
+					}
+					this->activeChunks.push_back(this->generatedChunks[currentChunkName]);
 				}
 			}
 		}
@@ -168,12 +134,12 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 	//std::cout << (glfwGetTime() - tempTime) * 1000.0f << std::endl;
 }
 
-int CPUMarchingCubesManager::chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector, const glm::vec3& playerPosition) {
+int CPUMarchingCubesManager::chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector, const glm::vec3& playerPosition, float farthestViewDistance) {
 	glm::vec3 currentPosition = startPosition + incrementVector;
 
 	int answer = 0;
 	while (true) {
-		if (glm::length2((currentPosition * this->chunkLength) - playerPosition) <= (Camera::viewDistance + this->chunkDistaceToCorner) * (Camera::viewDistance + this->chunkDistaceToCorner)) {
+		if (glm::length2((currentPosition * this->chunkLength) - playerPosition) <= (farthestViewDistance + this->chunkDistanceToCorner) * (farthestViewDistance + this->chunkDistanceToCorner)) {
 			answer++;
 			currentPosition += incrementVector;
 		}
@@ -187,7 +153,7 @@ int CPUMarchingCubesManager::chunksInRangeDirection(const glm::vec3& startPositi
 
 void CPUMarchingCubesManager::render() {
 	// wireframe
-	/*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
+	/*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDisable(GL_CULL_FACE);*/
 
 	this->shaderProgram->use();
@@ -198,40 +164,21 @@ void CPUMarchingCubesManager::render() {
 	else { // let the shader know that a directional light doesn't exist
 		this->shaderProgram->setBool("directionalLight.exists", false);
 	}
-	// point lights
-	// we have to tell the shader that point lights don't exist
-	for (int i = 0; i < 4; i++) {
-		this->shaderProgram->setBool("pointLights[" + std::to_string(i) + "].exists", false);
-	}
-
 
 	// Renderer stuff
 	// Uniforms
-	this->shaderProgram->use();
 	this->shaderProgram->setMat4("view", Camera::viewMatrix);
 	this->shaderProgram->setMat4("projection", Camera::projectionMatrix);
-	this->shaderProgram->setMat3("normal", this->transform->getNormalMatrix(glm::mat4(1.0f), Camera::viewMatrix));
-	this->shaderProgram->setFloat("cellLength", this->chunkLength / this->cellsPerAxis);
+
 	// material
 	this->shaderProgram->setVec3("material.diffuse", this->material->diffuse);
 	this->shaderProgram->setVec3("material.specular", this->material->specular);
 	this->shaderProgram->setFloat("material.shininess", this->material->shininess);
 
+	for (int i = 0; i < this->activeChunks.size(); i++) {
+		this->activeChunks[i]->draw();
+	}
 
-	// Setup OpenGL objects
-	glBindVertexArray(this->VAO);
-
-	// the positions are done in calculateCellPositions() since they are static
-	// ------------------------------------------------------------------------
-
-	// instanced array
-	glBindBuffer(GL_ARRAY_BUFFER, this->instancedVBO);
-	glBufferData(GL_ARRAY_BUFFER, this->chunkPositionVectors.size() * sizeof(float), this->chunkPositionVectors.data(), GL_DYNAMIC_DRAW);
-
-	// Draw instanced
-	glDrawArraysInstanced(GL_POINTS, 0, (GLsizei)this->cellPositionVectors.size() / 3, (GLsizei)this->chunkPositionVectors.size() / 3);
-
-	// Unbind
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	this->shaderProgram->unbind();
@@ -263,25 +210,21 @@ void CPUMarchingCubesManager::renderImGui() {
 		float aspectRatio = (float)Engine::Program::SCREEN_WIDTH / Engine::Program::SCREEN_HEIGHT;
 		ImGui::Text("Horizontal Fov: %.3f", glm::degrees(2.0f * glm::atan(glm::tan(glm::radians(Camera::verticalFov) * 0.5f) * aspectRatio)));
 
-		ImGui::SliderFloat("View distance", &viewDistanceSlider, 0.0f, 500.0f);
+		ImGui::SliderFloat("View distance", &viewDistanceSlider, 1.0f, 500.0f);
 		ImGui::SliderFloat("Chunk length", &chunkLengthSlider, 1.0f, 100.0f);
 		ImGui::SliderInt("Cells per axis", &cellsPerAxisSlider, 1, 100);
 		ImGui::Checkbox("Keep ratio", &keepCellRatio);
 
-		ImGui::Text(("Visible chunks: " + std::to_string(this->chunkPositionVectors.size() / 3)).c_str());
-		ImGui::Text(("Amount of cubes: " + std::to_string(this->chunkPositionVectors.size() / 3 * this->cellPositionVectors.size() / 3)).c_str());
+		ImGui::Text(("Visible chunks: " + std::to_string(this->activeChunks.size())).c_str());
 
 		ImGui::End();
 
-		
+
 		Camera::verticalFov = verticalFov;
 		Camera::viewDistance = viewDistanceSlider; this->viewDistanceSqrd = viewDistanceSlider * viewDistanceSlider;
 
 		// Update cells if settings were changed
 		if (cellsPerAxisSlider != oldCellsPerAxisSlider || chunkLengthSlider != oldChunkLengthSlider) {
-			this->chunkLength = chunkLengthSlider;
-			this->cellsPerAxis = cellsPerAxisSlider;
-
 			if (keepCellRatio) {
 				if (cellsPerAxisSlider != oldCellsPerAxisSlider) {
 					chunkLengthSlider = glm::clamp(cellsPerAxisSlider * ratio, 1.0f, 100.0f);
@@ -291,10 +234,14 @@ void CPUMarchingCubesManager::renderImGui() {
 				}
 			}
 
-			this->chunkDistaceToCorner = glm::sqrt((this->chunkLength / 2.0f) * (this->chunkLength / 2.0f) + (this->chunkLength / 2.0f) * (this->chunkLength / 2.0f) + (this->chunkLength / 2.0f) * (this->chunkLength / 2.0f));
-			this->chunkDistanceToCornerSqrd = this->chunkDistaceToCorner * this->chunkDistaceToCorner;
+			this->chunkLength = chunkLengthSlider;
+			this->cellsPerAxis = cellsPerAxisSlider;
 
-			calculateCellPositions();
+			this->chunkDistanceToCorner = glm::sqrt((this->chunkLength / 2.0f) * (this->chunkLength / 2.0f) + (this->chunkLength / 2.0f) * (this->chunkLength / 2.0f) + (this->chunkLength / 2.0f) * (this->chunkLength / 2.0f));
+			this->chunkDistanceToCornerSqrd = this->chunkDistanceToCorner * this->chunkDistanceToCorner;
+
+			// Now we need to regenerate the chunks
+			regenerateChunks();
 
 			oldCellsPerAxisSlider = cellsPerAxisSlider;
 			oldChunkLengthSlider = chunkLengthSlider;

@@ -5,12 +5,7 @@
 #include "engine/misc/Debug.h"
 using namespace ProceduralGeneration;
 
-unsigned int* Tables::triangulationTable = nullptr;
-unsigned int Tables::textureTriangulationTableID = -1;
-int* Tables::permutations = nullptr;
-
-Tables::Tables() {
-	unsigned char tempTriangulationTable[256][16] = { {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
+unsigned char Tables::triangulationTable2D[256][16] = { {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
 		{0, 8, 3, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
 		{0, 1, 9, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
 		{1, 8, 3, 9, 8, 1, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
@@ -266,12 +261,16 @@ Tables::Tables() {
 		{0, 9, 1, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
 		{0, 3, 8, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
 		{32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32} };
+unsigned int* Tables::triangulationTable = nullptr;
+unsigned int Tables::textureTriangulationTableID = -1;
+int* Tables::permutations = nullptr;
 
+Tables::Tables() {
 	triangulationTable = new unsigned int[256 * 16];
 	int index = 0;
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 256; j++) {
-			triangulationTable[index] = tempTriangulationTable[j][i];
+			triangulationTable[index] = triangulationTable2D[j][i];
 			index++;
 		}
 	}

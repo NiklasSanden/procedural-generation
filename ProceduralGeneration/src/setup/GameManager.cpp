@@ -59,11 +59,11 @@ GameManager::GameManager(const std::string& _name) : GameObject(_name) {
 	/*Cube* cube = new Cube("TestCube");
 	this->gamePtr->addGameObject(cube);*/
 	
-	//CPUMarchingCubesManager* cubesManager = new CPUMarchingCubesManager("CPUMarchingCubesManager");
-	//this->gamePtr->addGameObject(cubesManager);
-
-	MarchingCubesManager* cubesManager = new MarchingCubesManager("MarchingCubesManager");
+	CPUMarchingCubesManager* cubesManager = new CPUMarchingCubesManager("CPUMarchingCubesManager");
 	this->gamePtr->addGameObject(cubesManager);
+
+	//MarchingCubesManager* cubesManager = new MarchingCubesManager("MarchingCubesManager");
+	//this->gamePtr->addGameObject(cubesManager);
 
 	/*ChunkManager* chunkManager = new ChunkManager("ChunkManager");
 	this->gamePtr->addGameObject(chunkManager);*/
