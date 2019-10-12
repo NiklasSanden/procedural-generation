@@ -95,6 +95,6 @@ void main() {
 }
 
 vec3 lerpVector(vec3 a, vec3 b, float aValue, float bValue, float surfaceLevel) {
-	return (a + b) / 2.0;
-	//return a + ((surfaceLevel - aValue) / (bValue - aValue)) * (b - a);
+	//return (a + b) / 2.0;
+	return a + ((surfaceLevel - aValue) / (bValue - aValue)) * (b - a);
 }

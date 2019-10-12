@@ -54,6 +54,9 @@ void CPUMarchingCubesChunk::draw() {
 		Engine::LogManager::LogError("Trying to draw chunk: " + this->name + " without generating it first!");
 		return;
 	}
+	if (this->indexArray.size() == 0) {
+		return;
+	}
 	glBindVertexArray(this->VAO);
 
 	glDrawElements(GL_TRIANGLES, (GLsizei)this->indexArray.size(), GL_UNSIGNED_INT, 0);
@@ -175,6 +178,7 @@ void CPUMarchingCubesChunk::generateNoise(int cellsPerAxis, float cellLength, co
 				float zFloat = z - (cellsPerAxis + 2) / 2.0f; zFloat *= cellLength;
 
 				noise[x][y][z] = Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.5f);
+				noise[x][y][z] += 1.0f - glm::length(glm::vec3(xFloat, yFloat, zFloat)) / (cellsPerAxis * cellLength / 3.0f);
 			}
 		}
 	}
@@ -187,7 +191,7 @@ void CPUMarchingCubesChunk::generateNoise(int cellsPerAxis, float cellLength, co
 					noise[xCount][yCount + 1ll][zCount] < surfaceLevel && noise[xCount][yCount - 1ll][zCount] < surfaceLevel &&
 					noise[xCount][yCount][zCount + 1ll] < surfaceLevel && noise[xCount][yCount][zCount - 1ll] < surfaceLevel) {
 					
-					noise[xCount][yCount][zCount] = 0.0f;
+					//noise[xCount][yCount][zCount] = 0.0f;
 				}
 			}
 		}
@@ -202,6 +206,13 @@ void CPUMarchingCubesChunk::calculateNormals(const std::vector<int>& indices, co
 		glm::vec3 vertexB = indices[i + 1ll] < 0 ? marginVertices[glm::abs(indices[i + 1ll]) - 1ll] : glm::vec3(this->vertexPositions[indices[i + 1ll] * 3ll + 0ll], this->vertexPositions[indices[i + 1ll] * 3ll + 1ll], this->vertexPositions[indices[i + 1ll] * 3ll + 2ll]);
 		glm::vec3 vertexC = indices[i + 2ll] < 0 ? marginVertices[glm::abs(indices[i + 2ll]) - 1ll] : glm::vec3(this->vertexPositions[indices[i + 2ll] * 3ll + 0ll], this->vertexPositions[indices[i + 2ll] * 3ll + 1ll], this->vertexPositions[indices[i + 2ll] * 3ll + 2ll]);
 	
+		if (vertexA == vertexB || vertexB == vertexC || vertexA == vertexC) {
+			if (indices[i + 0ll] >= 0) normalArray[indices[i + 0ll]] += glm::vec3(0.0f, 0.0f, 0.0f);
+			if (indices[i + 1ll] >= 0) normalArray[indices[i + 1ll]] += glm::vec3(0.0f, 0.0f, 0.0f);
+			if (indices[i + 2ll] >= 0) normalArray[indices[i + 2ll]] += glm::vec3(0.0f, 0.0f, 0.0f);
+			continue;
+		}
+
 		glm::vec3 AB = vertexB - vertexA;
 		glm::vec3 AC = vertexC - vertexA;
 
