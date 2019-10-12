@@ -21,7 +21,10 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
+#include <string>
 #include <vector>
+#include <unordered_map>
+#include <map>
 
 #include "engine/misc/Debug.h"
 using namespace ProceduralGeneration;
@@ -80,9 +83,6 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 	int chunksInRangeFront = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance);
 	int chunksInRangeBack = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance);
 
-	// Allocate memory (3 as a factor since we are storing the vec3s as floats)
-	this->activeChunks.reserve((long long)3 * ((long long)chunksInRangeUp - chunksInRangeDown + 1) * ((long long)chunksInRangeRight - chunksInRangeLeft + 1) * ((long long)chunksInRangeBack - chunksInRangeFront + 1));
-
 	// Loop through all of the chunks that could be in range
 	for (int y = chunksInRangeDown; y <= chunksInRangeUp; y++) {
 		for (int x = chunksInRangeLeft; x <= chunksInRangeRight; x++) {
@@ -92,8 +92,9 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 				glm::vec3 currentChunkWorldPos = currentChunkCoords * this->chunkLength;
 
 				//if ((currentChunkCoords.x != 0 && currentChunkCoords.x != 1) || (currentChunkCoords.y != 0 && currentChunkCoords.y != 1) || (currentChunkCoords.z != 0 && currentChunkCoords.z != 1)) continue;
-				if (currentChunkCoords.x != 0 || currentChunkCoords.y != 0 || currentChunkCoords.z != 0) continue;
-				if (glm::length2(currentChunkWorldPos - playerPosition) <= (farthestViewDistance + this->chunkDistanceToCorner) * (farthestViewDistance + this->chunkDistanceToCorner)) {
+				//if (currentChunkCoords.x != 0 || currentChunkCoords.y != 0 || currentChunkCoords.z != 0) continue;
+				float distanceToPlayerSqr = glm::length2(currentChunkWorldPos - playerPosition);
+				if (distanceToPlayerSqr <= (farthestViewDistance + this->chunkDistanceToCorner) * (farthestViewDistance + this->chunkDistanceToCorner)) {
 					// Check to see if possible that the chunk might be seen by the camera
 					// check 1: behind
 					glm::vec3 pointInView = playerPosition + -player->transform->getDirection() * glm::max(Camera::viewDistance, 1.0f);
@@ -125,7 +126,7 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 						this->generatedChunks[currentChunkName] = new CPUMarchingCubesChunk(currentChunkName, currentChunkCoords);
 						this->generatedChunks[currentChunkName]->generateChunk(this->chunkLength, this->cellsPerAxis);
 					}
-					this->activeChunks.push_back(this->generatedChunks[currentChunkName]);
+					this->activeChunks.insert(std::pair<float, CPUMarchingCubesChunk*>(distanceToPlayerSqr, this->generatedChunks[currentChunkName]));
 				}
 			}
 		}
@@ -175,8 +176,8 @@ void CPUMarchingCubesManager::render() {
 	this->shaderProgram->setVec3("material.specular", this->material->specular);
 	this->shaderProgram->setFloat("material.shininess", this->material->shininess);
 
-	for (int i = 0; i < this->activeChunks.size(); i++) {
-		this->activeChunks[i]->draw();
+	for (auto pair : this->activeChunks) {
+		pair.second->draw(this->activeChunks.size());
 	}
 
 	glBindVertexArray(0);

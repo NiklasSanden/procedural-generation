@@ -10,14 +10,8 @@ namespace ProceduralGeneration {
 		// Improved perlin noise
 		// ----------------------------------------------------------------------------
 	public:
-		static float octavePerlin(float x, float y, float z, int octaves, float persistence) {
-			x = glm::abs(x + 100000.0f);
-			y = glm::abs(y + 100000.0f);
-			z = glm::abs(z + 100000.0f);
-
+		static float octavePerlin(float x, float y, float z, int octaves = 4, float persistence = 0.5, float frequency = 0.2f, float amplitude = 1.0f) {
 			float total = 0.0f;
-			float frequency = 0.2f;
-			float amplitude = 1.0f;
 			float maxValue = 0.0f;			// Used for normalizing result to 0.0 - 1.0
 			for (int i = 0; i < octaves; i++) {
 				total += perlin(x * frequency, y * frequency, z * frequency) * amplitude;
@@ -32,13 +26,21 @@ namespace ProceduralGeneration {
 		}
 
 	private:
+		static int fastFloor(float x) {
+			return x > 0.0f ? (int)x : (int)x - 1;
+		}
+
 		static float perlin(float x, float y, float z) {
-			int xi = (int)x & 255;								// Calculate the unit cube that the point asked will be located in
-			int yi = (int)y & 255;								// The left bound is ( |_x_|,|_y_|,|_z_| ) and the right bound is that
-			int zi = (int)z & 255;								// plus 1.  Next we calculate the location (from 0.0 to 1.0) in that cube.
-			float xf = x - (int)x;								// We also fade the location to smooth the result.
-			float yf = y - (int)y;
-			float zf = z - (int)z;
+			int X = fastFloor(x);
+			int Y = fastFloor(y);
+			int Z = fastFloor(z);
+
+			int xi = X & 255;								// Calculate the unit cube that the point asked will be located in
+			int yi = Y & 255;								// The left bound is ( |_x_|,|_y_|,|_z_| ) and the right bound is that
+			int zi = Z & 255;								// plus 1.  Next we calculate the location (from 0.0 to 1.0) in that cube.
+			float xf = x - X;								// We also fade the location to smooth the result.
+			float yf = y - Y;
+			float zf = z - Z;
 			float u = fade(xf);
 			float v = fade(yf);
 			float w = fade(zf);

@@ -29,6 +29,8 @@ Camera::Camera(const std::string& name) : GameObject(name) {
 }
 
 void Camera::update(float deltaTime) {
+	deltaTime = fmin(0.0222222222, deltaTime);
+	
 	// Looking around
 	glm::vec2 mouseDelta = GameManager::getInputPtr()->getMouseDelta();
 	// Make sure your neck is intact

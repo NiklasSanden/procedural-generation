@@ -10,6 +10,9 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <cmath>
+#include <thread>
+#include <mutex>
 
 #include "engine/misc/Debug.h"
 using namespace ProceduralGeneration;
@@ -18,6 +21,9 @@ namespace ProceduralGeneration {
 	// Specific order to make sure that the latter has at least one coordinate higher
 	const int edgeTable[12][2] = { { 0, 1 }, { 1, 2 }, { 3, 2 }, { 0, 3 }, { 4, 5 }, { 5, 6 }, { 7, 6 }, { 4, 7 }, { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 } };
 }
+
+std::mutex CPUMarchingCubesChunk::numberOfGeneratingChunksMutex;
+int CPUMarchingCubesChunk::numberOfGeneratingChunks = 0;
 
 CPUMarchingCubesChunk::CPUMarchingCubesChunk(const std::string& _name, const glm::vec3& _coordinates) : name(_name), coordinates(_coordinates) {
 	// -----------------------------
@@ -43,20 +49,65 @@ CPUMarchingCubesChunk::CPUMarchingCubesChunk(const std::string& _name, const glm
 }
 
 CPUMarchingCubesChunk::~CPUMarchingCubesChunk() {
+	if (this->generator.joinable()) {
+		this->generator.join();
+	}
+	
 	glDeleteVertexArrays(1, &this->VAO);
 	glDeleteBuffers(1, &this->VBOPos);
 	glDeleteBuffers(1, &this->VBONormals);
 	glDeleteBuffers(1, &this->EBO);
 }
 
-void CPUMarchingCubesChunk::draw() {
+void CPUMarchingCubesChunk::draw(int visibleChunks) {
+	this->isGeneratedMutex.lock();
 	if (this->isGenerated == false) {
-		Engine::LogManager::LogError("Trying to draw chunk: " + this->name + " without generating it first!");
+		this->isGeneratedMutex.unlock();
+
+		this->numberOfGeneratingChunksMutex.lock();
+		if (numberOfGeneratingChunks > visibleChunks) {
+			this->numberOfGeneratingChunksMutex.unlock();
+
+			this->generator.join();
+		}
+		else {
+			this->numberOfGeneratingChunksMutex.unlock();
+		}
+
 		return;
 	}
+	this->isGeneratedMutex.unlock();
+	
 	if (this->indexArray.size() == 0) {
 		return;
 	}
+	else if (this->isSetup == false) {
+		if (this->generator.joinable()) {
+			this->generator.join();
+		}
+
+		// Set states
+		glBindVertexArray(this->VAO);
+		// Setup VBOPos
+		glBindBuffer(GL_ARRAY_BUFFER, this->VBOPos);
+		glBufferData(GL_ARRAY_BUFFER, this->vertexPositions.size() * sizeof(float), this->vertexPositions.data(), GL_STATIC_DRAW);
+
+		// Setup VBONormals
+		glBindBuffer(GL_ARRAY_BUFFER, this->VBONormals);
+		glBufferData(GL_ARRAY_BUFFER, this->normals.size() * sizeof(float), this->normals.data(), GL_STATIC_DRAW);
+
+		// Setup EBO
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indexArray.size() * sizeof(unsigned int), this->indexArray.data(), GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // this AFTER glBindVertexArray(0)
+
+		this->isSetup = true;
+	}
+
+	// actually draw
 	glBindVertexArray(this->VAO);
 
 	glDrawElements(GL_TRIANGLES, (GLsizei)this->indexArray.size(), GL_UNSIGNED_INT, 0);
@@ -65,9 +116,18 @@ void CPUMarchingCubesChunk::draw() {
 }
 
 void CPUMarchingCubesChunk::generateChunk(float chunkLength, int cellsPerAxis) {
+	this->numberOfGeneratingChunksMutex.lock();
+	numberOfGeneratingChunks++;
+	this->numberOfGeneratingChunksMutex.unlock();
+
+	this->generator = std::thread(&CPUMarchingCubesChunk::generateChunkThread, this, chunkLength, cellsPerAxis);
+	//generateChunkThread(chunkLength, cellsPerAxis);
+}
+
+void CPUMarchingCubesChunk::generateChunkThread(float chunkLength, int cellsPerAxis) {
 	glm::vec3 position = this->coordinates * chunkLength;
 	float cellLength = chunkLength / cellsPerAxis;
-	
+
 	// Generate noise
 	std::vector<std::vector<std::vector<float>>> noise(cellsPerAxis + 3ll, std::vector<std::vector<float>>(cellsPerAxis + 3ll, std::vector<float>(cellsPerAxis + 3ll, -1.0f)));
 	generateNoise(cellsPerAxis, cellLength, position, noise);
@@ -81,7 +141,7 @@ void CPUMarchingCubesChunk::generateChunk(float chunkLength, int cellsPerAxis) {
 		for (int yCount = 0; yCount < cellsPerAxis + 2; yCount++) {
 			for (int zCount = 0; zCount < cellsPerAxis + 2; zCount++) {
 				std::vector<glm::ivec3> cornersArray = { glm::ivec3(xCount, yCount, zCount), glm::ivec3(xCount + 1, yCount, zCount), glm::ivec3(xCount + 1, yCount, zCount + 1), glm::ivec3(xCount, yCount, zCount + 1), glm::ivec3(xCount, yCount + 1, zCount), glm::ivec3(xCount + 1, yCount + 1, zCount), glm::ivec3(xCount + 1, yCount + 1, zCount + 1), glm::ivec3(xCount, yCount + 1, zCount + 1) };
-				
+
 				int cubeIndex = 0;
 				for (int i = 0; i < cornersArray.size(); i++) {
 					if (noise[cornersArray[i].x][cornersArray[i].y][cornersArray[i].z] > this->surfaceLevel) {
@@ -148,25 +208,13 @@ void CPUMarchingCubesChunk::generateChunk(float chunkLength, int cellsPerAxis) {
 		this->indexArray.push_back((unsigned int)indexC);
 	}
 
-	// Set states
-	glBindVertexArray(this->VAO);
-	// Setup VBOPos
-	glBindBuffer(GL_ARRAY_BUFFER, this->VBOPos);
-	glBufferData(GL_ARRAY_BUFFER, this->vertexPositions.size() * sizeof(float), this->vertexPositions.data(), GL_STATIC_DRAW);
-
-	// Setup VBONormals
-	glBindBuffer(GL_ARRAY_BUFFER, this->VBONormals);
-	glBufferData(GL_ARRAY_BUFFER, this->normals.size() * sizeof(float), this->normals.data(), GL_STATIC_DRAW);
-
-	// Setup EBO
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indexArray.size() * sizeof(unsigned int), this->indexArray.data(), GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // this AFTER glBindVertexArray(0)
-
+	this->isGeneratedMutex.lock();
 	this->isGenerated = true;
+	this->isGeneratedMutex.unlock();
+
+	this->numberOfGeneratingChunksMutex.lock();
+	numberOfGeneratingChunks--;
+	this->numberOfGeneratingChunksMutex.unlock();
 }
 
 void CPUMarchingCubesChunk::generateNoise(int cellsPerAxis, float cellLength, const glm::vec3& position, std::vector<std::vector<std::vector<float>>>& noise) {
@@ -177,8 +225,11 @@ void CPUMarchingCubesChunk::generateNoise(int cellsPerAxis, float cellLength, co
 				float yFloat = y - (cellsPerAxis + 2) / 2.0f; yFloat *= cellLength;
 				float zFloat = z - (cellsPerAxis + 2) / 2.0f; zFloat *= cellLength;
 
-				noise[x][y][z] = Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.5f);
-				noise[x][y][z] += 1.0f - glm::length(glm::vec3(xFloat, yFloat, zFloat)) / (cellsPerAxis * cellLength / 3.0f);
+				float terraceHeight = 2.0f;
+				
+				noise[x][y][z] = -(yFloat + position.y) / 5.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 8, 0.5f, 0.2f, 1.0f) * 5.0f;
+				//noise[x][y][z] = -(yFloat + position.y) / 5.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.5f) * 2.0f + fmod((yFloat + position.y), 0.5f) / 5.0f;
+				//noise[x][y][z] = 1.0f - glm::length(glm::vec3(xFloat + position.x, yFloat + position.y, zFloat + position.z)) / 20.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.5f);
 			}
 		}
 	}
@@ -191,7 +242,7 @@ void CPUMarchingCubesChunk::generateNoise(int cellsPerAxis, float cellLength, co
 					noise[xCount][yCount + 1ll][zCount] < surfaceLevel && noise[xCount][yCount - 1ll][zCount] < surfaceLevel &&
 					noise[xCount][yCount][zCount + 1ll] < surfaceLevel && noise[xCount][yCount][zCount - 1ll] < surfaceLevel) {
 					
-					//noise[xCount][yCount][zCount] = 0.0f;
+					noise[xCount][yCount][zCount] = 0.0f;
 				}
 			}
 		}

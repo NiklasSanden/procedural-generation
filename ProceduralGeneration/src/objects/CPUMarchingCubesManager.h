@@ -14,8 +14,8 @@ namespace ProceduralGeneration {
 
 #include <string>
 #include <vector>
-#include <set>
 #include <unordered_map>
+#include <map>
 
 namespace ProceduralGeneration {
 	class CPUMarchingCubesManager : public Engine::GameObject {
@@ -30,7 +30,7 @@ namespace ProceduralGeneration {
 		float viewDistanceSqrd = 0.0f;
 
 	private:
-		std::vector<CPUMarchingCubesChunk*> activeChunks;
+		std::multimap<float, CPUMarchingCubesChunk*> activeChunks;
 		std::unordered_map<std::string, CPUMarchingCubesChunk*> generatedChunks;
 
 		Engine::Shader* shaderProgram = nullptr;

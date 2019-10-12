@@ -4,6 +4,8 @@
 
 #include <string>
 #include <vector>
+#include <thread>
+#include <mutex>
 
 namespace ProceduralGeneration {
 	class CPUMarchingCubesChunk {
@@ -13,7 +15,15 @@ namespace ProceduralGeneration {
 		unsigned int VBONormals;
 		unsigned int EBO;
 
+		std::mutex isGeneratedMutex;
 		bool isGenerated = false;
+
+		bool isSetup = false;
+		
+		static std::mutex numberOfGeneratingChunksMutex;
+		static int numberOfGeneratingChunks;
+
+		std::thread generator;
 	public:
 		CPUMarchingCubesChunk(const std::string& _name, const glm::vec3& _coordinates);
 		~CPUMarchingCubesChunk();
@@ -27,9 +37,11 @@ namespace ProceduralGeneration {
 		// settings
 		float surfaceLevel = 0.6f;
 
-		void draw();
+		void draw(int visibleChunks);
 		
 		void generateChunk(float chunkLength, int cellsPerAxis);
+	private:
+		void generateChunkThread(float chunkLength, int cellsPerAxis);
 		void generateNoise(int cellsPerAxis, float cellLength, const glm::vec3& position, std::vector<std::vector<std::vector<float>>>& noise);
 		void calculateNormals(const std::vector<int>& indices, const std::vector<glm::vec3>& marginVertices);
 		glm::vec3 lerpVector(glm::vec3 a, glm::vec3 b, float aValue, float bValue, float surfaceLevel);

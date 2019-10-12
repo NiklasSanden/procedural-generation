@@ -1,6 +1,7 @@
 #version 450 core
 out vec4 FragColour;
 
+in vec3 FragPosWorld;
 in vec3 FragPosView;
 in vec3 Normal;
 in vec3 WorldNormal;
@@ -44,6 +45,7 @@ void main()
     FragColour = vec4(result, 1.0);
 }
 
+
 vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDirection) {
 	vec3 lightDirection = normalize(-light.direction);
 	// diffuse
@@ -57,8 +59,13 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
 //	else															 newDiffuse = vec3(0.0, 1.0, 0.0);
 //	if (abs(WorldNormal.z) > abs(max(WorldNormal.x, WorldNormal.y))) newDiffuse = vec3(0.0, 0.0, 1.0);
 
-	vec3 ambient  = light.ambient * material.diffuse; 
-	vec3 diffuse  = light.diffuse * difference * material.diffuse;
+	vec3 colour1 = vec3(0.133, 0.545, 0.133);
+	vec3 colour2 = vec3(0.545 , 0.27, 0.07);
+	vec3 newDiffuse = mix(mix(colour1, colour2, FragPosWorld.y / 4.0), colour2, FragPosWorld.y / 5.0);
+
+
+	vec3 ambient  = light.ambient * newDiffuse; 
+	vec3 diffuse  = light.diffuse * difference * newDiffuse;
 	vec3 specular = light.specular * spec * material.specular;
 
 	return (ambient + diffuse + specular);
