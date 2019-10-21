@@ -23,11 +23,15 @@ namespace ProceduralGeneration {
 			for (int z = 0; z < width; z++) {
 				for (int y = 0; y < width; y++) {
 					for (int x = 0; x < width; x++) {
-						float xFloat = x - (width - 1) / 2.0f; xFloat *= cellLength;
-						float yFloat = y - (width - 1) / 2.0f; yFloat *= cellLength;
-						float zFloat = z - (width - 1) / 2.0f; zFloat *= cellLength;
+						long double xFloat = x - (width - 1ll) / 2.0; xFloat *= cellLength;
+						long double yFloat = y - (width - 1ll) / 2.0; yFloat *= cellLength;
+						long double zFloat = z - (width - 1ll) / 2.0; zFloat *= cellLength;
 
-						data.push_back(Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.5));
+						long double warp = Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.4f, 0.04f);
+						xFloat += warp * 10;
+						zFloat += warp * 10;
+						data.push_back(-(yFloat + position.y) / 10.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4f, 0.1f));
+						//data.push_back(Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.5));
 					}
 				}
 			}
@@ -51,10 +55,10 @@ namespace ProceduralGeneration {
 			glPixelStorei(GL_PACK_ALIGNMENT, 1);
 			glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, width, height, depth, 0, GL_RED, GL_FLOAT, data.data());
 
-			glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+			glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+			glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 			glBindTexture(GL_TEXTURE_3D, 0);
 		}

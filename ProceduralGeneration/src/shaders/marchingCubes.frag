@@ -26,10 +26,10 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
 
 void main()
 {
-	//FragColour = GeomColour;
-	//FragColour = vec4(clamp(GeomColour.x, 0.0, 1.0), clamp(GeomColour.y, 0.0, 1.0), clamp(GeomColour.z, 0.0, 1.0), 1.0);
-	//FragColour = vec4(1.0, 0.0, 0.0, 1.0);
-	//return;
+//	FragColour = GeomColour;
+//	FragColour = vec4(clamp(GeomColour.x, 0.0, 1.0), clamp(GeomColour.y, 0.0, 1.0), clamp(GeomColour.z, 0.0, 1.0), 1.0);
+//	FragColour = vec4(1.0, 0.0, 0.0, 1.0);
+//	return;
 
     vec3 normal = normalize(Normal);
     vec3 viewDirection = normalize(-FragPosView);

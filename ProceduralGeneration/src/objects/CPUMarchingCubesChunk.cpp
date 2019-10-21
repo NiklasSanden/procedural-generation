@@ -334,9 +334,9 @@ void CPUMarchingCubesChunk::generateNoise(int pointsPerAxis, float pointsSpace, 
 	for (int x = 0; x < pointsPerAxis; x++) {
 		for (int y = 0; y < pointsPerAxis; y++) {
 			for (int z = 0; z < pointsPerAxis; z++) {
-				long double xFloat = x - (pointsPerAxis - 1) / 2.0; xFloat *= pointsSpace;
-				long double yFloat = y - (pointsPerAxis - 1) / 2.0; yFloat *= pointsSpace;
-				long double zFloat = z - (pointsPerAxis - 1) / 2.0; zFloat *= pointsSpace;
+				long double xFloat = x - (pointsPerAxis - 1ll) / 2.0; xFloat *= pointsSpace;
+				long double yFloat = y - (pointsPerAxis - 1ll) / 2.0; yFloat *= pointsSpace;
+				long double zFloat = z - (pointsPerAxis - 1ll) / 2.0; zFloat *= pointsSpace;
 				
 				// Regular noise
 				//noise[x][y][z] = Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 8, 0.5f, 0.2f, this->seed);

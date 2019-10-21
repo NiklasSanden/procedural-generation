@@ -135,7 +135,7 @@ void MarchingCubesManager::update(float deltaTime) {
 				glm::vec3 currentChunkWorldPos = currentChunkCoords * this->chunkLength;
 
 				//if ((currentChunkCoords.x != 0 && currentChunkCoords.x != 1) || (currentChunkCoords.y != 0 && currentChunkCoords.y != 1) || (currentChunkCoords.z != 0 && currentChunkCoords.z != 1)) continue;
-				if (currentChunkCoords.x != 0 || currentChunkCoords.y != 0 || currentChunkCoords.z != 0) continue;
+				//if (currentChunkCoords.x != 0 || currentChunkCoords.y != 0 || currentChunkCoords.z != 0) continue;
 				if (glm::length2(currentChunkWorldPos - playerPosition) <= (farthestViewDistance + this->chunkDistanceToCorner) * (farthestViewDistance + this->chunkDistanceToCorner)) {
 					// Check to see if possible that the chunk might be seen by the camera
 					// check 1: behind
@@ -165,7 +165,7 @@ void MarchingCubesManager::update(float deltaTime) {
 
 					this->activeChunks.push_back(MarchingCubesChunk(std::to_string(currentChunkCoords.x) + ", " + std::to_string(currentChunkCoords.y) + ", " + std::to_string(currentChunkCoords.z), currentChunkWorldPos));
 					if (this->noiseTextures3D.find(this->activeChunks.back().name) == this->noiseTextures3D.end()) {
-						this->noiseTextures3D[this->activeChunks.back().name] = new NoiseTexture3D(this->activeChunks.back().position, this->cellsPerAxis + 1, this->chunkLength / this->cellsPerAxis);
+						this->noiseTextures3D[this->activeChunks.back().name] = new NoiseTexture3D(this->activeChunks.back().position, this->cellsPerAxis + 3, this->chunkLength / this->cellsPerAxis);
 					}
 				}
 			}
@@ -198,6 +198,14 @@ void MarchingCubesManager::render() {
 	glDisable(GL_CULL_FACE);*/
 
 	this->shaderProgram->use();
+	// Textures
+	GLuint triTableLocation = glGetUniformLocation(this->shaderProgram->ID, "triTable");
+	GLuint noiseLocation = glGetUniformLocation(this->shaderProgram->ID, "noise");
+	// Then bind the uniform samplers to texture units:
+	glUniform1i(triTableLocation, 0);
+	glUniform1i(noiseLocation, 1);
+
+
 	// directional light
 	if (GameManager::getDirectionalLight()) {
 		GameManager::getDirectionalLight()->setUniform(this->shaderProgram, Camera::viewMatrix);
@@ -236,7 +244,7 @@ void MarchingCubesManager::render() {
 		// set the position
 		this->shaderProgram->setVec3("chunkPosition", this->activeChunks[i].position);
 		// set the noise
-		this->noiseTextures3D[this->activeChunks[i].name]->activate(GL_TEXTURE0);
+		this->noiseTextures3D[this->activeChunks[i].name]->activate(GL_TEXTURE1);
 
 		glDrawArrays(GL_POINTS, 0, (int)(this->cellPositionVectors.size() / 3));
 	}
