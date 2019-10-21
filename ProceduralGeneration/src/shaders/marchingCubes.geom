@@ -23,7 +23,7 @@ uniform mat3 normal;
 vec3 lerpVector(vec3 a, vec3 b, float aValue, float bValue, float surfaceLevel);
 
 void main() {
-	const float surfaceLevel = 0.6;
+	const float surfaceLevel = 0.0;
 
 	vec3 cellPosition = vec3(gl_in[0].gl_Position);
 

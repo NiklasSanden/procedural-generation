@@ -3,6 +3,7 @@
 #include "Tables.h"
 
 #include "glm/glm.hpp"
+#include "glm/gtc/random.hpp"
 
 namespace ProceduralGeneration {
 	class Noise {
@@ -10,11 +11,16 @@ namespace ProceduralGeneration {
 		// Improved perlin noise
 		// ----------------------------------------------------------------------------
 	public:
-		static float octavePerlin(float x, float y, float z, int octaves = 4, float persistence = 0.5, float frequency = 0.2f, float amplitude = 1.0f) {
-			float total = 0.0f;
-			float maxValue = 0.0f;			// Used for normalizing result to 0.0 - 1.0
+		static long double octavePerlin(long double x, long double y, long double z, int octaves = 4, long double persistence = 0.5, long double frequency = 0.2f, unsigned int seed = 0, long double amplitude = 1.0f) {
+			srand(seed);
+			x += glm::linearRand(-10000.0, 10000.0);
+			y += glm::linearRand(-10000.0, 10000.0);
+			z += glm::linearRand(-10000.0, 10000.0);
+			
+			long double total = 0.0;
+			long double maxValue = 0.0;			// Used for normalizing result to 0.0 - 1.0
 			for (int i = 0; i < octaves; i++) {
-				total += perlin(x * frequency, y * frequency, z * frequency) * amplitude;
+				total += perlin(x * frequency + (100.0 * i), y * frequency + (100.0 * i), z * frequency + (100.0 * i)) * amplitude;
 
 				maxValue += amplitude;
 
@@ -22,15 +28,15 @@ namespace ProceduralGeneration {
 				frequency *= 2.0f;
 			}
 
-			return total / maxValue;
+			return total / maxValue * 2.0f - 1.0f;
 		}
 
-	private:
-		static int fastFloor(float x) {
+		static int fastFloor(long double x) {
 			return x > 0.0f ? (int)x : (int)x - 1;
 		}
 
-		static float perlin(float x, float y, float z) {
+	private:
+		static long double perlin(long double x, long double y, long double z) {
 			int X = fastFloor(x);
 			int Y = fastFloor(y);
 			int Z = fastFloor(z);
@@ -38,12 +44,12 @@ namespace ProceduralGeneration {
 			int xi = X & 255;								// Calculate the unit cube that the point asked will be located in
 			int yi = Y & 255;								// The left bound is ( |_x_|,|_y_|,|_z_| ) and the right bound is that
 			int zi = Z & 255;								// plus 1.  Next we calculate the location (from 0.0 to 1.0) in that cube.
-			float xf = x - X;								// We also fade the location to smooth the result.
-			float yf = y - Y;
-			float zf = z - Z;
-			float u = fade(xf);
-			float v = fade(yf);
-			float w = fade(zf);
+			long double xf = x - X;								// We also fade the location to smooth the result.
+			long double yf = y - Y;
+			long double zf = z - Z;
+			long double u = fade(xf);
+			long double v = fade(yf);
+			long double w = fade(zf);
 
 			int aaa, aba, aab, abb, baa, bba, bab, bbb;
 			aaa = Tables::permutations[Tables::permutations[Tables::permutations[xi    ] + yi    ] + zi    ];
@@ -55,7 +61,7 @@ namespace ProceduralGeneration {
 			bab = Tables::permutations[Tables::permutations[Tables::permutations[xi + 1] + yi    ] + zi + 1];
 			bbb = Tables::permutations[Tables::permutations[Tables::permutations[xi + 1] + yi + 1] + zi + 1];
 
-			float x1, x2, y1, y2;
+			long double x1, x2, y1, y2;
 			x1 = lerp(grad(aaa, xf, yf, zf),				// The gradient function calculates the dot product between a pseudorandom
 				grad(baa, xf - 1.0f, yf, zf),				// gradient vector and the vector from the input coordinate to the 8
 				u);										// surrounding points in its unit cube.
@@ -75,11 +81,11 @@ namespace ProceduralGeneration {
 			return (lerp(y1, y2, w) + 1.0f) / 2.0f;						// For convenience we bound it to 0 - 1 (theoretical min/max before is -1 - 1)
 		}
 
-		static float grad(int hash, float x, float y, float z) {
+		static long double grad(int hash, long double x, long double y, long double z) {
 			int h = hash & 15;									// Take the hashed value and take the first 4 bits of it (15 == 0b1111)
-			float u = h < 8 /* 0b1000 */ ? x : y;				// If the most significant bit (MSB) of the hash is 0 then set u = x.  Otherwise y.
+			long double u = h < 8 /* 0b1000 */ ? x : y;				// If the most significant bit (MSB) of the hash is 0 then set u = x.  Otherwise y.
 
-			float v;											// In Ken Perlin's original implementation this was another conditional operator (?:).  I
+			long double v;											// In Ken Perlin's original implementation this was another conditional operator (?:).  I
 																// expanded it for readability.
 
 			if (h < 4 /* 0b0100 */)								// If the first and second significant bits are 0 set v = y
@@ -92,14 +98,14 @@ namespace ProceduralGeneration {
 			return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v); // Use the last 2 bits to decide if u and v are positive or negative.  Then return their addition.
 		}
 
-		static float fade(float t) {
+		static long double fade(long double t) {
 			// Fade function as defined by Ken Perlin.  This eases coordinate values
 			// so that they will ease towards integral values.  This ends up smoothing
 			// the final output.
 			return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f);			// 6t^5 - 15t^4 + 10t^3
 		}
 
-		static float lerp(float a, float b, float x) {
+		static long double lerp(long double a, long double b, long double x) {
 			return a + x * (b - a);
 		}
 	};

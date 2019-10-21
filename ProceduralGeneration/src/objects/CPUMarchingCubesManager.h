@@ -22,7 +22,8 @@ namespace ProceduralGeneration {
 	public:
 		// Settings
 		float chunkLength = 9.0f;
-		int cellsPerAxis = 3;
+		int cellsPerAxis = 9;
+		unsigned int seed = 0;
 		// Variables from settings
 		float chunkDistanceToCorner = glm::sqrt((chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f));
 		float chunkDistanceToCornerSqrd = chunkDistanceToCorner * chunkDistanceToCorner;

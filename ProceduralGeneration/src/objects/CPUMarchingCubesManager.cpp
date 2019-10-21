@@ -90,6 +90,7 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 
 				glm::vec3 currentChunkCoords = glm::vec3(roundedPlayerPosition.x + x, roundedPlayerPosition.y + y, roundedPlayerPosition.z + z);
 				glm::vec3 currentChunkWorldPos = currentChunkCoords * this->chunkLength;
+				std::string currentChunkName = std::to_string(currentChunkCoords.x) + ", " + std::to_string(currentChunkCoords.y) + ", " + std::to_string(currentChunkCoords.z);
 
 				//if ((currentChunkCoords.x != 0 && currentChunkCoords.x != 1) || (currentChunkCoords.y != 0 && currentChunkCoords.y != 1) || (currentChunkCoords.z != 0 && currentChunkCoords.z != 1)) continue;
 				//if (currentChunkCoords.x != 0 || currentChunkCoords.y != 0 || currentChunkCoords.z != 0) continue;
@@ -121,9 +122,8 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 					}
 					// -------------------------------------------------------------------
 
-					std::string currentChunkName = std::to_string(currentChunkCoords.x) + ", " + std::to_string(currentChunkCoords.y) + ", " + std::to_string(currentChunkCoords.z);
 					if (this->generatedChunks.find(currentChunkName) == this->generatedChunks.end()) {
-						this->generatedChunks[currentChunkName] = new CPUMarchingCubesChunk(currentChunkName, currentChunkCoords);
+						this->generatedChunks[currentChunkName] = new CPUMarchingCubesChunk(currentChunkName, currentChunkCoords, this->seed);
 						this->generatedChunks[currentChunkName]->generateChunk(this->chunkLength, this->cellsPerAxis);
 					}
 					this->activeChunks.insert(std::pair<float, CPUMarchingCubesChunk*>(distanceToPlayerSqr, this->generatedChunks[currentChunkName]));
@@ -170,6 +170,7 @@ void CPUMarchingCubesManager::render() {
 	// Uniforms
 	this->shaderProgram->setMat4("view", Camera::viewMatrix);
 	this->shaderProgram->setMat4("projection", Camera::projectionMatrix);
+	this->shaderProgram->setFloat("viewDistance", Camera::viewDistance);
 
 	// material
 	this->shaderProgram->setVec3("material.diffuse", this->material->diffuse);
@@ -260,6 +261,21 @@ void CPUMarchingCubesManager::renderImGui() {
 	{
 		ImGui::Begin("Noise Settings");
 
+		static int seedSlider = this->seed;
+		static int oldSeedSlider = seedSlider;
+
+		ImGui::SliderInt("Seed", &seedSlider, 0, 1000000);
+
 		ImGui::End();
+
+
+		if (oldSeedSlider != seedSlider) {
+			this->seed = (unsigned int)seedSlider;
+			
+			// Now we need to regenerate the chunks
+			regenerateChunks();
+
+			oldSeedSlider = seedSlider;
+		}
 	}
 }
