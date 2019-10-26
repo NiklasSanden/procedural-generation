@@ -34,7 +34,7 @@ namespace ProceduralGeneration {
 		std::vector<float> normals;
 
 		// settings
-		float surfaceLevel = 0.0f; // 0.6f
+		float surfaceLevel = 0.6f; // 0.6f
 
 		void draw(int visibleChunks);
 		

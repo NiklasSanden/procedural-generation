@@ -28,7 +28,7 @@ namespace ProceduralGeneration {
 				frequency *= 2.0f;
 			}
 
-			return total / maxValue * 2.0f - 1.0f;
+			return total / maxValue;// * 2.0f - 1.0f;
 		}
 
 		static int fastFloor(long double x) {

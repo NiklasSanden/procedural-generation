@@ -70,10 +70,10 @@ void MarchingCubesManager::calculateCellPositions() {
 	for (int x = 0; x < this->cellsPerAxis; x++) {
 		for (int y = 0; y < this->cellsPerAxis; y++) {
 			for (int z = 0; z < this->cellsPerAxis; z++) {
-				float xFloat = x - this->cellsPerAxis / 2.0f;
-				float yFloat = y - this->cellsPerAxis / 2.0f;
-				float zFloat = z - this->cellsPerAxis / 2.0f;
-
+				float xFloat = (float)x - (float)this->cellsPerAxis / 2.0f;
+				float yFloat = (float)y - (float)this->cellsPerAxis / 2.0f;
+				float zFloat = (float)z - (float)this->cellsPerAxis / 2.0f;
+				
 				this->cellPositionVectors.push_back(xFloat * (this->chunkLength / (float)this->cellsPerAxis));
 				this->cellPositionVectors.push_back(yFloat * (this->chunkLength / (float)this->cellsPerAxis));
 				this->cellPositionVectors.push_back(zFloat * (this->chunkLength / (float)this->cellsPerAxis));

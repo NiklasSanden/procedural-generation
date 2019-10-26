@@ -266,8 +266,10 @@ void CPUMarchingCubesManager::renderImGui() {
 
 		ImGui::SliderInt("Seed", &seedSlider, 0, 1000000);
 
-		ImGui::End();
+		glm::ivec3 playerPos = glm::round(GameManager::getPlayer()->transform->getPosition());
+		ImGui::Text(("Coordinates: (" + std::to_string(playerPos.x) + ", " + std::to_string(playerPos.y) + ", " + std::to_string(playerPos.z) + ")").c_str());
 
+		ImGui::End();
 
 		if (oldSeedSlider != seedSlider) {
 			this->seed = (unsigned int)seedSlider;

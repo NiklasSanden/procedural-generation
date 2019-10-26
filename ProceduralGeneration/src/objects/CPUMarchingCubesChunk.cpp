@@ -344,16 +344,17 @@ void CPUMarchingCubesChunk::generateNoise(int pointsPerAxis, float pointsSpace, 
 				// Ground
 				//noise[x][y][z] = -(yFloat + position.y) / 5.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 8, 0.5f, 0.2f, this->seed) * 5.0f;
 				
-				long double warp = Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.4f, 0.04f, this->seed);
+				// Warp
+				/*long double warp = Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.4f, 0.04f, this->seed);
 				xFloat += warp * 10;
 				zFloat += warp * 10;
-				noise[x][y][z] = -(yFloat + position.y) / 10.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4f, 0.1f, this->seed);
+				noise[x][y][z] = -(yFloat + position.y) / 10.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4f, 0.1f, this->seed);*/
 
 				// Terrace ground
 				//noise[x][y][z] = -(yFloat + position.y) / 5.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.5f, 0.2f, this->seed) * 2.0f + fmod((yFloat + position.y), 0.5f) / 5.0f;
 				
 				// Minecraft
-				/*float tempNoise = Noise::octavePerlin(xFloat + position.x, 0.0f, zFloat + position.z, 1, 0.3f, 0.015f, this->seed);
+				float tempNoise = Noise::octavePerlin(xFloat + position.x, 0.0f, zFloat + position.z, 1, 0.3f, 0.015f, this->seed);
 				float tempA = -(position.y + yFloat) / 10.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3f, 0.05f, this->seed);
 				float tempB = (-(position.y + yFloat) + 40.0f) / 30.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3f, 0.05f, this->seed) * 1.5f;
 
@@ -364,7 +365,7 @@ void CPUMarchingCubesChunk::generateNoise(int pointsPerAxis, float pointsSpace, 
 				
 				float groundAndUndergroundLerp = glm::clamp(((yFloat + position.y) - ((long double)20.0f * (1.0f - tempNoise))) / 20.0f, (long double)0.0, (long double)1.0);
 				noise[x][y][z] = lerpFloat(undergroundNoise, groundNoise, groundAndUndergroundLerp);
-				*/
+				
 				// Circle
 				//noise[x][y][z] = 1.0f - glm::length(glm::vec3(xFloat + position.x, yFloat + position.y, zFloat + position.z)) / 20.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.5f, 0.2f, this->seed);
 			}
