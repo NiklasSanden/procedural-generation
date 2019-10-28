@@ -154,7 +154,7 @@ void CPUMarchingCubesChunk::generateChunkThread(float chunkLength, int cellsPerA
 						temporaryIndices.push_back(existingVertices[vertexID]);
 					}
 					else {
-						glm::vec3 vertexPosition = lerpVector(cornerA, cornerB, noise[cornerA.x][cornerA.y][cornerA.z], noise[cornerB.x][cornerB.y][cornerB.z], this->surfaceLevel);
+						glm::vec3 vertexPosition = lerpVector(cornerA, cornerB, (float)noise[cornerA.x][cornerA.y][cornerA.z], (float)noise[cornerB.x][cornerB.y][cornerB.z], this->surfaceLevel);
 						vertexPosition *= cellLength;
 						vertexPosition += position;
 						vertexPosition -= glm::vec3((chunkLength + 2 * cellLength) / 2.0f, (chunkLength + 2 * cellLength) / 2.0f, (chunkLength + 2 * cellLength) / 2.0f);
@@ -355,15 +355,15 @@ void CPUMarchingCubesChunk::generateNoise(int pointsPerAxis, float pointsSpace, 
 				
 				// Minecraft
 				float tempNoise = Noise::octavePerlin(xFloat + position.x, 0.0f, zFloat + position.z, 1, 0.3f, 0.015f, this->seed);
-				float tempA = -(position.y + yFloat) / 10.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3f, 0.05f, this->seed);
-				float tempB = (-(position.y + yFloat) + 40.0f) / 30.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3f, 0.05f, this->seed) * 1.5f;
+				float tempA = (float)(-(position.y + yFloat) / 10.0f) + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3f, 0.05f, this->seed);
+				float tempB = (float)(-(position.y + yFloat) + 40.0f) / 30.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3f, 0.05f, this->seed) * 1.5f;
 
 				tempA = glm::clamp(tempA, -1.0f, 1.0f);
 				float groundNoise = lerpFloat(tempB, tempA, glm::min(1.0f, tempNoise * tempNoise + tempNoise));
 				
 				float undergroundNoise = 0.075f + 2 * this->surfaceLevel - Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3f, 0.06f, this->seed);
 				
-				float groundAndUndergroundLerp = glm::clamp(((yFloat + position.y) - ((long double)20.0f * (1.0f - tempNoise))) / 20.0f, (long double)0.0, (long double)1.0);
+				float groundAndUndergroundLerp = (float)glm::clamp(((yFloat + position.y) - (20.0l * (1.0l - tempNoise))) / 20.0l, 0.0l, 1.0l);
 				noise[x][y][z] = lerpFloat(undergroundNoise, groundNoise, groundAndUndergroundLerp);
 				
 				// Circle

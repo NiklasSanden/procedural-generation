@@ -81,6 +81,13 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 	}
 	else
 		LogManager::LogError("glDebugMessageCallback not available");
+#else
+	if (glDebugMessageCallback) {
+		glEnable(GL_DEBUG_OUTPUT); // GL_DEBUG_OUTPUT_SYNCHRONOUS
+		glDebugMessageCallback(GLDebugMessageCallback, nullptr);
+		GLuint unusedIds = 0;
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unusedIds, true);
+	}
 #endif
 
 	// window resizing
@@ -97,6 +104,9 @@ Program::Program(unsigned int screenWidth, unsigned int screenHeight) {
 	// --------------------------------------------------------------------------
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 Program::~Program() {
@@ -122,6 +132,10 @@ void APIENTRY Engine::GLDebugMessageCallback(GLenum source, GLenum type, GLuint 
 	// ---------------------------
 	// Useless nvidia notification
 	if (id == 131185) return;
+	// Memory from buffer is being copied from video to host
+	if (id == 131186) return;
+	// Nvidia pixel synchronization
+	if (id == 131154) return;
 
 	std::string finalMessage = "OpenGL\n";
 	finalMessage += "---------------------opengl-callback-start------------";

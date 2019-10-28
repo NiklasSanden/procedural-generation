@@ -14,7 +14,7 @@
 #include "setup/Camera.h"
 #include "setup/GameManager.h"
 #include "setup/Input.h"
-#include "objects/ChunkManager.h"
+#include "objects/CPUChunks/ChunkManager.h"
 
 #include "glad/glad.h"
 #include "glm/glm.hpp"

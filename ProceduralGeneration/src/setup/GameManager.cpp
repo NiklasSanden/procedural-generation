@@ -5,9 +5,10 @@
 #include "engine/objects/Lights.h"
 #include "setup/Camera.h"
 #include "objects/Cube.h"
-#include "objects/ChunkManager.h"
+#include "objects/CPUChunks/ChunkManager.h"
 #include "objects/MarchingCubesManager.h"
-#include "objects/CPUMarchingCubesManager.h"
+#include "objects/CPUMarchingCubes/CPUMarchingCubesManager.h"
+#include "objects/ComputeMarchingCubes/ComputeMCManager.h"
 
 #include "imgui/imgui.h"
 
@@ -59,11 +60,14 @@ GameManager::GameManager(const std::string& _name) : GameObject(_name) {
 	/*Cube* cube = new Cube("TestCube");
 	this->gamePtr->addGameObject(cube);*/
 	
-	CPUMarchingCubesManager* cpuCubesManager = new CPUMarchingCubesManager("CPUMarchingCubesManager");
-	this->gamePtr->addGameObject(cpuCubesManager);
+	//CPUMarchingCubesManager* cpuCubesManager = new CPUMarchingCubesManager("CPUMarchingCubesManager");
+	//this->gamePtr->addGameObject(cpuCubesManager);
 
 	//MarchingCubesManager* cubesManager = new MarchingCubesManager("MarchingCubesManager");
 	//this->gamePtr->addGameObject(cubesManager);
+
+	ComputeMCManager* compCubesManager = new ComputeMCManager("ComputeMCManager");
+	this->gamePtr->addGameObject(compCubesManager);
 
 	/*ChunkManager* chunkManager = new ChunkManager("ChunkManager");
 	this->gamePtr->addGameObject(chunkManager);*/

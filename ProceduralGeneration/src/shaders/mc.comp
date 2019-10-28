@@ -1,0 +1,165 @@
+#version 450 core
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+//layout(r32f, binding = 0) uniform image3D noise;
+
+uniform sampler3D noise;
+
+layout(binding = 1, offset = 0) uniform atomic_uint counter;
+
+layout(std430, binding = 3) buffer verticesBuffer
+{
+    float vertex_SSBO[];
+};
+
+layout(std430, binding = 4) buffer normalsBuffer
+{
+    float normals_SSBO[];
+};
+
+uniform usampler2D triTable;
+
+uniform float surfaceLevel;
+uniform int cellsPerAxis;
+uniform float cellLength;
+uniform vec3 chunkPosition;
+
+const int edgeTable[12][2]   = { { 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 }, { 4, 5 }, { 5, 6 }, { 6, 7 }, { 7, 4 }, { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 } };
+
+vec3 lerpVector(vec3 a, vec3 b, float aValue, float bValue, float surfaceLevel);
+
+void main() {
+
+	ivec3 cellPosition = ivec3(gl_GlobalInvocationID.xyz) + ivec3(2, 2, 2);
+	vec3 worldCellPosition = (cellPosition - (cellsPerAxis + 4) / 2.0) * cellLength + chunkPosition;
+
+	vec3 vertexPositions[8];
+	vertexPositions[0] = vec3(0.0, 0.0, 0.0);
+	vertexPositions[1] = vec3(0.0, 0.0, 1.0);
+	vertexPositions[2] = vec3(1.0, 0.0, 1.0);
+	vertexPositions[3] = vec3(1.0, 0.0, 0.0);
+	vertexPositions[4] = vec3(0.0, 1.0, 0.0);
+	vertexPositions[5] = vec3(0.0, 1.0, 1.0);
+	vertexPositions[6] = vec3(1.0, 1.0, 1.0);
+	vertexPositions[7] = vec3(1.0, 1.0, 0.0);
+
+	//float offsetToPositive = (cellsPerAxis + 2) / 2.0;
+	float noiseValues[8];
+	for (int i = 0; i < 8; i++) {
+		noiseValues[i] = texelFetch(noise,
+								    ivec3(round(cellPosition.x + vertexPositions[i].x),
+										  round(cellPosition.y + vertexPositions[i].y),
+										  round(cellPosition.z + vertexPositions[i].z)),
+									0).r;
+	}
+
+	int cubeIndex = 0;
+	for (int i = 0; i < 8; i++) {
+		if (noiseValues[i] > surfaceLevel) {
+			cubeIndex |= 1 << i;
+		}
+	}
+
+	for (int i = 0; i < 16; i += 3) {
+	
+		ivec2 texCoord = ivec2(cubeIndex, i);
+		if (texelFetch(triTable, texCoord, 0).r == 32) break;
+
+		int index1A = edgeTable[int(texelFetch(triTable, texCoord, 0).r)][0];
+		int index1B = edgeTable[int(texelFetch(triTable, texCoord, 0).r)][1];
+		vec3 tempVertexPosA = lerpVector(vertexPositions[index1A], vertexPositions[index1B], noiseValues[index1A], noiseValues[index1B], surfaceLevel);
+
+		vec3 NormalA;
+		NormalA.x = texture(noise, (cellPosition + tempVertexPosA + vec3(1.0, 0, 0)) / (cellsPerAxis + 5.0)).r -
+					texture(noise, (cellPosition + tempVertexPosA - vec3(1.0, 0, 0)) / (cellsPerAxis + 5.0)).r;
+		NormalA.y = texture(noise, (cellPosition + tempVertexPosA + vec3(0, 1.0, 0)) / (cellsPerAxis + 5.0)).r -
+					texture(noise, (cellPosition + tempVertexPosA - vec3(0, 1.0, 0)) / (cellsPerAxis + 5.0)).r;
+		NormalA.z = texture(noise, (cellPosition + tempVertexPosA + vec3(0, 0, 1.0)) / (cellsPerAxis + 5.0)).r -
+					texture(noise, (cellPosition + tempVertexPosA - vec3(0, 0, 1.0)) / (cellsPerAxis + 5.0)).r;
+
+		texCoord.y += 1;
+		int index2A = edgeTable[int(texelFetch(triTable, texCoord, 0).r)][0];
+		int index2B = edgeTable[int(texelFetch(triTable, texCoord, 0).r)][1];
+		vec3 tempVertexPosB = lerpVector(vertexPositions[index2A], vertexPositions[index2B], noiseValues[index2A], noiseValues[index2B], surfaceLevel);
+
+		vec3 NormalB;
+		NormalB.x = texture(noise, (cellPosition + tempVertexPosB + vec3(1.0, 0, 0)) / (cellsPerAxis + 5.0)).r -
+					texture(noise, (cellPosition + tempVertexPosB - vec3(1.0, 0, 0)) / (cellsPerAxis + 5.0)).r;
+		NormalB.y = texture(noise, (cellPosition + tempVertexPosB + vec3(0, 1.0, 0)) / (cellsPerAxis + 5.0)).r -
+					texture(noise, (cellPosition + tempVertexPosB - vec3(0, 1.0, 0)) / (cellsPerAxis + 5.0)).r;
+		NormalB.z = texture(noise, (cellPosition + tempVertexPosB + vec3(0, 0, 1.0)) / (cellsPerAxis + 5.0)).r -
+					texture(noise, (cellPosition + tempVertexPosB - vec3(0, 0, 1.0)) / (cellsPerAxis + 5.0)).r;
+
+		texCoord.y += 1;
+		int index3A = edgeTable[int(texelFetch(triTable, texCoord, 0).r)][0];
+		int index3B = edgeTable[int(texelFetch(triTable, texCoord, 0).r)][1];
+		vec3 tempVertexPosC = lerpVector(vertexPositions[index3A], vertexPositions[index3B], noiseValues[index3A], noiseValues[index3B], surfaceLevel);
+
+		vec3 NormalC;
+		NormalC.x = texture(noise, (cellPosition + tempVertexPosC + vec3(1.0, 0, 0)) / (cellsPerAxis + 5.0)).r -
+					texture(noise, (cellPosition + tempVertexPosC - vec3(1.0, 0, 0)) / (cellsPerAxis + 5.0)).r;
+		NormalC.y = texture(noise, (cellPosition + tempVertexPosC + vec3(0, 1.0, 0)) / (cellsPerAxis + 5.0)).r -
+					texture(noise, (cellPosition + tempVertexPosC - vec3(0, 1.0, 0)) / (cellsPerAxis + 5.0)).r;
+		NormalC.z = texture(noise, (cellPosition + tempVertexPosC + vec3(0, 0, 1.0)) / (cellsPerAxis + 5.0)).r -
+					texture(noise, (cellPosition + tempVertexPosC - vec3(0, 0, 1.0)) / (cellsPerAxis + 5.0)).r;
+
+		uint index = atomicCounterIncrement(counter);
+
+		vec3 tri[] = { tempVertexPosA * cellLength + worldCellPosition, tempVertexPosC * cellLength + worldCellPosition, tempVertexPosB * cellLength + worldCellPosition };
+		vec3 norm[] = { -normalize(NormalA), -normalize(NormalC), -normalize(NormalB)};
+
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				vertex_SSBO[index * 9 + (3 * i + j)] = tri[i][j];
+				
+				normals_SSBO[index * 9 + (3 * i + j)] = norm[i][j];
+			}
+		}
+
+		
+		
+
+//		vec3 grad;
+//		grad.x = texture(noise, ((cellPosition + tempVertexPosA) / cellLength + vec3( 1 + offsetToPositive, offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r -
+//				 texture(noise, ((cellPosition + tempVertexPosA) / cellLength + vec3(-1 + offsetToPositive, offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r;
+//		grad.y = texture(noise, ((cellPosition + tempVertexPosA) / cellLength + vec3(offsetToPositive,  1 + offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r -
+//				 texture(noise, ((cellPosition + tempVertexPosA) / cellLength + vec3(offsetToPositive, -1 + offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r;
+//		grad.z = texture(noise, ((cellPosition + tempVertexPosA) / cellLength + vec3(offsetToPositive, offsetToPositive,  1 + offsetToPositive)) / (cellsPerAxis + 2.0)).r -
+//				 texture(noise, ((cellPosition + tempVertexPosA) / cellLength + vec3(offsetToPositive, offsetToPositive, -1 + offsetToPositive)) / (cellsPerAxis + 2.0)).r;
+//		Normal = -vec3(view * vec4(grad, 0.0));
+//
+//		gl_Position = projection * view * vec4(chunkPosition + cellPosition + tempVertexPosA, 1.0);
+//		FragPosView = vec3(view * vec4(chunkPosition + cellPosition + tempVertexPosA, 1.0));
+//		EmitVertex();
+//
+//		grad.x = texture(noise, ((cellPosition + tempVertexPosC) / cellLength + vec3( 1 + offsetToPositive, offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r -
+//				 texture(noise, ((cellPosition + tempVertexPosC) / cellLength + vec3(-1 + offsetToPositive, offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r;
+//		grad.y = texture(noise, ((cellPosition + tempVertexPosC) / cellLength + vec3(offsetToPositive,  1 + offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r -
+//				 texture(noise, ((cellPosition + tempVertexPosC) / cellLength + vec3(offsetToPositive, -1 + offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r;
+//		grad.z = texture(noise, ((cellPosition + tempVertexPosC) / cellLength + vec3(offsetToPositive, offsetToPositive,  1 + offsetToPositive)) / (cellsPerAxis + 2.0)).r -
+//				 texture(noise, ((cellPosition + tempVertexPosC) / cellLength + vec3(offsetToPositive, offsetToPositive, -1 + offsetToPositive)) / (cellsPerAxis + 2.0)).r;
+//		Normal = -vec3(view * vec4(grad, 0.0));
+//
+//		gl_Position = projection * view * vec4(chunkPosition + cellPosition + tempVertexPosC, 1.0);
+//		FragPosView = vec3(view * vec4(chunkPosition + cellPosition + tempVertexPosC, 1.0));
+//		EmitVertex();
+//
+//		grad.x = texture(noise, ((cellPosition + tempVertexPosB) / cellLength + vec3( 1 + offsetToPositive, offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r -
+//				 texture(noise, ((cellPosition + tempVertexPosB) / cellLength + vec3(-1 + offsetToPositive, offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r;
+//		grad.y = texture(noise, ((cellPosition + tempVertexPosB) / cellLength + vec3(offsetToPositive,  1 + offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r -
+//				 texture(noise, ((cellPosition + tempVertexPosB) / cellLength + vec3(offsetToPositive, -1 + offsetToPositive, offsetToPositive)) / (cellsPerAxis + 2.0)).r;
+//		grad.z = texture(noise, ((cellPosition + tempVertexPosB) / cellLength + vec3(offsetToPositive, offsetToPositive,  1 + offsetToPositive)) / (cellsPerAxis + 2.0)).r -
+//				 texture(noise, ((cellPosition + tempVertexPosB) / cellLength + vec3(offsetToPositive, offsetToPositive, -1 + offsetToPositive)) / (cellsPerAxis + 2.0)).r;
+//		Normal = -vec3(view * vec4(grad, 0.0));
+//
+//		gl_Position = projection * view * vec4(chunkPosition + cellPosition + tempVertexPosB, 1.0);
+//		FragPosView = vec3(view * vec4(chunkPosition + cellPosition + tempVertexPosB, 1.0));
+//		EmitVertex();
+//
+//		EndPrimitive();
+	}
+}
+
+vec3 lerpVector(vec3 a, vec3 b, float aValue, float bValue, float surfaceLevel) {
+	//return (a + b) / 2.0;
+	return a + ((surfaceLevel - aValue) / (bValue - aValue)) * (b - a);
+}

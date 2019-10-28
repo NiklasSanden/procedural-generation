@@ -1,4 +1,4 @@
-#include "objects/ChunkManager.h"
+#include "objects/CPUChunks/ChunkManager.h"
 
 #include "engine/objects/GameObject.h"
 #include "engine/components/Transform.h"

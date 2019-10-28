@@ -9,10 +9,14 @@ out vec3 WorldNormal;
 
 uniform mat4 view;
 uniform mat4 projection;
+uniform int LOD;
 
 void main()
 {
-    gl_Position = projection * view * vec4(aPos, 1.0);
+	vec4 position = projection * view * vec4(aPos, 1.0);
+	position.z -= 0.2 * (4 - LOD);
+    gl_Position = position;
+
 
 	FragPosWorld = aPos;
 	FragPosView = vec3(view * vec4(aPos, 1.0));

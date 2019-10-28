@@ -30,8 +30,8 @@ namespace ProceduralGeneration {
 						long double warp = Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.4f, 0.04f);
 						xFloat += warp * 10;
 						zFloat += warp * 10;
-						data.push_back(-(yFloat + position.y) / 10.0f + Noise::octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4f, 0.1f));
-						//data.push_back(Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.5));
+						data.push_back((float)(-(yFloat + position.y) / 10.0 + Noise::octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4, 0.1)));
+						//data.push_back((float)Noise::octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.5));
 					}
 				}
 			}

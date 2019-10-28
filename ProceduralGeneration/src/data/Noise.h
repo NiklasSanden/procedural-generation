@@ -11,7 +11,7 @@ namespace ProceduralGeneration {
 		// Improved perlin noise
 		// ----------------------------------------------------------------------------
 	public:
-		static long double octavePerlin(long double x, long double y, long double z, int octaves = 4, long double persistence = 0.5, long double frequency = 0.2f, unsigned int seed = 0, long double amplitude = 1.0f) {
+		static float octavePerlin(long double x, long double y, long double z, int octaves = 4, long double persistence = 0.5, long double frequency = 0.2f, unsigned int seed = 0, long double amplitude = 1.0f) {
 			srand(seed);
 			x += glm::linearRand(-10000.0, 10000.0);
 			y += glm::linearRand(-10000.0, 10000.0);
@@ -28,7 +28,7 @@ namespace ProceduralGeneration {
 				frequency *= 2.0f;
 			}
 
-			return total / maxValue;// * 2.0f - 1.0f;
+			return (float)(total / maxValue * 2.0l - 1.0l);
 		}
 
 		static int fastFloor(long double x) {

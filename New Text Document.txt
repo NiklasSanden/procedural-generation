@@ -1,5 +1,5 @@
-#include "objects/CPUMarchingCubesManager.h"
-#include "objects/CPUMarchingCubesChunk.h"
+#include "objects/ComputeMarchingCubes/ComputeMCManager.h"
+#include "objects/ComputeMarchingCubes/ComputeMCChunk.h"
 
 #include "engine/misc/Game.h"
 #include "engine/resources/ResourceManager.h"
@@ -25,41 +25,44 @@
 #include <vector>
 #include <unordered_map>
 #include <map>
+#include <unordered_set>
 
 #include "engine/misc/Debug.h"
 using namespace ProceduralGeneration;
 
-CPUMarchingCubesManager::CPUMarchingCubesManager(const std::string& name) : GameObject(name) {
+ComputeMCManager::ComputeMCManager(const std::string& name) : GameObject(name) {
 	// Shader program
-	this->shaderProgram = Engine::ResourceManager::createShaderProgram({ "cpuMarchingCubes.vert", "cpuMarchingCubes.frag" }, "CPUMarchingCubesShader");
+	this->shaderProgram = Engine::ResourceManager::createShaderProgram({ "cpuMarchingCubes.vert", "cpuMarchingCubes.frag" }, "ComputeMCRenderShader");
 	// Material
 	this->material = new Engine::Material();
 }
 
-CPUMarchingCubesManager::~CPUMarchingCubesManager() {
+ComputeMCManager::~ComputeMCManager() {
 	delete this->material;
 	for (auto pair : this->generatedChunks) {
 		delete pair.second;
 	}
 }
 
-void CPUMarchingCubesManager::regenerateChunks() {
+void ComputeMCManager::regenerateChunks() {
 	for (auto pair : this->generatedChunks) {
 		delete pair.second;
 	}
 	this->generatedChunks.clear();
+
+	this->emptyChunks.clear();
 }
 
-void CPUMarchingCubesManager::update(float deltaTime) {
+void ComputeMCManager::update(float deltaTime) {
 	//double tempTime = glfwGetTime();
 	Camera* player = GameManager::getPlayer();
 
-	glm::vec3 playerPosition = player->transform->getPosition();
 
 	// Clear old chunks
 	this->activeChunks.clear();
+	//std::unordered_map<std::string, ComputeMCChunk*> oldChunks = this->generatedChunks;
+	//this->generatedChunks.clear();
 
-	glm::vec3 roundedPlayerPosition = glm::round(playerPosition / this->chunkLength);
 
 	// Used by all chunks to determine if it can be seen or not
 	// calculate horizontal fov from vertical: https://www.gamedev.net/forums/topic/361241-horizontal-fov/
@@ -72,16 +75,35 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 	glm::vec3 upProjectionNormal = glm::normalize(glm::cross(glm::angleAxis(halfVerticalFov, player->transform->getRight()) * -player->transform->getDirection(), player->transform->getRight()));
 	glm::vec3 downProjectionNormal = glm::normalize(glm::cross(player->transform->getRight(), glm::angleAxis(-halfVerticalFov, player->transform->getRight()) * -player->transform->getDirection()));
 
+	float farthestViewDistanceFactor = (1.0f / glm::cos(halfHorizontalFov)) / glm::cos(halfVerticalFov);
+	
+	updateActiveChunks(this->chunkLength, 1, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+
+
+	/*for (auto chunk : oldChunks) {
+		delete chunk.second;
+	}*/
+
+	//std::cout << (glfwGetTime() - tempTime) * 1000.0f << std::endl;
+}
+
+void ComputeMCManager::updateActiveChunks(float chunkLength, int LODIndex, float viewDistance, float farthestViewDistanceFactor, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
+	Camera* player = GameManager::getPlayer();
+	glm::vec3 playerPosition = player->transform->getPosition();
+	glm::vec3 roundedPlayerPosition = glm::round(playerPosition / chunkLength);
+
+	float chunkDistanceToCorner = glm::sqrt((chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f));
+
 	// Since the view distance is how far away a plane is, we need the distance to the farthest point on that plane
-	float farthestViewDistance = (Camera::viewDistance / glm::cos(halfHorizontalFov)) / glm::cos(halfVerticalFov);
+	float farthestViewDistance = viewDistance * farthestViewDistanceFactor;
 
 	// Notice that left, down and front are negative. That is because they will be used in the for loop, and will be added to the roundedPlayerPosition
-	int chunksInRangeUp = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, 1.0f, 0.0f), playerPosition, farthestViewDistance);
-	int chunksInRangeDown = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, -1.0f, 0.0f), playerPosition, farthestViewDistance);
-	int chunksInRangeRight = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance);
-	int chunksInRangeLeft = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance);
-	int chunksInRangeFront = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance);
-	int chunksInRangeBack = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance);
+	int chunksInRangeUp = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, 1.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
+	int chunksInRangeDown = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, -1.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
+	int chunksInRangeRight = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
+	int chunksInRangeLeft = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
+	int chunksInRangeFront = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
+	int chunksInRangeBack = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
 
 	// Loop through all of the chunks that could be in range
 	for (int y = chunksInRangeDown; y <= chunksInRangeUp; y++) {
@@ -89,20 +111,23 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 			for (int z = chunksInRangeFront; z <= chunksInRangeBack; z++) {
 
 				glm::vec3 currentChunkCoords = glm::vec3(roundedPlayerPosition.x + x, roundedPlayerPosition.y + y, roundedPlayerPosition.z + z);
-				glm::vec3 currentChunkWorldPos = currentChunkCoords * this->chunkLength;
-				std::string currentChunkName = std::to_string(currentChunkCoords.x) + ", " + std::to_string(currentChunkCoords.y) + ", " + std::to_string(currentChunkCoords.z);
+				glm::vec3 currentChunkWorldPos = currentChunkCoords * chunkLength;
+				std::string currentChunkName = std::to_string(currentChunkCoords.x) + ", " + std::to_string(currentChunkCoords.y) + ", " + std::to_string(currentChunkCoords.z) + ", " + std::to_string(LODIndex);
+				
+				float distanceToPlayerSqr = glm::length2(currentChunkWorldPos - playerPosition);
+
+				if (this->emptyChunks.find(currentChunkName) != this->emptyChunks.end()) continue;
 
 				//if ((currentChunkCoords.x != 0 && currentChunkCoords.x != 1) || (currentChunkCoords.y != 0 && currentChunkCoords.y != 1) || (currentChunkCoords.z != 0 && currentChunkCoords.z != 1)) continue;
 				//if (currentChunkCoords.x != 0 || currentChunkCoords.y != 0 || currentChunkCoords.z != 0) continue;
-				float distanceToPlayerSqr = glm::length2(currentChunkWorldPos - playerPosition);
-				if (distanceToPlayerSqr <= (farthestViewDistance + this->chunkDistanceToCorner) * (farthestViewDistance + this->chunkDistanceToCorner)) {
+				if (distanceToPlayerSqr <= (farthestViewDistance + chunkDistanceToCorner) * (farthestViewDistance + chunkDistanceToCorner)) {
 					// Check to see if possible that the chunk might be seen by the camera
 					// check 1: behind
-					glm::vec3 pointInView = playerPosition + -player->transform->getDirection() * glm::max(Camera::viewDistance, 1.0f);
+					glm::vec3 pointInView = playerPosition + -player->transform->getDirection() * glm::max(viewDistance, 1.0f);
 					glm::vec3 positionInChunk = currentChunkWorldPos;
-					positionInChunk.x = positionInChunk.x < pointInView.x ? glm::min(positionInChunk.x + this->chunkLength / 2.0f, pointInView.x) : glm::max(positionInChunk.x - this->chunkLength / 2.0f, pointInView.x);
-					positionInChunk.y = positionInChunk.y < pointInView.y ? glm::min(positionInChunk.y + this->chunkLength / 2.0f, pointInView.y) : glm::max(positionInChunk.y - this->chunkLength / 2.0f, pointInView.y);
-					positionInChunk.z = positionInChunk.z < pointInView.z ? glm::min(positionInChunk.z + this->chunkLength / 2.0f, pointInView.z) : glm::max(positionInChunk.z - this->chunkLength / 2.0f, pointInView.z);
+					positionInChunk.x = positionInChunk.x < pointInView.x ? glm::min(positionInChunk.x + chunkLength / 2.0f, pointInView.x) : glm::max(positionInChunk.x - chunkLength / 2.0f, pointInView.x);
+					positionInChunk.y = positionInChunk.y < pointInView.y ? glm::min(positionInChunk.y + chunkLength / 2.0f, pointInView.y) : glm::max(positionInChunk.y - chunkLength / 2.0f, pointInView.y);
+					positionInChunk.z = positionInChunk.z < pointInView.z ? glm::min(positionInChunk.z + chunkLength / 2.0f, pointInView.z) : glm::max(positionInChunk.z - chunkLength / 2.0f, pointInView.z);
 					if (glm::dot(positionInChunk - playerPosition, -player->transform->getDirection()) <= 0.0f) {
 						continue;
 					}
@@ -114,33 +139,31 @@ void CPUMarchingCubesManager::update(float deltaTime) {
 					float upProjectionDot = glm::dot(upProjectionNormal, playerToChunkPos);
 					float downProjectionDot = glm::dot(downProjectionNormal, playerToChunkPos);
 
-					if (rightProjectionDot + this->chunkDistanceToCorner < 0.0f ||
-						leftProjectionDot + this->chunkDistanceToCorner < 0.0f ||
-						upProjectionDot + this->chunkDistanceToCorner < 0.0f ||
-						downProjectionDot + this->chunkDistanceToCorner < 0.0f) {
+					if (rightProjectionDot + chunkDistanceToCorner < 0.0f ||
+						leftProjectionDot + chunkDistanceToCorner < 0.0f ||
+						upProjectionDot + chunkDistanceToCorner < 0.0f ||
+						downProjectionDot + chunkDistanceToCorner < 0.0f) {
 						continue;
 					}
 					// -------------------------------------------------------------------
 
-					if (this->generatedChunks.find(currentChunkName) == this->generatedChunks.end()) {
-						this->generatedChunks[currentChunkName] = new CPUMarchingCubesChunk(currentChunkName, currentChunkCoords, this->seed);
-						this->generatedChunks[currentChunkName]->generateChunk(this->chunkLength, this->cellsPerAxis);
+					if (generatedChunks.find(currentChunkName) == generatedChunks.end()) {
+						this->generatedChunks[currentChunkName] = new ComputeMCChunk(currentChunkName, currentChunkCoords, this->seed);
+						this->generatedChunks[currentChunkName]->generateChunk(chunkLength, this->cellsPerAxis / LODIndex);
 					}
-					this->activeChunks.insert(std::pair<float, CPUMarchingCubesChunk*>(distanceToPlayerSqr, this->generatedChunks[currentChunkName]));
+					this->activeChunks.insert(std::pair<float, ComputeMCChunk*>(distanceToPlayerSqr + LODIndex, this->generatedChunks[currentChunkName]));
 				}
 			}
 		}
 	}
-
-	//std::cout << (glfwGetTime() - tempTime) * 1000.0f << std::endl;
 }
 
-int CPUMarchingCubesManager::chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector, const glm::vec3& playerPosition, float farthestViewDistance) {
+int ComputeMCManager::chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector, const glm::vec3& playerPosition, float farthestViewDistance, float chunkLength, float chunkDistanceToCorner) {
 	glm::vec3 currentPosition = startPosition + incrementVector;
 
 	int answer = 0;
 	while (true) {
-		if (glm::length2((currentPosition * this->chunkLength) - playerPosition) <= (farthestViewDistance + this->chunkDistanceToCorner) * (farthestViewDistance + this->chunkDistanceToCorner)) {
+		if (glm::length2((currentPosition * chunkLength) - playerPosition) <= (farthestViewDistance + chunkDistanceToCorner) * (farthestViewDistance + chunkDistanceToCorner)) {
 			answer++;
 			currentPosition += incrementVector;
 		}
@@ -152,7 +175,7 @@ int CPUMarchingCubesManager::chunksInRangeDirection(const glm::vec3& startPositi
 	return answer;
 }
 
-void CPUMarchingCubesManager::render() {
+void ComputeMCManager::render() {
 	// wireframe
 	/*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDisable(GL_CULL_FACE);*/
@@ -178,7 +201,14 @@ void CPUMarchingCubesManager::render() {
 	this->shaderProgram->setFloat("material.shininess", this->material->shininess);
 
 	for (auto pair : this->activeChunks) {
-		pair.second->draw(this->activeChunks.size());
+		bool isEmpty = pair.second->draw(this->shaderProgram->ID);
+
+		if (isEmpty) {
+			std::string name = pair.second->name;
+			this->emptyChunks.insert(name);
+			delete this->generatedChunks[name];
+			this->generatedChunks.erase(name);
+		}
 	}
 
 	glBindVertexArray(0);
@@ -188,9 +218,11 @@ void CPUMarchingCubesManager::render() {
 	// wireframe
 	/*glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glEnable(GL_CULL_FACE);*/
+
+	//regenerateChunks();
 }
 
-void CPUMarchingCubesManager::renderImGui() {
+void ComputeMCManager::renderImGui() {
 	// Chunk settings
 	{
 		static float verticalFov = Camera::verticalFov;
