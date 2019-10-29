@@ -34,6 +34,7 @@ namespace ProceduralGeneration {
 
 		unsigned int rayTexture;
 		unsigned int renderedTexture;
+		unsigned int noiseTexture;
 
 	private:
 		Engine::Shader* shaderProgram = nullptr;
@@ -45,6 +46,7 @@ namespace ProceduralGeneration {
 
 		void update(float deltaTime) override;
 		void updateRayTexture();
+		void generateNoise();
 		void render() override;
 		void renderImGui() override;
 	};

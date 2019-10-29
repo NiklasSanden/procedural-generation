@@ -39,6 +39,7 @@ Raytracing::Raytracing(const std::string& name) : GameObject(name) {
 	// Textures
 	glGenTextures(1, &this->rayTexture);
 	glGenTextures(1, &this->renderedTexture);
+	glGenTextures(1, &this->noiseTexture);
 
 	// Buffers
 	glGenVertexArrays(1, &this->VAO);
@@ -71,6 +72,7 @@ Raytracing::Raytracing(const std::string& name) : GameObject(name) {
 
 	// Setup
 	updateRayTexture();
+	generateNoise();
 }
 
 Raytracing::~Raytracing() {
@@ -78,15 +80,52 @@ Raytracing::~Raytracing() {
 
 	glDeleteTextures(1, &this->rayTexture);
 	glDeleteTextures(1, &this->renderedTexture);
+	glDeleteTextures(1, &this->noiseTexture);
 
 	glDeleteVertexArrays(1, &this->VAO);
 	glDeleteBuffers(1, &this->VBO);
 	glDeleteBuffers(1, &this->EBO);
 }
 
+void Raytracing::generateNoise() {
+	//srand(this->seed);
+
+	const int noiseSize = 16;
+	const int noiesSizeCubes = noiseSize * noiseSize * noiseSize;
+	std::vector<float> noise(noiesSizeCubes);
+
+	/*for (int i = 0; i < noiesSizeCubes; i++) {
+		noise[i] = glm::linearRand(0.0f, 1.0f);
+	}*/
+	int index = 0;
+	for (int x = 0; x < noiseSize; x++) {
+		for (int y = 0; y < noiseSize; y++) {
+			for (int z = 0; z < noiseSize; z++) {
+				noise[index] = (Noise::octavePerlin(x, y, z, 1, 0.5, 0.3, this->seed, 1.0) + 1.0f) / 2.0f;
+				index++;
+			}
+		}
+	}
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_3D, this->noiseTexture);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, noiseSize, noiseSize, noiseSize, 0, GL_RED, GL_FLOAT, noise.data());
+}
+
 void Raytracing::update(float deltaTime) {
 	//double tempTime = glfwGetTime();
 	
+
+
 	//std::cout << (glfwGetTime() - tempTime) * 1000.0f << std::endl;
 }
 
@@ -99,9 +138,9 @@ void Raytracing::updateRayTexture() {
 	float aspectRatio = (float)Engine::Program::SCREEN_WIDTH / Engine::Program::SCREEN_HEIGHT;
 	float halfHorizontalFov = 2.0f * glm::atan(glm::tan(glm::radians(Camera::verticalFov) * 0.5f) * aspectRatio) / 2.0f;
 
-	glm::vec3 front = glm::normalize(-player->transform->getDirection());
-	glm::vec3 right = glm::normalize(player->transform->getRight());
-	glm::vec3 up = glm::normalize(player->transform->getUp());
+	glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
+	glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
+	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 	
 	glm::vec3 start = (front * ((float)this->width / 2.0f) / glm::atan(halfHorizontalFov)) - up * ((float)this->height / 2.0f) - right * ((float)this->width / 2.0f);
 
@@ -146,12 +185,31 @@ void Raytracing::render() {
 
 	this->computeShader->use();
 	// Uniforms
-	this->computeShader->setVec3("playerPos", GameManager::getPlayer()->transform->getPosition());
-	this->computeShader->setVec3("offset", glm::vec3(0.0f, 0.0f, 0.0f));
+	this->computeShader->setMat3("ViewMatrix", glm::transpose(glm::mat3(Camera::viewMatrix)));
+	this->computeShader->setVec3("PlayerPos", GameManager::getPlayer()->transform->getPosition());
+	//this->computeShader->setVec3("offset", glm::vec3(0.0f, 0.0f, 0.0f));
+	this->computeShader->setFloat("StepLength", this->stepLength);
+	this->computeShader->setFloat("ViewDistance", this->viewDistance);
+
+	// Material
+	this->computeShader->setVec3("material.diffuse", this->material->diffuse);
+	this->computeShader->setVec3("material.specular", this->material->specular);
+	this->computeShader->setFloat("material.shininess", this->material->shininess);
+
+	// Light
+	if (GameManager::getDirectionalLight()) {
+		GameManager::getDirectionalLight()->setUniform(this->computeShader, glm::mat4(1.0f));
+	}
+	else { // let the shader know that a directional light doesn't exist
+		this->shaderProgram->setBool("directionalLight.exists", false);
+	}
 
 	// Set textures
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, this->rayTexture);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_3D, this->noiseTexture);
 
 	glBindImageTexture(0, this->renderedTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
@@ -211,9 +269,9 @@ void Raytracing::renderImGui() {
 		ImGui::Text("Horizontal Fov: %.3f", glm::degrees(2.0f * glm::atan(glm::tan(glm::radians(Camera::verticalFov) * 0.5f) * aspectRatio)));
 
 		ImGui::SliderFloat("View distance", &viewDistanceSlider, 1.0f, 200.0f);
-		ImGui::SliderFloat("Step length", &stepLength, 0.1f, 20.0f);
+		ImGui::SliderFloat("Step length", &stepLength, 0.01f, 20.0f);
 
-		ImGui::SliderInt("Width", &width, 1, 1000);
+		ImGui::SliderInt("Width", &width, 1, 2500);
 		ImGui::SliderInt("Height", &height, 1, 1000);
 
 		ImGui::End();
@@ -225,7 +283,8 @@ void Raytracing::renderImGui() {
 		this->stepLength = stepLength;
 
 		this->width = width;
-		this->height = height;
+		this->height = width / aspectRatio;
+		height = this->height;
 
 		// Check for changes
 		if (width != oldWidth || height != oldHeight || glm::abs(oldVerticalFov - verticalFov) > 0.1f || glm::abs(oldAspectRatio - aspectRatio) > 0.1f) {
@@ -242,6 +301,7 @@ void Raytracing::renderImGui() {
 		ImGui::Begin("Noise Settings");
 
 		static int seedSlider = this->seed;
+		static int oldSeed = this->seed;
 
 		ImGui::SliderInt("Seed", &seedSlider, 0, 1000000);
 
@@ -249,5 +309,12 @@ void Raytracing::renderImGui() {
 		ImGui::Text(("Coordinates: (" + std::to_string(playerPos.x) + ", " + std::to_string(playerPos.y) + ", " + std::to_string(playerPos.z) + ")").c_str());
 
 		ImGui::End();
+
+		if (seedSlider != oldSeed) {
+			oldSeed = seedSlider;
+			this->seed = seedSlider;
+
+			generateNoise();
+		}
 	}
 }
