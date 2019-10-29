@@ -1,0 +1,179 @@
+#version 450 core
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(rgba32f, binding = 0) uniform image2D renderedTexture;
+
+layout(binding = 1) uniform sampler2D rayTexture;
+
+uniform vec3 playerPos;
+uniform vec3 offset;
+
+float getDensityValue(float x, float y, float z);
+
+void main() {
+
+	ivec2 pixelCoordinate = ivec2(gl_GlobalInvocationID.xy);
+
+
+	float colour = 0.0;
+	for (int i = 0; i < 50; i++) {
+		colour += getDensityValue(playerPos.x + i, playerPos.y + i, playerPos.z + i);
+	}
+	imageStore(renderedTexture, pixelCoordinate, vec4(colour / 50.0, 0.0, 0.0, 1.0));
+
+}
+
+// float x, float y, float z, int octaves = 4, float persistence = 0.5, float frequency = 0.2, float amplitude = 1.0
+float octavePerlin(float x, float y, float z, int octaves, float persistence, float frequency, float amplitude);
+
+float getDensityValue(float x, float y, float z) {
+	float noiseValue = 0.0;
+
+	// Regular noise
+	noiseValue = octavePerlin(x, y, z, 8, 0.5, 0.2, 1.0);
+	//noiseValue = octavePerlin(x, y, z, 8, 0.5, 0.2, 1.0);
+
+	// Ground
+	//noiseValue = -(y) / 5.0 + octavePerlin(x, y, z, 8, 0.5, 0.2, 1.0) * 5.0;
+				
+	// Warp
+//	float warp = octavePerlin(x, y, z, 1, 0.4, 0.04, 1.0);
+//	x += warp * 10;
+//	y += warp * 10;
+//	noiseValue = -(y) / 10.0 + octavePerlin(x, y + warp * 10, z, 9, 0.4, 0.1, 1.0);
+
+	// Terrace ground
+	//noiseValue = -(y) / 5.0 + octavePerlin(x, y, z, 4, 0.5, 0.2, 1.0) * 2.0 + mod((y), 0.5) / 5.0;
+	
+	//y = roundEven(y);
+	//noiseValue = -(y) / 5.0 + octavePerlin(x, y, z, 5, 0.35, 0.1, 1.0) * 2.0;
+				
+	// Minecraft
+//	float tempNoise = octavePerlin(x, 0.0, z, 1, 0.3, 0.015);
+//	float tempA = -(y) / 10.0 + octavePerlin(x, y, z, 4, 0.3, 0.05);
+//	float tempB = -(y) + 40.0 / 30.0 + octavePerlin(x, y, z, 4, 0.3, 0.05) * 1.5;
+//
+//	tempA = clamp(tempA, -1.0, 1.0);
+//	float groundNoise = lerpFloat(tempB, tempA, min(1.0, tempNoise * tempNoise + tempNoise));
+//				
+//	float undergroundNoise = 0.075 + 2 * surfaceLevel - octavePerlin(x, y, z, 4, 0.3, 0.06);
+//				
+//	float groundAndUndergroundLerp = clamp(((y) - (20.0 * (1.0 - tempNoise))) / 20.0, 0.0, 1.0);
+//	noiseValue = lerpFloat(undergroundNoise, groundNoise, groundAndUndergroundLerp);
+				
+	// Circle
+	//noiseValue = 1.0 - length(vec3(x, y, z)) / 20.0 + octavePerlin(x, y, z, 4, 0.5, 0.2, 1.0);
+
+	return noiseValue;
+}
+
+int fastFloor(float x);
+float perlin(float x, float y, float z);
+float grad(int hash, float x, float y, float z);
+float fade(float t);
+float lerp(float a, float b, float x);
+float lerpFloat(float aValue, float bValue, float level);
+
+const int permutations[256 * 2] = { 151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180,
+									151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
+};
+
+float octavePerlin(float x, float y, float z, int octaves, float persistence, float frequency, float amplitude) {
+	x += offset.x;
+	y += offset.y;
+	z += offset.z;
+
+	float total = 0.0;
+	float maxValue = 0.0;			// Used for normalizing result to 0.0 - 1.0
+	for (int i = 0; i < octaves; i++) {
+		total += perlin(x * frequency + (100.0 * i), y * frequency + (100.0 * i), z * frequency + (100.0 * i)) * amplitude;
+
+		maxValue += amplitude;
+
+		amplitude *= persistence;
+		frequency *= 2.0;
+	}
+
+	return total / maxValue * 2.0 - 1.0;
+}
+
+int fastFloor(float x) {
+	return x > 0.0 ? int(x) : int(x) - 1;
+}
+
+float perlin(float x, float y, float z) {
+	int X = fastFloor(x);
+	int Y = fastFloor(y);
+	int Z = fastFloor(z);
+
+	int xi = X & 255;								// Calculate the unit cube that the point asked will be located in
+	int yi = Y & 255;								// The left bound is ( |_x_|,|_y_|,|_z_| ) and the right bound is that
+	int zi = Z & 255;								// plus 1.  Next we calculate the location (from 0.0 to 1.0) in that cube.
+	float xf = x - X;								// We also fade the location to smooth the result.
+	float yf = y - Y;
+	float zf = z - Z;
+	float u = fade(xf);
+	float v = fade(yf);
+	float w = fade(zf);
+
+	int aaa, aba, aab, abb, baa, bba, bab, bbb;
+	aaa = permutations[permutations[permutations[xi    ] + yi    ] + zi    ];
+	aba = permutations[permutations[permutations[xi    ] + yi + 1] + zi    ];
+	aab = permutations[permutations[permutations[xi    ] + yi    ] + zi + 1];
+	abb = permutations[permutations[permutations[xi    ] + yi + 1] + zi + 1];
+	baa = permutations[permutations[permutations[xi + 1] + yi    ] + zi    ];
+	bba = permutations[permutations[permutations[xi + 1] + yi + 1] + zi    ];
+	bab = permutations[permutations[permutations[xi + 1] + yi    ] + zi + 1];
+	bbb = permutations[permutations[permutations[xi + 1] + yi + 1] + zi + 1];
+
+	float x1, x2, y1, y2;
+	x1 = lerp(grad(aaa, xf, yf, zf),				// The gradient function calculates the dot product between a pseudorandom
+		grad(baa, xf - 1.0, yf, zf),				// gradient vector and the vector from the input coordinate to the 8
+		u);										// surrounding points in its unit cube.
+	x2 = lerp(grad(aba, xf, yf - 1.0, zf),				// This is all then lerped together as a sort of weighted average based on the faded (u,v,w)
+		grad(bba, xf - 1.0, yf - 1.0, zf),				// values we made earlier.
+		u);
+	y1 = lerp(x1, x2, v);
+
+	x1 = lerp(grad(aab, xf, yf, zf - 1.0),
+		grad(bab, xf - 1.0, yf, zf - 1.0),
+		u);
+	x2 = lerp(grad(abb, xf, yf - 1.0, zf - 1.0),
+		grad(bbb, xf - 1.0, yf - 1.0, zf - 1.0),
+		u);
+	y2 = lerp(x1, x2, v);
+
+	return (lerp(y1, y2, w) + 1.0) / 2.0;						// For convenience we bound it to 0 - 1 (theoretical min/max before is -1 - 1)
+}
+
+float grad(int hash, float x, float y, float z) {
+	int h = hash & 15;									// Take the hashed value and take the first 4 bits of it (15 == 0b1111)
+	float u = h < 8 /* 0b1000 */ ? x : y;				// If the most significant bit (MSB) of the hash is 0 then set u = x.  Otherwise y.
+
+	float v;											// In Ken Perlin's original implementation this was another conditional operator (?:).  I
+														// expanded it for readability.
+
+	if (h < 4 /* 0b0100 */)								// If the first and second significant bits are 0 set v = y
+		v = y;
+	else if (h == 12 /* 0b1100 */ || h == 14 /* 0b1110*/)// If the first and second significant bits are 1 set v = x
+		v = x;
+	else 												// If the first and second significant bits are not equal (0/1, 1/0) set v = z
+		v = z;
+
+	return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v); // Use the last 2 bits to decide if u and v are positive or negative.  Then return their addition.
+}
+
+float fade(float t) {
+	// Fade function as defined by Ken Perlin.  This eases coordinate values
+	// so that they will ease towards integral values.  This ends up smoothing
+	// the final output.
+	return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);			// 6t^5 - 15t^4 + 10t^3
+}
+
+float lerp(float a, float b, float x) {
+	return a + x * (b - a);
+}
+
+float lerpFloat(float aValue, float bValue, float level) {
+	float returnValue = aValue + level * (bValue - aValue);
+	return returnValue;
+}

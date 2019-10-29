@@ -93,11 +93,11 @@ void Game::gameLoop() {
 		this->inputPtr->processInput(this->program->window);
 
 		// physics simulations
-		while (this->physicsTimeSimulated < glfwGetTime()) {
-			fixedUpdate();
-			// TODO: physics step
-			this->physicsTimeSimulated += this->physicsTimeStep;
-		}
+		//while (this->physicsTimeSimulated < glfwGetTime()) {
+		//	fixedUpdate();
+		//	// TODO: physics step
+		//	this->physicsTimeSimulated += this->physicsTimeStep;
+		//}
 
 		// update (deltaTime)
 		float deltaTime = (float)(glfwGetTime() - this->lastUpdateTime);

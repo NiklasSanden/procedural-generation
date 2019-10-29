@@ -9,6 +9,7 @@
 #include "objects/MarchingCubesManager.h"
 #include "objects/CPUMarchingCubes/CPUMarchingCubesManager.h"
 #include "objects/ComputeMarchingCubes/ComputeMCManager.h"
+#include "objects/Raytracing/Raytracing.h"
 
 #include "imgui/imgui.h"
 
@@ -68,6 +69,9 @@ GameManager::GameManager(const std::string& _name) : GameObject(_name) {
 
 	ComputeMCManager* compCubesManager = new ComputeMCManager("ComputeMCManager");
 	this->gamePtr->addGameObject(compCubesManager);
+
+	//Raytracing* raytracer = new Raytracing("Raytracer");
+	//this->gamePtr->addGameObject(raytracer);
 
 	/*ChunkManager* chunkManager = new ChunkManager("ChunkManager");
 	this->gamePtr->addGameObject(chunkManager);*/

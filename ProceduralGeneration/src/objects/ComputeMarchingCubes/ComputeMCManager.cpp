@@ -77,8 +77,8 @@ void ComputeMCManager::update(float deltaTime) {
 
 	float farthestViewDistanceFactor = (1.0f / glm::cos(halfHorizontalFov)) / glm::cos(halfVerticalFov);
 
-	updateActiveChunks(this->chunkLength * 4, 4, Camera::viewDistance       , farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
-	updateActiveChunks(this->chunkLength * 2, 2, Camera::viewDistance / 3.0f, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	//updateActiveChunks(this->chunkLength * 4, 4, Camera::viewDistance       , farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	//updateActiveChunks(this->chunkLength * 2, 2, Camera::viewDistance / 3.0f, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 	updateActiveChunks(this->chunkLength    , 1, Camera::viewDistance / 6.0f, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 
 
