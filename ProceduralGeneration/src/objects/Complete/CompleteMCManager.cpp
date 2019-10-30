@@ -29,26 +29,134 @@
 #include "engine/misc/Debug.h"
 using namespace ProceduralGeneration;
 
+struct VertexBuffer {
+	unsigned int VAO;
+	unsigned int VBO;
+
+	VertexBuffer() {
+		glGenVertexArrays(1, &this->VAO);
+		glGenBuffers(1, &this->VBO);
+
+		glBindVertexArray(this->VAO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+		glVertexAttribPointer(0, 6, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+	~VertexBuffer() {
+		glDeleteVertexArrays(1, &this->VAO);
+		glDeleteBuffers(1, &this->VBO);
+	}
+};
+
+struct VBOManager {
+	int size;
+	int end;
+	VertexBuffer** vertexBuffers;
+
+	VBOManager(int _size) {
+		size = _size;
+		end = size;
+		
+		vertexBuffers = new VertexBuffer*[_size];
+		for (int i = 0; i < _size; i++) {
+			vertexBuffers[i] = new VertexBuffer();
+		}
+	}
+	~VBOManager() {
+		for (int i = 0; i < size; i++) {
+			delete vertexBuffers[i];
+		}
+		delete[] vertexBuffers;
+	}
+
+	VertexBuffer* getUnoccupiedVBO() {
+		end--;
+		return vertexBuffers[end];
+	}
+
+	void storeUnoccupiedVBO(VertexBuffer* VBO) {
+		vertexBuffers[end] = VBO;
+		end++;
+	}
+};
+
 CompleteMCManager::CompleteMCManager(const std::string& name) : GameObject(name) {
-	// Shader program
-	this->shaderProgram = Engine::ResourceManager::createShaderProgram({ "complete/completeMC.vert", "omplete/completeMC.frag" }, "CompleteMCRenderShader");
 	// Material
 	this->material = new Engine::Material();
+
+	// Shader program
+	this->renderingShaders = Engine::ResourceManager::createShaderProgram({ "complete/completeMC.vert", "omplete/completeMC.frag" }, "CompleteMCRenderShader");
+
+	this->noiseShaders = Engine::ResourceManager::createShaderProgram({ "completeNoise.comp" }, "CompleteNoiseComputeShader");
+	this->mcShaders = Engine::ResourceManager::createShaderProgram({ "completeMC.comp" }, "CompleteMCComputeShader");
+
+	// Generate buffers 
+	glGenBuffers(1, &this->writableVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, this->writableVBO);
+	glBufferData(GL_ARRAY_BUFFER, this->cellsPerAxis * this->cellsPerAxis * this->cellsPerAxis * 15 * 6 * (int)sizeof(float), NULL, GL_DYNAMIC_COPY);
+
+	glGenBuffers(1, &this->atomicCounter);
+	glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, this->atomicCounter);
+	unsigned int atomicCounterValue = 0u;
+	glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(unsigned int), &atomicCounterValue, GL_DYNAMIC_READ);
+
+	// Generate texture
+	glGenTextures(1, &this->noiseTextureID);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_3D, this->noiseTextureID);
+
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, this->cellsPerAxis + 5, this->cellsPerAxis + 5, this->cellsPerAxis + 5, 0, GL_RED, GL_FLOAT, NULL);
+	glBindImageTexture(0, this->noiseTextureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+
+
+	glGenTextures(1, &this->preCalculatedNoiseTextureID);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_3D, this->preCalculatedNoiseTextureID);
+
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	srand(this->seed);
+	std::vector<float> preCalculatedNoiseData(16 * 16 * 16, 0.0f);
+	for (int i = 0; i < 16 * 16 * 16; i++) {
+		preCalculatedNoiseData[i * 4    ] = glm::linearRand(-1.0f, 1.0f);
+		preCalculatedNoiseData[i * 4 + 1] = glm::linearRand(-1.0f, 1.0f);
+		preCalculatedNoiseData[i * 4 + 2] = glm::linearRand(-1.0f, 1.0f);
+		preCalculatedNoiseData[i * 4 + 3] = glm::linearRand(-1.0f, 1.0f);
+	}
+
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, 16, 16, 16, 0, GL_RGBA, GL_FLOAT, preCalculatedNoiseData.data());
+
+	// VBO Manager
+	this->vboManager = new VBOManager(300);
 }
 
 CompleteMCManager::~CompleteMCManager() {
 	delete this->material;
-	for (auto pair : this->generatedChunks) {
-		delete pair.second;
-	}
+
+	delete this->vboManager;
+
+	glDeleteTextures(1, &this->noiseTextureID);
+	glDeleteTextures(1, &this->preCalculatedNoiseTextureID);
+
+	glDeleteBuffers(1, &this->writableVBO);
+	glDeleteBuffers(1, &this->atomicCounter);
 }
 
 void CompleteMCManager::regenerateChunks() {
-	for (auto pair : this->generatedChunks) {
-		delete pair.second;
-	}
-	this->generatedChunks.clear();
-
 	this->emptyChunks.clear();
 }
 
@@ -58,7 +166,7 @@ void CompleteMCManager::update(float deltaTime) {
 
 
 	// Clear old chunks
-	this->activeChunks.clear();
+	//this->activeChunks.clear();
 	//std::unordered_map<std::string, ComputeMCChunk*> oldChunks = this->generatedChunks;
 	//this->generatedChunks.clear();
 
@@ -81,10 +189,10 @@ void CompleteMCManager::update(float deltaTime) {
 	updateActiveChunks(this->chunkLength    , 1, Camera::viewDistance / 6.0f, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 
 
-	this->oldActiveChunks.clear();
+	/*this->oldActiveChunks.clear();
 	for (auto chunk : this->activeChunks) {
 		this->oldActiveChunks.insert(chunk.second->name);
-	}
+	}*/
 
 	/*for (auto chunk : oldChunks) {
 		delete chunk.second;
@@ -125,11 +233,11 @@ void CompleteMCManager::updateActiveChunks(float chunkLength, int LODIndex, floa
 
 				if (this->emptyChunks.find(currentChunkName) != this->emptyChunks.end()) continue;
 
-				float tempFarthestViewDistance = this->oldActiveChunks.find(currentChunkName) == this->oldActiveChunks.end() ? farthestViewDistance : farthestViewDistanceMargin;
+				//float tempFarthestViewDistance = this->oldActiveChunks.find(currentChunkName) == this->oldActiveChunks.end() ? farthestViewDistance : farthestViewDistanceMargin;
 
 				//if ((currentChunkCoords.x != 0 && currentChunkCoords.x != 1) || (currentChunkCoords.y != 0 && currentChunkCoords.y != 1) || (currentChunkCoords.z != 0 && currentChunkCoords.z != 1)) continue;
 				//if (currentChunkCoords.x != 14 || currentChunkCoords.y != 0 || currentChunkCoords.z != 8) continue;
-				if (distanceToPlayerSqr <= (tempFarthestViewDistance + chunkDistanceToCorner) * (tempFarthestViewDistance + chunkDistanceToCorner)) {
+				if (distanceToPlayerSqr <= (1 + chunkDistanceToCorner) * (1 + chunkDistanceToCorner)) {
 					// Check to see if possible that the chunk might be seen by the camera
 					// check 1: behind
 					glm::vec3 pointInView = playerPosition + -player->transform->getDirection() * glm::max(viewDistance, 1.0f);
@@ -156,11 +264,11 @@ void CompleteMCManager::updateActiveChunks(float chunkLength, int LODIndex, floa
 					}
 					// -------------------------------------------------------------------
 
-					if (generatedChunks.find(currentChunkName) == generatedChunks.end()) {
+					/*if (generatedChunks.find(currentChunkName) == generatedChunks.end()) {
 						this->generatedChunks[currentChunkName] = new ComputeMCChunk(currentChunkName, currentChunkCoords, this->seed);
 						this->generatedChunks[currentChunkName]->generateChunk(chunkLength, this->cellsPerAxis);
 					}
-					this->activeChunks.insert(std::pair<float, ComputeMCChunk*>(distanceToPlayerSqr + (LODIndex - 1) * this->chunkLength * 2.0f, this->generatedChunks[currentChunkName]));
+					this->activeChunks.insert(std::pair<float, ComputeMCChunk*>(distanceToPlayerSqr + (LODIndex - 1) * this->chunkLength * 2.0f, this->generatedChunks[currentChunkName]));*/
 				}
 			}
 		}
@@ -189,25 +297,25 @@ void CompleteMCManager::render() {
 	/*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDisable(GL_CULL_FACE);*/
 
-	this->shaderProgram->use();
+	this->renderingShaders->use();
 	// directional light
 	if (GameManager::getDirectionalLight()) {
-		GameManager::getDirectionalLight()->setUniform(this->shaderProgram, Camera::viewMatrix);
+		GameManager::getDirectionalLight()->setUniform(this->renderingShaders, Camera::viewMatrix);
 	}
 	else { // let the shader know that a directional light doesn't exist
-		this->shaderProgram->setBool("directionalLight.exists", false);
+		this->renderingShaders->setBool("directionalLight.exists", false);
 	}
 
 	// Renderer stuff
 	// Uniforms
-	this->shaderProgram->setMat4("view", Camera::viewMatrix);
-	this->shaderProgram->setMat4("projection", Camera::projectionMatrix);
-	this->shaderProgram->setFloat("viewDistance", Camera::viewDistance);
+	this->renderingShaders->setMat4("view", Camera::viewMatrix);
+	this->renderingShaders->setMat4("projection", Camera::projectionMatrix);
+	this->renderingShaders->setFloat("viewDistance", Camera::viewDistance);
 
 	// material
-	this->shaderProgram->setVec3("material.diffuse", this->material->diffuse);
-	this->shaderProgram->setVec3("material.specular", this->material->specular);
-	this->shaderProgram->setFloat("material.shininess", this->material->shininess);
+	this->renderingShaders->setVec3("material.diffuse", this->material->diffuse);
+	this->renderingShaders->setVec3("material.specular", this->material->specular);
+	this->renderingShaders->setFloat("material.shininess", this->material->shininess);
 
 	for (auto pair : this->activeChunks) {
 		bool isEmpty = pair.second->draw(this->shaderProgram->ID);
@@ -221,8 +329,7 @@ void CompleteMCManager::render() {
 	}
 
 	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	this->shaderProgram->unbind();
+	this->renderingShaders->unbind();
 
 	// wireframe
 	/*glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -258,7 +365,7 @@ void CompleteMCManager::renderImGui() {
 		ImGui::SliderInt("Cells per axis", &cellsPerAxisSlider, 1, 200);
 		ImGui::Checkbox("Keep ratio", &keepCellRatio);
 
-		ImGui::Text(("Visible chunks: " + std::to_string(this->activeChunks.size())).c_str());
+		//ImGui::Text(("Visible chunks: " + std::to_string(this->activeChunks.size())).c_str());
 
 		ImGui::End();
 

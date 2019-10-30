@@ -14,6 +14,7 @@ namespace Engine {
 #include <unordered_map>
 #include <map>
 #include <unordered_set>
+#include <stack>
 
 namespace ProceduralGeneration {
 	class CompleteMCManager : public Engine::GameObject {
@@ -29,13 +30,19 @@ namespace ProceduralGeneration {
 		float viewDistanceSqrd = 0.0f;
 
 	private:
-		std::multimap<float, ComputeMCChunk*> activeChunks;
-		std::unordered_map<std::string, ComputeMCChunk*> generatedChunks;
 		std::unordered_set<std::string> emptyChunks;
-		std::unordered_set<std::string> oldActiveChunks;
 
-		Engine::Shader* shaderProgram = nullptr;
 		Engine::Material* material = nullptr;
+		Engine::Shader* renderingShaders = nullptr;
+		Engine::Shader* noiseShaders = nullptr;
+		Engine::Shader* mcShaders = nullptr;
+
+		VBOManager* vboManager = nullptr;
+
+		unsigned int noiseTextureID;
+		unsigned int preCalculatedNoiseTextureID;
+		unsigned int writableVBO;
+		unsigned int atomicCounter;
 	public:
 		CompleteMCManager(const std::string& name);
 		~CompleteMCManager();
