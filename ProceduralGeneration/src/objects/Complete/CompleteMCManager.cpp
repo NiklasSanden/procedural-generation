@@ -13,6 +13,8 @@
 #include "data/Tables.h"
 #include "data/NoiseTexture.h"
 
+#include "objects/Complete/VertexBuffer.h"
+
 #include "imgui/imgui.h"
 #include "glm/glm.hpp"
 #include "glm/gtx/norm.hpp"
@@ -21,6 +23,7 @@
 #include "GLFW/glfw3.h"
 
 #include <string>
+#include <sstream>
 #include <vector>
 #include <unordered_map>
 #include <map>
@@ -29,67 +32,12 @@
 #include "engine/misc/Debug.h"
 using namespace ProceduralGeneration;
 
-struct VertexBuffer {
-	unsigned int VAO;
-	unsigned int VBO;
-
-	VertexBuffer() {
-		glGenVertexArrays(1, &this->VAO);
-		glGenBuffers(1, &this->VBO);
-
-		glBindVertexArray(this->VAO);
-
-		glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-		glVertexAttribPointer(0, 6, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
-	~VertexBuffer() {
-		glDeleteVertexArrays(1, &this->VAO);
-		glDeleteBuffers(1, &this->VBO);
-	}
-};
-
-struct VBOManager {
-	int size;
-	int end;
-	VertexBuffer** vertexBuffers;
-
-	VBOManager(int _size) {
-		size = _size;
-		end = size;
-		
-		vertexBuffers = new VertexBuffer*[_size];
-		for (int i = 0; i < _size; i++) {
-			vertexBuffers[i] = new VertexBuffer();
-		}
-	}
-	~VBOManager() {
-		for (int i = 0; i < size; i++) {
-			delete vertexBuffers[i];
-		}
-		delete[] vertexBuffers;
-	}
-
-	VertexBuffer* getUnoccupiedVBO() {
-		end--;
-		return vertexBuffers[end];
-	}
-
-	void storeUnoccupiedVBO(VertexBuffer* VBO) {
-		vertexBuffers[end] = VBO;
-		end++;
-	}
-};
-
 CompleteMCManager::CompleteMCManager(const std::string& name) : GameObject(name) {
 	// Material
 	this->material = new Engine::Material();
 
 	// Shader program
-	this->renderingShaders = Engine::ResourceManager::createShaderProgram({ "complete/completeMC.vert", "omplete/completeMC.frag" }, "CompleteMCRenderShader");
+	this->renderingShaders = Engine::ResourceManager::createShaderProgram({ "completeMC.vert", "completeMC.frag" }, "CompleteMCRenderShader");
 
 	this->noiseShaders = Engine::ResourceManager::createShaderProgram({ "completeNoise.comp" }, "CompleteNoiseComputeShader");
 	this->mcShaders = Engine::ResourceManager::createShaderProgram({ "completeMC.comp" }, "CompleteMCComputeShader");
@@ -116,12 +64,11 @@ CompleteMCManager::CompleteMCManager(const std::string& name) : GameObject(name)
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, this->cellsPerAxis + 5, this->cellsPerAxis + 5, this->cellsPerAxis + 5, 0, GL_RED, GL_FLOAT, NULL);
-	glBindImageTexture(0, this->noiseTextureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+	//glBindImageTexture(0, this->noiseTextureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 
 
 	glGenTextures(1, &this->preCalculatedNoiseTextureID);
 
-	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_3D, this->preCalculatedNoiseTextureID);
 
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -130,24 +77,28 @@ CompleteMCManager::CompleteMCManager(const std::string& name) : GameObject(name)
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	srand(this->seed);
-	std::vector<float> preCalculatedNoiseData(16 * 16 * 16, 0.0f);
+	std::vector<float> preCalculatedNoiseData(16 * 16 * 16 * 4, 0.0f);
 	for (int i = 0; i < 16 * 16 * 16; i++) {
-		preCalculatedNoiseData[i * 4    ] = glm::linearRand(-1.0f, 1.0f);
-		preCalculatedNoiseData[i * 4 + 1] = glm::linearRand(-1.0f, 1.0f);
-		preCalculatedNoiseData[i * 4 + 2] = glm::linearRand(-1.0f, 1.0f);
-		preCalculatedNoiseData[i * 4 + 3] = glm::linearRand(-1.0f, 1.0f);
+		preCalculatedNoiseData[i * 4    ] = glm::linearRand(0.0f, 1.0f);
+		preCalculatedNoiseData[i * 4 + 1] = glm::linearRand(0.0f, 1.0f);
+		preCalculatedNoiseData[i * 4 + 2] = glm::linearRand(0.0f, 1.0f);
+		preCalculatedNoiseData[i * 4 + 3] = glm::linearRand(0.0f, 1.0f);
 	}
 
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, 16, 16, 16, 0, GL_RGBA, GL_FLOAT, preCalculatedNoiseData.data());
 
 	// VBO Manager
-	this->vboManager = new VBOManager(300);
+	this->vboManager = new VBOManager(this->numberOfVertexBuffers);
 }
 
 CompleteMCManager::~CompleteMCManager() {
 	delete this->material;
 
 	delete this->vboManager;
+
+	for (auto pair : this->generatedChunks) {
+		delete pair.second;
+	}
 
 	glDeleteTextures(1, &this->noiseTextureID);
 	glDeleteTextures(1, &this->preCalculatedNoiseTextureID);
@@ -157,18 +108,31 @@ CompleteMCManager::~CompleteMCManager() {
 }
 
 void CompleteMCManager::regenerateChunks() {
+	// Clear empty chunks
 	this->emptyChunks.clear();
+
+	// If cellsPerAxis changes:
+	glBindBuffer(GL_ARRAY_BUFFER, this->writableVBO);
+	glBufferData(GL_ARRAY_BUFFER, this->cellsPerAxis * this->cellsPerAxis * this->cellsPerAxis * 15 * 6 * (int)sizeof(float), NULL, GL_DYNAMIC_COPY);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_3D, this->noiseTextureID);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, this->cellsPerAxis + 5, this->cellsPerAxis + 5, this->cellsPerAxis + 5, 0, GL_RED, GL_FLOAT, NULL);
+
+	// Clear generated chunks
+	for (auto pair : this->generatedChunks) {
+		this->vboManager->storeUnoccupiedVBO(pair.second);
+	}
+	this->generatedChunks.clear();
+
+	// Reset VBOManager
+	delete this->vboManager;
+	this->vboManager = new VBOManager(this->numberOfVertexBuffers);
 }
 
 void CompleteMCManager::update(float deltaTime) {
 	//double tempTime = glfwGetTime();
 	Camera* player = GameManager::getPlayer();
-
-
-	// Clear old chunks
-	//this->activeChunks.clear();
-	//std::unordered_map<std::string, ComputeMCChunk*> oldChunks = this->generatedChunks;
-	//this->generatedChunks.clear();
 
 
 	// Used by all chunks to determine if it can be seen or not
@@ -184,24 +148,93 @@ void CompleteMCManager::update(float deltaTime) {
 
 	float farthestViewDistanceFactor = (1.0f / glm::cos(halfHorizontalFov)) / glm::cos(halfVerticalFov);
 
-	updateActiveChunks(this->chunkLength * 4, 4, Camera::viewDistance       , farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
-	updateActiveChunks(this->chunkLength * 2, 2, Camera::viewDistance / 3.0f, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
-	updateActiveChunks(this->chunkLength    , 1, Camera::viewDistance / 6.0f, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	std::multimap<float, std::string> chunksOrderedByDistance;
 
 
-	/*this->oldActiveChunks.clear();
-	for (auto chunk : this->activeChunks) {
-		this->oldActiveChunks.insert(chunk.second->name);
-	}*/
+	//updateActiveChunks(chunksOrderedByDistance, this->chunkLength * 4, 4, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	//updateActiveChunks(chunksOrderedByDistance, this->chunkLength * 2, 2, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	updateActiveChunks(chunksOrderedByDistance, this->chunkLength    , 1, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 
-	/*for (auto chunk : oldChunks) {
-		delete chunk.second;
-	}*/
+
+
+	std::unordered_map<std::string, VertexBuffer*> oldChunks = this->generatedChunks;
+	this->generatedChunks.clear();
+
+	std::vector<std::string> chunksToGenerate;
+
+	unsigned int index = 0;
+	for (auto chunk : chunksOrderedByDistance) {
+		if (index >= this->numberOfVertexBuffers) break;
+
+		if (oldChunks.find(chunk.second) == oldChunks.end()) {
+			chunksToGenerate.push_back(chunk.second);
+		}
+		else {
+			this->generatedChunks[chunk.second] = oldChunks[chunk.second];
+			oldChunks.erase(chunk.second);
+		}
+
+		index++;
+	}
+
+	for (auto chunk : oldChunks) {
+		this->vboManager->storeUnoccupiedVBO(chunk.second);
+	}
+
+	if (chunksToGenerate.size() != 0ll) {
+		// Textures
+		Tables::activateTriangulationTable(GL_TEXTURE4);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_3D, this->noiseTextureID);
+		glBindImageTexture(0, this->noiseTextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_3D, this->preCalculatedNoiseTextureID);
+
+		// Buffers
+		glBindBuffer(GL_ARRAY_BUFFER, this->writableVBO);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, this->writableVBO);
+
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, this->atomicCounter);
+		glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 2, this->atomicCounter);
+
+		// Uniforms
+		glm::vec3 offset = glm::vec3(0.0f, 0.0f, 0.0f);
+		srand(this->seed);
+		offset.x += glm::linearRand(-1000.0f, 1000.0f);
+		offset.y += glm::linearRand(-1000.0f, 1000.0f);
+		offset.z += glm::linearRand(-1000.0f, 1000.0f);
+
+		this->noiseShaders->use();
+		this->noiseShaders->setVec3("offset", offset);
+		this->noiseShaders->setInt("pointsPerAxis", this->cellsPerAxis + 5);
+
+		this->mcShaders->use();
+		this->mcShaders->setFloat("surfaceLevel", 0.0f);
+		this->mcShaders->setInt("cellsPerAxis", this->cellsPerAxis);
+
+		int generatedThisFrame = 0;
+		for (int i = 0; i < (int)chunksToGenerate.size() && generatedThisFrame < 5; i++) {
+			VertexBuffer* vboPtr = this->vboManager->getUnoccupiedVBO();
+			
+			bool isEmpty = generateChunk(vboPtr, chunksToGenerate[i]);
+
+			if (isEmpty) {
+				this->emptyChunks.insert(chunksToGenerate[i]);
+				this->vboManager->storeUnoccupiedVBO(vboPtr);
+			}
+			else {
+				this->generatedChunks[chunksToGenerate[i]] = vboPtr;
+				generatedThisFrame++;
+			}
+		}
+	}
 
 	//std::cout << (glfwGetTime() - tempTime) * 1000.0f << std::endl;
 }
 
-void CompleteMCManager::updateActiveChunks(float chunkLength, int LODIndex, float viewDistance, float farthestViewDistanceFactor, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
+void CompleteMCManager::updateActiveChunks(std::multimap<float, std::string>& chunksOrderedByDistance, float chunkLength, int LODIndex, float viewDistance, float farthestViewDistanceFactor, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
 	Camera* player = GameManager::getPlayer();
 	glm::vec3 playerPosition = player->transform->getPosition();
 	glm::vec3 roundedPlayerPosition = glm::round(playerPosition / chunkLength);
@@ -210,15 +243,14 @@ void CompleteMCManager::updateActiveChunks(float chunkLength, int LODIndex, floa
 	float chunkDistanceToCorner = glm::sqrt((chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f));
 	// Since the view distance is how far away a plane is, we need the distance to the farthest point on that plane
 	float farthestViewDistance = viewDistance * farthestViewDistanceFactor;
-	float farthestViewDistanceMargin = (viewDistance + this->chunkLength) * farthestViewDistanceFactor;
 
 	// Notice that left, down and front are negative. That is because they will be used in the for loop, and will be added to the roundedPlayerPosition
-	int chunksInRangeUp = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, 1.0f, 0.0f), playerPosition, farthestViewDistanceMargin, chunkLength, chunkDistanceToCorner);
-	int chunksInRangeDown = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, -1.0f, 0.0f), playerPosition, farthestViewDistanceMargin, chunkLength, chunkDistanceToCorner);
-	int chunksInRangeRight = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistanceMargin, chunkLength, chunkDistanceToCorner);
-	int chunksInRangeLeft = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistanceMargin, chunkLength, chunkDistanceToCorner);
-	int chunksInRangeFront = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistanceMargin, chunkLength, chunkDistanceToCorner);
-	int chunksInRangeBack = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistanceMargin, chunkLength, chunkDistanceToCorner);
+	int chunksInRangeUp = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, 1.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
+	int chunksInRangeDown = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(0.0f, -1.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
+	int chunksInRangeRight = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
+	int chunksInRangeLeft = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
+	int chunksInRangeFront = -chunksInRangeDirection(roundedPlayerPosition, glm::vec3(-1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
+	int chunksInRangeBack = chunksInRangeDirection(roundedPlayerPosition, glm::vec3(1.0f, 0.0f, 0.0f), playerPosition, farthestViewDistance, chunkLength, chunkDistanceToCorner);
 
 	// Loop through all of the chunks that could be in range
 	for (int y = chunksInRangeDown; y <= chunksInRangeUp; y++) {
@@ -227,7 +259,7 @@ void CompleteMCManager::updateActiveChunks(float chunkLength, int LODIndex, floa
 
 				glm::vec3 currentChunkCoords = glm::vec3(roundedPlayerPosition.x + x, roundedPlayerPosition.y + y, roundedPlayerPosition.z + z);
 				glm::vec3 currentChunkWorldPos = currentChunkCoords * chunkLength;
-				std::string currentChunkName = std::to_string(currentChunkCoords.x) + ", " + std::to_string(currentChunkCoords.y) + ", " + std::to_string(currentChunkCoords.z) + ", " + std::to_string(LODIndex);
+				std::string currentChunkName = std::to_string(currentChunkCoords.x) + " " + std::to_string(currentChunkCoords.y) + " " + std::to_string(currentChunkCoords.z) + " " + std::to_string(LODIndex);
 
 				float distanceToPlayerSqr = glm::length2(currentChunkWorldPos - playerPosition);
 
@@ -237,7 +269,7 @@ void CompleteMCManager::updateActiveChunks(float chunkLength, int LODIndex, floa
 
 				//if ((currentChunkCoords.x != 0 && currentChunkCoords.x != 1) || (currentChunkCoords.y != 0 && currentChunkCoords.y != 1) || (currentChunkCoords.z != 0 && currentChunkCoords.z != 1)) continue;
 				//if (currentChunkCoords.x != 14 || currentChunkCoords.y != 0 || currentChunkCoords.z != 8) continue;
-				if (distanceToPlayerSqr <= (1 + chunkDistanceToCorner) * (1 + chunkDistanceToCorner)) {
+				if (distanceToPlayerSqr <= (farthestViewDistance + chunkDistanceToCorner) * (farthestViewDistance + chunkDistanceToCorner)) {
 					// Check to see if possible that the chunk might be seen by the camera
 					// check 1: behind
 					glm::vec3 pointInView = playerPosition + -player->transform->getDirection() * glm::max(viewDistance, 1.0f);
@@ -264,11 +296,19 @@ void CompleteMCManager::updateActiveChunks(float chunkLength, int LODIndex, floa
 					}
 					// -------------------------------------------------------------------
 
-					/*if (generatedChunks.find(currentChunkName) == generatedChunks.end()) {
-						this->generatedChunks[currentChunkName] = new ComputeMCChunk(currentChunkName, currentChunkCoords, this->seed);
-						this->generatedChunks[currentChunkName]->generateChunk(chunkLength, this->cellsPerAxis);
+					float margin = 0.0f;
+					//if (this->generatedChunks.find(currentChunkName) != this->generatedChunks.end()) margin = -this->chunkLength * 10.0f;
+					if (LODIndex == 4) {
+						chunksOrderedByDistance.insert(std::make_pair(distanceToPlayerSqr, currentChunkName));
 					}
-					this->activeChunks.insert(std::pair<float, ComputeMCChunk*>(distanceToPlayerSqr + (LODIndex - 1) * this->chunkLength * 2.0f, this->generatedChunks[currentChunkName]));*/
+					else if (LODIndex == 2) {
+						chunksOrderedByDistance.insert(std::make_pair(margin + distanceToPlayerSqr + 16.0f * (farthestViewDistance + this->chunkDistanceToCorner) * (farthestViewDistance + this->chunkDistanceToCorner), currentChunkName));
+					}
+					else {
+						chunksOrderedByDistance.insert(std::make_pair(margin + distanceToPlayerSqr * 2.0f + 16.0f * (farthestViewDistance + this->chunkDistanceToCorner) * (farthestViewDistance + this->chunkDistanceToCorner), currentChunkName));
+					}
+
+					//chunksOrderedByDistance.insert(std::make_pair(distanceToPlayerSqr + 10.0f * farthestViewDistance * (10.0f - LODIndex), currentChunkName));
 				}
 			}
 		}
@@ -290,6 +330,77 @@ int CompleteMCManager::chunksInRangeDirection(const glm::vec3& startPosition, co
 	}
 
 	return answer;
+}
+
+bool CompleteMCManager::generateChunk(VertexBuffer* vertexBuffer, const std::string& name) {
+	// Generate the noise
+	int LOD = name.back() - '0';
+
+	glm::vec3 position;
+	std::istringstream ss(name);
+	std::string c; // dummy string for the .0 in a float
+	for (int i = 0; i < 3; i++) {
+		int temp; ss >> temp >> c;
+		position[i] = temp * this->chunkLength * LOD;
+	}
+	
+	this->noiseShaders->use();
+
+	float cellLength = (name.back() - '0') * (this->chunkLength / this->cellsPerAxis);
+	// Uniforms
+	this->noiseShaders->setVec3("position", position);
+	this->noiseShaders->setFloat("cellLength", cellLength);
+	this->noiseShaders->setInt("LOD", LOD);
+
+	// Compute shader
+	glDispatchCompute((GLuint)(this->cellsPerAxis + 5), (GLuint)(this->cellsPerAxis + 5), (GLuint)(this->cellsPerAxis + 5));
+
+
+	// -------------
+	// Generate Mesh
+	// -------------
+	this->mcShaders->use();
+
+	// Uniforms
+	this->mcShaders->setFloat("cellLength", cellLength);
+	this->mcShaders->setVec3("chunkPosition", position);
+
+	// Reset counter
+	unsigned int atomicCounterValue = 0u;
+	glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(unsigned int), &atomicCounterValue, GL_DYNAMIC_READ);
+
+	// Make sure the noise has finished generating
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+	// Compute shader
+	glDispatchCompute((GLuint)cellsPerAxis, (GLuint)cellsPerAxis, (GLuint)cellsPerAxis);
+
+
+
+	// Make sure the marching cubes is finished
+	//glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
+	glMemoryBarrier(GL_ATOMIC_COUNTER_BARRIER_BIT);
+	// glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+	unsigned int amountOfVertices;
+	glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(unsigned int), &amountOfVertices);
+	amountOfVertices *= 3;
+
+	if (amountOfVertices == 0) {
+		return true;
+	}
+
+	// Copy data to an appropriately sized buffer
+	GLint bufferSize = amountOfVertices * 6 * (int)sizeof(float);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer->VBO);
+	glBufferData(GL_ARRAY_BUFFER, bufferSize, NULL, GL_DYNAMIC_DRAW);
+	glCopyNamedBufferSubData(this->writableVBO, vertexBuffer->VBO, 0, 0, bufferSize);
+
+	vertexBuffer->amountOfVertices = amountOfVertices;
+	vertexBuffer->LOD = LOD;
+
+	return false;
 }
 
 void CompleteMCManager::render() {
@@ -317,15 +428,11 @@ void CompleteMCManager::render() {
 	this->renderingShaders->setVec3("material.specular", this->material->specular);
 	this->renderingShaders->setFloat("material.shininess", this->material->shininess);
 
-	for (auto pair : this->activeChunks) {
-		bool isEmpty = pair.second->draw(this->shaderProgram->ID);
+	for (auto pair : this->generatedChunks) {
+		// Set LOD
+		this->renderingShaders->setInt("LOD", pair.first.back() - '0');
 
-		if (isEmpty) {
-			std::string name = pair.second->name;
-			this->emptyChunks.insert(name);
-			delete this->generatedChunks[name];
-			this->generatedChunks.erase(name);
-		}
+		pair.second->draw();
 	}
 
 	glBindVertexArray(0);
@@ -354,6 +461,9 @@ void CompleteMCManager::renderImGui() {
 		static float ratio = chunkLengthSlider / cellsPerAxisSlider;
 		static bool oldKeepCellRatio = keepCellRatio;
 
+		static int vertexBuffersSlider = this->numberOfVertexBuffers;
+		static int oldVertexBuffersSlider = vertexBuffersSlider;
+
 		ImGui::Begin("Chunk Settings");
 
 		ImGui::SliderFloat("Vertical FOV", &verticalFov, 1.0f, 179.0f);
@@ -365,7 +475,9 @@ void CompleteMCManager::renderImGui() {
 		ImGui::SliderInt("Cells per axis", &cellsPerAxisSlider, 1, 200);
 		ImGui::Checkbox("Keep ratio", &keepCellRatio);
 
-		//ImGui::Text(("Visible chunks: " + std::to_string(this->activeChunks.size())).c_str());
+		ImGui::SliderInt("Vertex Buffers", &vertexBuffersSlider, 1, 1000);
+
+		ImGui::Text(("Visible chunks: " + std::to_string(this->generatedChunks.size())).c_str());
 
 		ImGui::End();
 
@@ -374,7 +486,7 @@ void CompleteMCManager::renderImGui() {
 		Camera::viewDistance = viewDistanceSlider; this->viewDistanceSqrd = viewDistanceSlider * viewDistanceSlider;
 
 		// Update cells if settings were changed
-		if (cellsPerAxisSlider != oldCellsPerAxisSlider || chunkLengthSlider != oldChunkLengthSlider) {
+		if (cellsPerAxisSlider != oldCellsPerAxisSlider || chunkLengthSlider != oldChunkLengthSlider || vertexBuffersSlider != oldVertexBuffersSlider) {
 			if (keepCellRatio) {
 				if (cellsPerAxisSlider != oldCellsPerAxisSlider) {
 					chunkLengthSlider = glm::clamp(cellsPerAxisSlider * ratio, 1.0f, 100.0f);
@@ -390,11 +502,14 @@ void CompleteMCManager::renderImGui() {
 			this->chunkDistanceToCorner = glm::sqrt((this->chunkLength / 2.0f) * (this->chunkLength / 2.0f) + (this->chunkLength / 2.0f) * (this->chunkLength / 2.0f) + (this->chunkLength / 2.0f) * (this->chunkLength / 2.0f));
 			this->chunkDistanceToCornerSqrd = this->chunkDistanceToCorner * this->chunkDistanceToCorner;
 
+			this->numberOfVertexBuffers = vertexBuffersSlider;
+
 			// Now we need to regenerate the chunks
 			regenerateChunks();
 
 			oldCellsPerAxisSlider = cellsPerAxisSlider;
 			oldChunkLengthSlider = chunkLengthSlider;
+			oldVertexBuffersSlider = vertexBuffersSlider;
 		}
 
 		// Update ratio if keepRatio was turned on

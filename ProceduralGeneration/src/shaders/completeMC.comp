@@ -2,21 +2,16 @@
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 //layout(r32f, binding = 0) uniform image3D noise;
 
-uniform sampler3D noise;
+layout(binding = 0) uniform sampler3D noise;
 
-layout(binding = 1, offset = 0) uniform atomic_uint counter;
+layout(binding = 2, offset = 0) uniform atomic_uint counter;
 
 layout(std430, binding = 3) buffer verticesBuffer
 {
     float vertex_SSBO[];
 };
 
-layout(std430, binding = 4) buffer normalsBuffer
-{
-    float normals_SSBO[];
-};
-
-layout(binding = 1) uniform usampler2D triTable;
+layout(binding = 4) uniform usampler2D triTable;
 
 uniform float surfaceLevel;
 uniform int cellsPerAxis;
@@ -109,9 +104,10 @@ void main() {
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
-				vertex_SSBO[index * 9 + (3 * i + j)] = tri[i][j];
-				
-				normals_SSBO[index * 9 + (3 * i + j)] = norm[i][j];
+				vertex_SSBO[index * 18 + (6 * i + j)] = tri[i][j];
+			}
+			for (int j = 3; j < 6; j++) {
+				vertex_SSBO[index * 18 + (6 * i + j)] = norm[i][j - 3];
 			}
 		}
 

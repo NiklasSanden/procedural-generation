@@ -1,12 +1,12 @@
 #version 450 core
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 layout(r32f, binding = 0) uniform image3D noise;
+layout(binding = 1) uniform sampler3D preCalculatedNoise;
 
 uniform vec3 position;
 uniform vec3 offset;
 uniform float cellLength;
 uniform int pointsPerAxis;
-uniform float surfaceLevel;
 uniform int LOD;
 
 // float x, float y, float z, int octaves = 4, float persistence = 0.5, float frequency = 0.2, float amplitude = 1.0
@@ -58,7 +58,7 @@ void main() {
 //	tempA = clamp(tempA, -1.0, 1.0);
 //	float groundNoise = lerpFloat(tempB, tempA, min(1.0, tempNoise * tempNoise + tempNoise));
 //				
-//	float undergroundNoise = 0.075 + 2 * surfaceLevel - octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3, 0.06);
+//	float undergroundNoise = 0.075 - octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3, 0.06);
 //				
 //	float groundAndUndergroundLerp = clamp(((yFloat + position.y) - (20.0 * (1.0 - tempNoise))) / 20.0, 0.0, 1.0);
 //	noiseValue = lerpFloat(undergroundNoise, groundNoise, groundAndUndergroundLerp);
@@ -72,14 +72,19 @@ void main() {
 }
 
 float octavePerlin(float x, float y, float z, int octaves, float persistence, float frequency, float amplitude) {
-	x += offset.x;
+//	x /= 20.0; 
+//	y /= 20.0; 
+//	z /= 20.0; 
+	x += offset.x; 
 	y += offset.y;
-	z += offset.z;
+	z += offset.z; 
 
 	float total = 0.0;
 	float maxValue = 0.0;			// Used for normalizing result to 0.0 - 1.0
 	for (int i = 0; i < octaves; i++) {
 		total += perlin(x * frequency + (100.0 * i), y * frequency + (100.0 * i), z * frequency + (100.0 * i)) * amplitude;
+		//perlin(x * frequency + (100.0 * i), y * frequency + (100.0 * i), z * frequency + (100.0 * i)) * amplitude;
+		//texture(preCalculatedNoise, vec3(x, y, z) * frequency + vec3((100.0 * i), (100.0 * i), (100.0 * i))).r * amplitude;
 
 		maxValue += amplitude;
 

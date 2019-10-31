@@ -4,6 +4,10 @@ namespace Engine {
 	class Shader;
 	class Material;
 }
+namespace ProceduralGeneration {
+	struct VertexBuffer;
+	struct VBOManager;
+}
 
 #include "engine/objects/GameObject.h"
 
@@ -29,7 +33,10 @@ namespace ProceduralGeneration {
 
 		float viewDistanceSqrd = 0.0f;
 
+		unsigned int numberOfVertexBuffers = 300;
+
 	private:
+		std::unordered_map<std::string, VertexBuffer*> generatedChunks;
 		std::unordered_set<std::string> emptyChunks;
 
 		Engine::Material* material = nullptr;
@@ -51,8 +58,9 @@ namespace ProceduralGeneration {
 		void render() override;
 		void renderImGui() override;
 	private:
-		void updateActiveChunks(float chunkLength, int LODIndex, float viewDistance, float farthestViewDistanceFactor, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal);
+		void updateActiveChunks(std::multimap<float, std::string>& chunksOrderedByDistance, float chunkLength, int LODIndex, float viewDistance, float farthestViewDistanceFactor, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal);
 		int chunksInRangeDirection(const glm::vec3& startPosition, const glm::vec3& incrementVector, const glm::vec3& playerPosition, float farthestViewDistance, float chunkLength, float chunkDistanceToCorner);
+		bool generateChunk(VertexBuffer* vertexBuffer, const std::string& name);
 
 		void regenerateChunks();
 	};
