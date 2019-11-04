@@ -45,7 +45,7 @@ CompleteMCManager::CompleteMCManager(const std::string& name) : GameObject(name)
 	// Generate buffers 
 	glGenBuffers(1, &this->writableVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->writableVBO);
-	glBufferData(GL_ARRAY_BUFFER, this->cellsPerAxis * this->cellsPerAxis * this->cellsPerAxis * 15 * 6 * (int)sizeof(float), NULL, GL_DYNAMIC_COPY);
+	glBufferData(GL_ARRAY_BUFFER, (long long)this->cellsPerAxis * this->cellsPerAxis * this->cellsPerAxis * 15 * 6 * sizeof(float), NULL, GL_DYNAMIC_COPY);
 
 	glGenBuffers(1, &this->atomicCounter);
 	glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, this->atomicCounter);
@@ -151,8 +151,8 @@ void CompleteMCManager::update(float deltaTime) {
 	std::multimap<float, std::string> chunksOrderedByDistance;
 
 
-	//updateActiveChunks(chunksOrderedByDistance, this->chunkLength * 4, 4, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
-	//updateActiveChunks(chunksOrderedByDistance, this->chunkLength * 2, 2, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	updateActiveChunks(chunksOrderedByDistance, this->chunkLength * 4, 4, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	updateActiveChunks(chunksOrderedByDistance, this->chunkLength * 2, 2, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 	updateActiveChunks(chunksOrderedByDistance, this->chunkLength    , 1, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 
 
@@ -215,7 +215,7 @@ void CompleteMCManager::update(float deltaTime) {
 		this->mcShaders->setInt("cellsPerAxis", this->cellsPerAxis);
 
 		int generatedThisFrame = 0;
-		for (int i = 0; i < (int)chunksToGenerate.size() && generatedThisFrame < 5; i++) {
+		for (int i = 0; i < (int)chunksToGenerate.size() && generatedThisFrame < 300; i++) {
 			VertexBuffer* vboPtr = this->vboManager->getUnoccupiedVBO();
 			
 			bool isEmpty = generateChunk(vboPtr, chunksToGenerate[i]);

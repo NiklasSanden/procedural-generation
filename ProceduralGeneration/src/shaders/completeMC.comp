@@ -96,6 +96,16 @@ void main() {
 					texture(noise, (cellPosition + tempVertexPosC - vec3(0, 1.0, 0)) / (cellsPerAxis + 5.0)).r;
 		NormalC.z = texture(noise, (cellPosition + tempVertexPosC + vec3(0, 0, 1.0)) / (cellsPerAxis + 5.0)).r -
 					texture(noise, (cellPosition + tempVertexPosC - vec3(0, 0, 1.0)) / (cellsPerAxis + 5.0)).r;
+		
+//		vec3 NormalA;
+//		vec3 AB = tempVertexPosB - tempVertexPosA;
+//		vec3 AC = tempVertexPosC - tempVertexPosA;
+//		NormalA.x = AB.y * AC.z - AB.z * AC.y;
+//		NormalA.y = AB.z * AC.x - AB.x * AC.z;
+//		NormalA.z = AB.x * AC.y - AB.y * AC.x;
+//		NormalA = normalize(NormalA);
+//		vec3 NormalB = NormalA;
+//		vec3 NormalC = NormalA;
 
 		uint index = atomicCounterIncrement(counter);
 
