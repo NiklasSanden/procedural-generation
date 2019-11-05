@@ -78,11 +78,26 @@ CompleteMCManager::CompleteMCManager(const std::string& name) : GameObject(name)
 
 	srand(this->seed);
 	std::vector<float> preCalculatedNoiseData(16 * 16 * 16 * 4, 0.0f);
-	for (int i = 0; i < 16 * 16 * 16; i++) {
-		preCalculatedNoiseData[i * 4    ] = glm::linearRand(0.0f, 1.0f);
-		preCalculatedNoiseData[i * 4 + 1] = glm::linearRand(0.0f, 1.0f);
-		preCalculatedNoiseData[i * 4 + 2] = glm::linearRand(0.0f, 1.0f);
-		preCalculatedNoiseData[i * 4 + 3] = glm::linearRand(0.0f, 1.0f);
+	//for (int i = 0; i < 16 * 16 * 16; i++) {
+	//	preCalculatedNoiseData[i * 4    ] = glm::linearRand(0.0f, 1.0f);
+	//	preCalculatedNoiseData[i * 4 + 1] = glm::linearRand(0.0f, 1.0f);
+	//	preCalculatedNoiseData[i * 4 + 2] = glm::linearRand(0.0f, 1.0f);
+	//	preCalculatedNoiseData[i * 4 + 3] = glm::linearRand(0.0f, 1.0f);
+	//}
+	int index = 0;
+	glm::vec3 offset1(glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f));
+	glm::vec3 offset2(glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f));
+	glm::vec3 offset3(glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f));
+	for (int x = 0; x < 16; x++) {
+		for (int y = 0; y < 16; y++) {
+			for (int z = 0; z < 16; z++) {
+				preCalculatedNoiseData[index * 4    ] = (Noise::octavePerlin(x			  , y			 , z			, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
+				preCalculatedNoiseData[index * 4 + 1] = (Noise::octavePerlin(x + offset1.x, y + offset1.y, z + offset1.z, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
+				preCalculatedNoiseData[index * 4 + 2] = (Noise::octavePerlin(x + offset2.x, y + offset2.y, z + offset2.z, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
+				preCalculatedNoiseData[index * 4 + 3] = (Noise::octavePerlin(x + offset3.x, y + offset3.y, z + offset3.z, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
+				index++;
+			}
+		}
 	}
 
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, 16, 16, 16, 0, GL_RGBA, GL_FLOAT, preCalculatedNoiseData.data());
@@ -128,12 +143,42 @@ void CompleteMCManager::regenerateChunks() {
 	// Reset VBOManager
 	delete this->vboManager;
 	this->vboManager = new VBOManager(this->numberOfVertexBuffers);
+
+	// Recalculate noise
+	glBindTexture(GL_TEXTURE_3D, this->preCalculatedNoiseTextureID);
+
+	srand(this->seed);
+	std::vector<float> preCalculatedNoiseData(16 * 16 * 16 * 4, 0.0f);
+	//for (int i = 0; i < 16 * 16 * 16; i++) {
+	//	preCalculatedNoiseData[i * 4    ] = glm::linearRand(0.0f, 1.0f);
+	//	preCalculatedNoiseData[i * 4 + 1] = glm::linearRand(0.0f, 1.0f);
+	//	preCalculatedNoiseData[i * 4 + 2] = glm::linearRand(0.0f, 1.0f);
+	//	preCalculatedNoiseData[i * 4 + 3] = glm::linearRand(0.0f, 1.0f);
+	//}
+	int index = 0;
+	glm::vec3 offset1(glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f));
+	glm::vec3 offset2(glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f));
+	glm::vec3 offset3(glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f));
+	for (int x = 0; x < 16; x++) {
+		for (int y = 0; y < 16; y++) {
+			for (int z = 0; z < 16; z++) {
+				preCalculatedNoiseData[index * 4    ] = (Noise::octavePerlin(x			  , y			 , z			, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
+				preCalculatedNoiseData[index * 4 + 1] = (Noise::octavePerlin(x + offset1.x, y + offset1.y, z + offset1.z, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
+				preCalculatedNoiseData[index * 4 + 2] = (Noise::octavePerlin(x + offset2.x, y + offset2.y, z + offset2.z, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
+				preCalculatedNoiseData[index * 4 + 3] = (Noise::octavePerlin(x + offset3.x, y + offset3.y, z + offset3.z, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
+				index++;
+			}
+		}
+	}
+
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, 16, 16, 16, 0, GL_RGBA, GL_FLOAT, preCalculatedNoiseData.data());
 }
 
 void CompleteMCManager::update(float deltaTime) {
 	//double tempTime = glfwGetTime();
 	Camera* player = GameManager::getPlayer();
 
+	//this->emptyChunks.clear();
 
 	// Used by all chunks to determine if it can be seen or not
 	// calculate horizontal fov from vertical: https://www.gamedev.net/forums/topic/361241-horizontal-fov/
@@ -151,8 +196,8 @@ void CompleteMCManager::update(float deltaTime) {
 	std::multimap<float, std::string> chunksOrderedByDistance;
 
 
-	updateActiveChunks(chunksOrderedByDistance, this->chunkLength * 4, 4, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
-	updateActiveChunks(chunksOrderedByDistance, this->chunkLength * 2, 2, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	//updateActiveChunks(chunksOrderedByDistance, this->chunkLength * 4, 4, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	//updateActiveChunks(chunksOrderedByDistance, this->chunkLength * 2, 2, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 	updateActiveChunks(chunksOrderedByDistance, this->chunkLength    , 1, Camera::viewDistance, farthestViewDistanceFactor, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 
 
@@ -187,7 +232,7 @@ void CompleteMCManager::update(float deltaTime) {
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_3D, this->noiseTextureID);
-		glBindImageTexture(0, this->noiseTextureID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+		glBindImageTexture(0, this->noiseTextureID, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32F);
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_3D, this->preCalculatedNoiseTextureID);
@@ -354,8 +399,7 @@ bool CompleteMCManager::generateChunk(VertexBuffer* vertexBuffer, const std::str
 
 	// Compute shader
 	glDispatchCompute((GLuint)(this->cellsPerAxis + 5), (GLuint)(this->cellsPerAxis + 5), (GLuint)(this->cellsPerAxis + 5));
-
-
+	
 	// -------------
 	// Generate Mesh
 	// -------------
@@ -376,11 +420,10 @@ bool CompleteMCManager::generateChunk(VertexBuffer* vertexBuffer, const std::str
 	glDispatchCompute((GLuint)cellsPerAxis, (GLuint)cellsPerAxis, (GLuint)cellsPerAxis);
 
 
-
 	// Make sure the marching cubes is finished
 	//glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 	glMemoryBarrier(GL_ATOMIC_COUNTER_BARRIER_BIT);
-	// glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 	unsigned int amountOfVertices;
 	glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(unsigned int), &amountOfVertices);

@@ -25,7 +25,7 @@ const int permutations[256 * 2] = { 151, 160, 137, 91, 90, 15, 131, 13, 201, 95,
 void main() {
 
 	float noiseValue = 0.0;
-
+	
 	ivec3 noiseCoordinate = ivec3(gl_GlobalInvocationID.xyz);
 
 	float xFloat = noiseCoordinate.x - (pointsPerAxis - 1) / 2.0; xFloat *= cellLength;
@@ -43,7 +43,7 @@ void main() {
 	xFloat += warp * 10;
 	zFloat += warp * 10;
 	//noiseValue = -(yFloat + position.y) / 10.0 + octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4, 0.1, 1.0);
-	noiseValue = -(yFloat + position.y) / 15.0 + octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4, 0.1, 1.0);
+	noiseValue = -(yFloat + position.y) / 30.0 + octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4, 0.1, 1.0);
 
 	// Terrace ground
 	//noiseValue = -(yFloat + position.y) / 5.0 + octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.5, 0.2, 1.0) * 2.0 + mod((yFloat + position.y), 0.5) / 5.0;
@@ -73,17 +73,18 @@ void main() {
 }
 
 float octavePerlin(float x, float y, float z, int octaves, float persistence, float frequency, float amplitude) {
-//	x /= 20.0; 
-//	y /= 20.0; 
-//	z /= 20.0; 
-	x += offset.x; 
-	y += offset.y;
-	z += offset.z; 
+	x /= 8.0; 
+	y /= 8.0; 
+	z /= 8.0; 
+//	x += offset.x; 
+//	y += offset.y;
+//	z += offset.z;
 
 	float total = 0.0;
 	float maxValue = 0.0;			// Used for normalizing result to 0.0 - 1.0
 	for (int i = 0; i < octaves; i++) {
-		total += perlin(x * frequency + (100.0 * i), y * frequency + (100.0 * i), z * frequency + (100.0 * i)) * amplitude;
+		//total += perlin(x * frequency + (100.0 * i), y * frequency + (100.0 * i), z * frequency + (100.0 * i)) * amplitude;
+		total += texture(preCalculatedNoise, vec3(x, y, z) * frequency + vec3((100.0 * i), (100.0 * i), (100.0 * i))).r * amplitude;
 		//perlin(x * frequency + (100.0 * i), y * frequency + (100.0 * i), z * frequency + (100.0 * i)) * amplitude;
 		//texture(preCalculatedNoise, vec3(x, y, z) * frequency + vec3((100.0 * i), (100.0 * i), (100.0 * i))).r * amplitude;
 

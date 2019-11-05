@@ -283,7 +283,7 @@ void Raytracing::renderImGui() {
 		this->stepLength = stepLength;
 
 		this->width = width;
-		this->height = width / aspectRatio;
+		this->height = (int)(width / aspectRatio);
 		height = this->height;
 
 		// Check for changes
