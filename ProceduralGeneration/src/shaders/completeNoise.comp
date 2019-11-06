@@ -67,7 +67,7 @@ void main() {
 	// Circle
 	//noiseValue = 1.0 - length(vec3(xFloat + position.x, yFloat + position.y, zFloat + position.z)) / 20.0 + octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.5, 0.2, 1.0);
 
-	noiseValue -= 0.01 * (LOD - 1);
+	noiseValue -= 0.001 * (min(LOD, 3) - 1);
 	imageStore(noise, noiseCoordinate, vec4(noiseValue, 0.0, 0.0, 0.0));
 
 }

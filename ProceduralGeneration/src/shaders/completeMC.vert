@@ -14,7 +14,7 @@ uniform int LOD;
 void main()
 {
 	vec4 position = projection * view * vec4(aPos, 1.0);
-	position.z -= 0.2 * (4 - LOD);
+	position.z -= 0.2 * (3 - min(3, LOD));
     gl_Position = position;
 
 

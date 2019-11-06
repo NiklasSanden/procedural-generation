@@ -197,11 +197,13 @@ void CompleteMCManager::update(float deltaTime) {
 	std::vector<std::string> chunksToBeRendered;
 
 
-	//updateActiveChunks(chunksToBeRendered, this->chunkLength * 4, 4, farthestViewDistanceFactor, this->numberOfVertexBuffers, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	updateActiveChunks(chunksToBeRendered, this->chunkLength * 4, 4, farthestViewDistanceFactor, this->numberOfVertexBuffers, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 	
+	int amountForLOD2 = (this->numberOfVertexBuffers - chunksToBeRendered.size()) / 2;
+	int amountForLOD1 = this->numberOfVertexBuffers - chunksToBeRendered.size() - amountForLOD2;
 
-	//updateActiveChunks(chunksToBeRendered, this->chunkLength * 2, 2, farthestViewDistanceFactor, 1000000000, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
-	updateActiveChunks(chunksToBeRendered, this->chunkLength    , 1, farthestViewDistanceFactor, 1000000000, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	updateActiveChunks(chunksToBeRendered, this->chunkLength * 2, 2, farthestViewDistanceFactor, amountForLOD2, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	updateActiveChunks(chunksToBeRendered, this->chunkLength    , 1, farthestViewDistanceFactor, amountForLOD1, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 
 
 	std::unordered_map<std::string, VertexBuffer*> oldChunks = this->generatedChunks;
@@ -337,12 +339,12 @@ void CompleteMCManager::updateActiveChunks(std::vector<std::string>& chunksToBeR
 		// -------------------------------------------------------------------
 
 
+		chunks.push(currentChunkCoords + glm::ivec3( 0,  0, -1));
+		chunks.push(currentChunkCoords + glm::ivec3( 0,  0,  1));
 		chunks.push(currentChunkCoords + glm::ivec3( 1,  0,  0));
 		chunks.push(currentChunkCoords + glm::ivec3(-1,  0,  0));
 		chunks.push(currentChunkCoords + glm::ivec3( 0,  1,  0));
 		chunks.push(currentChunkCoords + glm::ivec3( 0, -1,  0));
-		chunks.push(currentChunkCoords + glm::ivec3( 0,  0,  1));
-		chunks.push(currentChunkCoords + glm::ivec3( 0,  0, -1));
 
 		if (this->emptyChunks.find(currentChunkName) != this->emptyChunks.end()) continue;
 		chunksToBeRendered.push_back(currentChunkName);
