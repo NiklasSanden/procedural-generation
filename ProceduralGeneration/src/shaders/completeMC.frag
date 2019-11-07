@@ -71,6 +71,7 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
 
 	vec3 green = vec3(0.133, 0.545, 0.133);
 	vec3 brown = vec3(0.545 , 0.27, 0.07);
+	vec3 magenta = vec3(0.99, 0.0, 0.99);
 	vec3 grey = vec3(0.4, 0.4, 0.4);
 	
 	vec3 newDiffuse = mix(mix(green, brown, clamp(FragPosWorld.y / 4.0 + 1.0, 0.0, 1.0)), brown, clamp(FragPosWorld.y / 5.0 + 1.0, 0.0, 1.0));

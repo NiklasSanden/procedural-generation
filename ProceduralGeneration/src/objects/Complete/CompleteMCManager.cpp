@@ -310,34 +310,10 @@ void CompleteMCManager::updateActiveChunks(std::vector<std::string>& chunksToBeR
 
 		float distanceToPlayerSqr = glm::length2(currentChunkWorldPos - playerPosition);
 
-		if (distanceToPlayerSqr > (farthestViewDistance + chunkDistanceToCorner) * (farthestViewDistance + chunkDistanceToCorner)) continue;
-		
-		// Check to see if possible that the chunk might be seen by the camera
-		// check 1: behind
-		glm::vec3 pointInView = playerPosition + -player->transform->getDirection() * glm::max(Camera::viewDistance, 1.0f);
-		glm::vec3 positionInChunk = currentChunkWorldPos;
-		positionInChunk.x = positionInChunk.x < pointInView.x ? glm::min(positionInChunk.x + chunkLength / 2.0f, pointInView.x) : glm::max(positionInChunk.x - chunkLength / 2.0f, pointInView.x);
-		positionInChunk.y = positionInChunk.y < pointInView.y ? glm::min(positionInChunk.y + chunkLength / 2.0f, pointInView.y) : glm::max(positionInChunk.y - chunkLength / 2.0f, pointInView.y);
-		positionInChunk.z = positionInChunk.z < pointInView.z ? glm::min(positionInChunk.z + chunkLength / 2.0f, pointInView.z) : glm::max(positionInChunk.z - chunkLength / 2.0f, pointInView.z);
-		if (glm::dot(positionInChunk - playerPosition, -player->transform->getDirection()) <= 0.0f) {
+		if (isChunkInView(distanceToPlayerSqr, farthestViewDistance, chunkDistanceToCorner, chunkLength, playerPosition, currentChunkWorldPos,
+			rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal) == false) {
 			continue;
 		}
-
-		// check 2: View frustum culling (more expensive)
-		glm::vec3 playerToChunkPos = currentChunkWorldPos - playerPosition;
-		float rightProjectionDot = glm::dot(rightProjectionNormal, playerToChunkPos);
-		float leftProjectionDot = glm::dot(leftProjectionNormal, playerToChunkPos);
-		float upProjectionDot = glm::dot(upProjectionNormal, playerToChunkPos);
-		float downProjectionDot = glm::dot(downProjectionNormal, playerToChunkPos);
-
-		if (rightProjectionDot + chunkDistanceToCorner < 0.0f ||
-			leftProjectionDot + chunkDistanceToCorner < 0.0f ||
-			upProjectionDot + chunkDistanceToCorner < 0.0f ||
-			downProjectionDot + chunkDistanceToCorner < 0.0f) {
-			continue;
-		}
-		// -------------------------------------------------------------------
-
 
 		chunks.push(currentChunkCoords + glm::ivec3( 0,  0, -1));
 		chunks.push(currentChunkCoords + glm::ivec3( 0,  0,  1));
@@ -351,6 +327,42 @@ void CompleteMCManager::updateActiveChunks(std::vector<std::string>& chunksToBeR
 
 		amountsOfChunks++;
 	}
+}
+
+void CompleteMCManager::updateDetailedChunks(std::vector<std::string>& chunksToBeRendered, float chunkLength, int LODIndex, float farthestViewDistanceFactor, int maxChunksForLOD, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
+
+}
+
+bool CompleteMCManager::isChunkInView(float distanceToPlayerSqr, float farthestViewDistance, float chunkDistanceToCorner, float chunkLength, const glm::vec3& playerPosition, const glm::vec3& currentChunkWorldPos, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
+	if (distanceToPlayerSqr > (farthestViewDistance + chunkDistanceToCorner) * (farthestViewDistance + chunkDistanceToCorner)) return false;
+
+	// Check to see if possible that the chunk might be seen by the camera
+	// check 1: behind
+	glm::vec3 pointInView = playerPosition + -GameManager::getPlayer()->transform->getDirection() * glm::max(Camera::viewDistance, 1.0f);
+	glm::vec3 positionInChunk = currentChunkWorldPos;
+	positionInChunk.x = positionInChunk.x < pointInView.x ? glm::min(positionInChunk.x + chunkLength / 2.0f, pointInView.x) : glm::max(positionInChunk.x - chunkLength / 2.0f, pointInView.x);
+	positionInChunk.y = positionInChunk.y < pointInView.y ? glm::min(positionInChunk.y + chunkLength / 2.0f, pointInView.y) : glm::max(positionInChunk.y - chunkLength / 2.0f, pointInView.y);
+	positionInChunk.z = positionInChunk.z < pointInView.z ? glm::min(positionInChunk.z + chunkLength / 2.0f, pointInView.z) : glm::max(positionInChunk.z - chunkLength / 2.0f, pointInView.z);
+	if (glm::dot(positionInChunk - playerPosition, -GameManager::getPlayer()->transform->getDirection()) <= 0.0f) {
+		return false;
+	}
+
+	// check 2: View frustum culling (more expensive)
+	glm::vec3 playerToChunkPos = currentChunkWorldPos - playerPosition;
+	float rightProjectionDot = glm::dot(rightProjectionNormal, playerToChunkPos);
+	float leftProjectionDot = glm::dot(leftProjectionNormal, playerToChunkPos);
+	float upProjectionDot = glm::dot(upProjectionNormal, playerToChunkPos);
+	float downProjectionDot = glm::dot(downProjectionNormal, playerToChunkPos);
+
+	if (rightProjectionDot + chunkDistanceToCorner < 0.0f ||
+		leftProjectionDot + chunkDistanceToCorner < 0.0f ||
+		upProjectionDot + chunkDistanceToCorner < 0.0f ||
+		downProjectionDot + chunkDistanceToCorner < 0.0f) {
+		return false;
+	}
+	// -------------------------------------------------------------------
+
+	return true;
 }
 
 
