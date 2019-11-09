@@ -330,7 +330,7 @@ void CompleteMCManager::updateActiveChunks(std::vector<std::string>& chunksToBeR
 }
 
 void CompleteMCManager::updateDetailedChunks(std::vector<std::string>& chunksToBeRendered, float chunkLength, int LODIndex, float farthestViewDistanceFactor, int maxChunksForLOD, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
-
+	
 }
 
 bool CompleteMCManager::isChunkInView(float distanceToPlayerSqr, float farthestViewDistance, float chunkDistanceToCorner, float chunkLength, const glm::vec3& playerPosition, const glm::vec3& currentChunkWorldPos, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
