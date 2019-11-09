@@ -11,6 +11,7 @@ namespace ProceduralGeneration {
 
 		int amountOfVertices = 0;
 		int LOD = 0;
+		double timeOnCreation = 0.0;
 
 	public:
 		VertexBuffer() {

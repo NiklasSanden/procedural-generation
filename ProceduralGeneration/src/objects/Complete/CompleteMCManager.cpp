@@ -195,15 +195,19 @@ void CompleteMCManager::update(float deltaTime) {
 	float farthestViewDistanceFactor = (1.0f / glm::cos(halfHorizontalFov)) / glm::cos(halfVerticalFov);
 
 	std::vector<std::string> chunksToBeRendered;
+	std::vector<glm::ivec3> nonEmptyChunksPos;
 
-
-	updateActiveChunks(chunksToBeRendered, this->chunkLength * 4, 4, farthestViewDistanceFactor, this->numberOfVertexBuffers, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	updateActiveChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength * 4, 4, farthestViewDistanceFactor, this->numberOfVertexBuffers, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 	
 	int amountForLOD2 = (this->numberOfVertexBuffers - chunksToBeRendered.size()) / 2;
 	int amountForLOD1 = this->numberOfVertexBuffers - chunksToBeRendered.size() - amountForLOD2;
 
-	updateActiveChunks(chunksToBeRendered, this->chunkLength * 2, 2, farthestViewDistanceFactor, amountForLOD2, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
-	updateActiveChunks(chunksToBeRendered, this->chunkLength    , 1, farthestViewDistanceFactor, amountForLOD1, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	int sizeBeforeLOD2 = (int)nonEmptyChunksPos.size();
+
+	//updateActiveChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength * 2, 2, farthestViewDistanceFactor, amountForLOD2, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	//updateActiveChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength    , 1, farthestViewDistanceFactor, amountForLOD1, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	updateDetailedChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength * 2, 0, 2, farthestViewDistanceFactor, amountForLOD2, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	updateDetailedChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength    , sizeBeforeLOD2, 1, farthestViewDistanceFactor, amountForLOD1, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 
 
 	std::unordered_map<std::string, VertexBuffer*> oldChunks = this->generatedChunks;
@@ -280,7 +284,7 @@ void CompleteMCManager::update(float deltaTime) {
 	//std::cout << (glfwGetTime() - tempTime) * 1000.0f << std::endl;
 }
 
-void CompleteMCManager::updateActiveChunks(std::vector<std::string>& chunksToBeRendered, float chunkLength, int LODIndex, float farthestViewDistanceFactor, int maxChunksForLOD, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
+void CompleteMCManager::updateActiveChunks(std::vector<std::string>& chunksToBeRendered, std::vector<glm::ivec3>& nonEmptyChunksPos, float chunkLength, int LODIndex, float farthestViewDistanceFactor, int maxChunksForLOD, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
 
 	Camera* player = GameManager::getPlayer();
 	glm::vec3 playerPosition = player->transform->getPosition();
@@ -324,13 +328,67 @@ void CompleteMCManager::updateActiveChunks(std::vector<std::string>& chunksToBeR
 
 		if (this->emptyChunks.find(currentChunkName) != this->emptyChunks.end()) continue;
 		chunksToBeRendered.push_back(currentChunkName);
+		nonEmptyChunksPos.push_back(currentChunkCoords);
 
 		amountsOfChunks++;
 	}
 }
 
-void CompleteMCManager::updateDetailedChunks(std::vector<std::string>& chunksToBeRendered, float chunkLength, int LODIndex, float farthestViewDistanceFactor, int maxChunksForLOD, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
-	
+void CompleteMCManager::updateDetailedChunks(std::vector<std::string>& chunksToBeRendered, std::vector<glm::ivec3>& nonEmptyChunksPos, float chunkLength, int index, int LODIndex, float farthestViewDistanceFactor, int maxChunksForLOD, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
+	Camera* player = GameManager::getPlayer();
+	glm::vec3 playerPosition = player->transform->getPosition();
+
+	float chunkDistanceToCorner = glm::sqrt((chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f) + (chunkLength / 2.0f) * (chunkLength / 2.0f));
+	// Since the view distance is how far away a plane is, we need the distance to the farthest point on that plane
+	float farthestViewDistance = Camera::viewDistance * farthestViewDistanceFactor;
+
+
+	glm::ivec3 margins[]{ glm::ivec3(-1, -1, -1), glm::ivec3( 0, -1, -1), glm::ivec3( 1, -1, -1), glm::ivec3(-1,  0, -1), glm::ivec3( 0,  0, -1), glm::ivec3( 1,  0, -1), glm::ivec3(-1,  1, -1), glm::ivec3( 0,  1, -1), glm::ivec3( 1,  1, -1), 
+						  glm::ivec3(-1, -1,  0), glm::ivec3( 0, -1,  0), glm::ivec3( 1, -1,  0), glm::ivec3(-1,  0,  0), glm::ivec3( 0,  0,  0), glm::ivec3( 1,  0,  0), glm::ivec3(-1,  1,  0), glm::ivec3( 0,  1,  0), glm::ivec3( 1,  1,  0), 
+						  glm::ivec3(-1, -1,  1), glm::ivec3( 0, -1,  1), glm::ivec3( 1, -1,  1), glm::ivec3(-1,  0,  1), glm::ivec3( 0,  0,  1), glm::ivec3( 1,  0,  1), glm::ivec3(-1,  1,  1), glm::ivec3( 0,  1,  1), glm::ivec3( 1,  1,  1), };
+
+	std::unordered_set<std::string> visitedChunks;
+
+	std::multimap<float, glm::ivec3> chunksOrderedByDistance;
+
+	int currentSize = (int)nonEmptyChunksPos.size();
+	while (index < currentSize) {
+		glm::ivec3 baseChunkCoords = nonEmptyChunksPos[index] * 2;
+
+		for (int i = 0; i < 27; i++) {
+			glm::ivec3 currentChunkCoords = baseChunkCoords + margins[i];
+
+			std::string currentChunkName = std::to_string(currentChunkCoords.x) + " " + std::to_string(currentChunkCoords.y) + " " + std::to_string(currentChunkCoords.z) + " " + std::to_string(LODIndex);
+			if (this->emptyChunks.find(currentChunkName) != this->emptyChunks.end()) continue;
+			
+			if (visitedChunks.find(currentChunkName) != visitedChunks.end()) continue;
+			visitedChunks.insert(currentChunkName);
+
+
+			glm::vec3 currentChunkWorldPos = glm::vec3(currentChunkCoords) * chunkLength;
+			float distanceToPlayerSqr = glm::length2(currentChunkWorldPos - playerPosition);
+
+			if (isChunkInView(distanceToPlayerSqr, farthestViewDistance, chunkDistanceToCorner, chunkLength, playerPosition, currentChunkWorldPos,
+				rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal) == false) {
+				continue;
+			}
+
+
+			chunksOrderedByDistance.insert(std::make_pair(distanceToPlayerSqr, currentChunkCoords));
+		}
+		index++;
+	}
+
+	int amountsOfChunks = 0;
+	for (auto pair : chunksOrderedByDistance) {
+		if (amountsOfChunks >= maxChunksForLOD) break;
+
+		nonEmptyChunksPos.push_back(pair.second);
+		std::string currentChunkName = std::to_string(pair.second.x) + " " + std::to_string(pair.second.y) + " " + std::to_string(pair.second.z) + " " + std::to_string(LODIndex);
+		chunksToBeRendered.push_back(currentChunkName);
+
+		amountsOfChunks++;
+	}
 }
 
 bool CompleteMCManager::isChunkInView(float distanceToPlayerSqr, float farthestViewDistance, float chunkDistanceToCorner, float chunkLength, const glm::vec3& playerPosition, const glm::vec3& currentChunkWorldPos, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal) {
@@ -430,6 +488,7 @@ bool CompleteMCManager::generateChunk(VertexBuffer* vertexBuffer, const std::str
 
 	vertexBuffer->amountOfVertices = amountOfVertices;
 	vertexBuffer->LOD = LOD;
+	vertexBuffer->timeOnCreation = glfwGetTime();
 
 	return false;
 }
@@ -460,10 +519,33 @@ void CompleteMCManager::render() {
 	this->renderingShaders->setFloat("material.shininess", this->material->shininess);
 
 	for (auto pair : this->generatedChunks) {
-		// Set LOD
-		this->renderingShaders->setInt("LOD", pair.first.back() - '0');
+		if (pair.first.back() == '4') {
+			// Set LOD
+			this->renderingShaders->setInt("LOD", 4);
+			this->renderingShaders->setFloat("alpha", 1.0f);
 
-		pair.second->draw();
+			pair.second->draw();
+		}
+	}
+	glClear(GL_DEPTH_BUFFER_BIT);
+	for (auto pair : this->generatedChunks) {
+		if (pair.first.back() == '2') {
+			// Set LOD
+			this->renderingShaders->setInt("LOD", 2);
+			this->renderingShaders->setFloat("alpha", glm::min(1.0f, (float)(glfwGetTime() - pair.second->timeOnCreation) * 2.0f));
+
+			pair.second->draw();
+		}
+	}
+	glClear(GL_DEPTH_BUFFER_BIT);
+	for (auto pair : this->generatedChunks) {
+		if (pair.first.back() == '1') {
+			// Set LOD
+			this->renderingShaders->setInt("LOD", 1);
+			this->renderingShaders->setFloat("alpha", glm::min(1.0f, (float)(glfwGetTime() - pair.second->timeOnCreation) * 2.0f));
+
+			pair.second->draw();
+		}
 	}
 
 	glBindVertexArray(0);
@@ -502,8 +584,8 @@ void CompleteMCManager::renderImGui() {
 		ImGui::Text("Horizontal Fov: %.3f", glm::degrees(2.0f * glm::atan(glm::tan(glm::radians(Camera::verticalFov) * 0.5f) * aspectRatio)));
 
 		ImGui::SliderFloat("View distance", &viewDistanceSlider, 1.0f, 500.0f);
-		ImGui::SliderFloat("Chunk length", &chunkLengthSlider, 1.0f, 100.0f);
-		ImGui::SliderInt("Cells per axis", &cellsPerAxisSlider, 1, 200);
+		ImGui::SliderFloat("Chunk length", &chunkLengthSlider, 1.0f, 20.0f);
+		ImGui::SliderInt("Cells per axis", &cellsPerAxisSlider, 1, 100);
 		ImGui::Checkbox("Keep ratio", &keepCellRatio);
 
 		ImGui::SliderInt("Vertex Buffers", &vertexBuffersSlider, 1, 1000);

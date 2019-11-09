@@ -8,6 +8,7 @@ in vec3 WorldNormal;
 
 uniform float viewDistance;
 uniform int LOD;
+uniform float alpha;
 
 struct Material {
 	vec3 diffuse;   // diffuse and ambient is the same on the material
@@ -55,7 +56,7 @@ void main()
 	//surfaceLevel = 0.0;
     FragColour = vec4(Lerp(result.x, fogColour.x, surfaceLevel), 
 					  Lerp(result.y, fogColour.y, surfaceLevel),
-					  Lerp(result.z, fogColour.z, surfaceLevel), 1.0);
+					  Lerp(result.z, fogColour.z, surfaceLevel), alpha);
 	//FragColour = vec4(result, 1.0);
 }
 
@@ -73,8 +74,20 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
 	vec3 brown = vec3(0.545 , 0.27, 0.07);
 	vec3 magenta = vec3(0.99, 0.0, 0.99);
 	vec3 grey = vec3(0.4, 0.4, 0.4);
+	vec3 blue = vec3(0.0, 0.467, 0.745);
 	
-	vec3 newDiffuse = mix(mix(green, brown, clamp(FragPosWorld.y / 4.0 + 1.0, 0.0, 1.0)), brown, clamp(FragPosWorld.y / 5.0 + 1.0, 0.0, 1.0));
+	//vec3 newDiffuse = mix(mix(green, brown, clamp(FragPosWorld.y / 4.0 + 1.0, 0.0, 1.0)), brown, clamp(FragPosWorld.y / 5.0 + 1.0, 0.0, 1.0));
+	//vec3 newDiffuse = mix(green, brown, clamp(FragPosWorld.y / 4.0 + 1.0, 0.0, 1.0));
+	vec3 newDiffuse = brown;
+	float normalDot = dot(WorldNormal, vec3(0.0, 1.0, 0.0));
+	if (normalDot > 0.9) newDiffuse = green;
+	else if (normalDot > 0.5) {
+		newDiffuse = mix(brown, green, (normalDot - 0.5) * 2.5);
+	}
+
+	if (FragPosWorld.y <= -2.0 + LOD * 0.05) {
+		newDiffuse = mix(blue, vec3(0.0, 0.0, 0.0), clamp((FragPosWorld.y + 2.0) * 20.0, 0.0, 1.0));
+	}
 
 //	vec3 newDiffuse = brown;
 //	if (roundEven(FragPosWorld.y) < -5.9) {

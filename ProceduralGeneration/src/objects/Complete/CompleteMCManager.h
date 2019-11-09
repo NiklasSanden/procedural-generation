@@ -58,8 +58,8 @@ namespace ProceduralGeneration {
 		void render() override;
 		void renderImGui() override;
 	private:
-		void updateActiveChunks(std::vector<std::string>& chunksToBeRendered, float chunkLength, int LODIndex, float farthestViewDistanceFactor, int maxChunksForLOD, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal);
-		void updateDetailedChunks(std::vector<std::string>& chunksToBeRendered, float chunkLength, int LODIndex, float farthestViewDistanceFactor, int maxChunksForLOD, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal);
+		void updateActiveChunks(std::vector<std::string>& chunksToBeRendered, std::vector<glm::ivec3>& chunksToBeRenderedPos, float chunkLength, int LODIndex, float farthestViewDistanceFactor, int maxChunksForLOD, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal);
+		void updateDetailedChunks(std::vector<std::string>& chunksToBeRendered, std::vector<glm::ivec3>& nonEmptyChunksPos, float chunkLength, int index, int LODIndex, float farthestViewDistanceFactor, int maxChunksForLOD, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal);
 		bool isChunkInView(float distanceToPlayerSqr, float farthestViewDistance, float chunkDistanceToCorner, float chunkLength, const glm::vec3& playerPosition, const glm::vec3& currentChunkWorldPos, const glm::vec3& rightProjectionNormal, const glm::vec3& leftProjectionNormal, const glm::vec3& upProjectionNormal, const glm::vec3& downProjectionNormal);
 		bool generateChunk(VertexBuffer* vertexBuffer, const std::string& name);
 
