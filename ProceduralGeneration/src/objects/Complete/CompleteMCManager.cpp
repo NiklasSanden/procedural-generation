@@ -35,6 +35,8 @@
 using namespace ProceduralGeneration;
 
 CompleteMCManager::CompleteMCManager(const std::string& name) : GameObject(name) {
+	this->water = new Water(this->cellsPerAxis + 1);
+	this->cubemap = new Cubemap();
 	// Material
 	this->material = new Engine::Material(glm::vec3(0.7f, 0.2f, 0.1f), glm::vec3(0.1f, 0.1f, 0.1f), 8);
 
@@ -109,6 +111,9 @@ CompleteMCManager::CompleteMCManager(const std::string& name) : GameObject(name)
 }
 
 CompleteMCManager::~CompleteMCManager() {
+	delete this->water;
+	delete this->cubemap;
+
 	delete this->material;
 
 	delete this->vboManager;
@@ -125,6 +130,8 @@ CompleteMCManager::~CompleteMCManager() {
 }
 
 void CompleteMCManager::regenerateChunks() {
+	this->water->regenerate(this->cellsPerAxis + 1);
+
 	// Clear empty chunks
 	this->emptyChunks.clear();
 
@@ -198,8 +205,8 @@ void CompleteMCManager::update(float deltaTime) {
 	std::vector<std::string> chunksToBeRendered;
 	std::vector<glm::ivec3> nonEmptyChunksPos;
 
-	updateActiveChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength * 4, 4, farthestViewDistanceFactor, this->numberOfVertexBuffers, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
-	//updateActiveChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength    , 1, farthestViewDistanceFactor, this->numberOfVertexBuffers, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	//updateActiveChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength * 4, 4, farthestViewDistanceFactor, this->numberOfVertexBuffers, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	updateActiveChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength    , 1, farthestViewDistanceFactor, this->numberOfVertexBuffers, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 	
 	int amountForLOD2 = (this->numberOfVertexBuffers - chunksToBeRendered.size()) / 2;
 	int amountForLOD1 = this->numberOfVertexBuffers - chunksToBeRendered.size() - amountForLOD2;
@@ -208,8 +215,8 @@ void CompleteMCManager::update(float deltaTime) {
 
 	//updateActiveChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength * 2, 2, farthestViewDistanceFactor, amountForLOD2, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 	//updateActiveChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength    , 1, farthestViewDistanceFactor, amountForLOD1, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
-	updateDetailedChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength * 2, 0, 2, farthestViewDistanceFactor, amountForLOD2, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
-	updateDetailedChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength    , sizeBeforeLOD2, 1, farthestViewDistanceFactor, amountForLOD1, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	//updateDetailedChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength * 2, 0, 2, farthestViewDistanceFactor, amountForLOD2, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	//updateDetailedChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength    , sizeBeforeLOD2, 1, farthestViewDistanceFactor, amountForLOD1, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 
 
 	std::unordered_map<std::string, VertexBuffer*> oldChunks = this->generatedChunks;
@@ -327,6 +334,13 @@ void CompleteMCManager::updateActiveChunks(std::vector<std::string>& chunksToBeR
 		chunks.push(currentChunkCoords + glm::ivec3(-1,  0,  0));
 		chunks.push(currentChunkCoords + glm::ivec3( 0,  1,  0));
 		chunks.push(currentChunkCoords + glm::ivec3( 0, -1,  0));
+
+
+		// JUST FOR WATER
+		if (currentChunkCoords.y == 0) {
+			this->water->waterCoord(currentChunkCoords);
+		}
+
 
 		if (this->emptyChunks.find(currentChunkName) != this->emptyChunks.end()) continue;
 		chunksToBeRendered.push_back(currentChunkName);
@@ -496,6 +510,8 @@ bool CompleteMCManager::generateChunk(VertexBuffer* vertexBuffer, const std::str
 }
 
 void CompleteMCManager::render() {
+	this->cubemap->draw(Camera::projectionMatrix, Camera::viewMatrix);
+
 	// wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//glDisable(GL_CULL_FACE);
@@ -514,7 +530,6 @@ void CompleteMCManager::render() {
 	this->renderingShaders->setMat4("view", Camera::viewMatrix);
 	this->renderingShaders->setMat4("projection", Camera::projectionMatrix);
 	this->renderingShaders->setFloat("viewDistance", Camera::viewDistance);
-	this->renderingShaders->setVec2("waterOffset", glm::vec2(glfwGetTime() / 20.0f, glfwGetTime() / 30.0f));
 
 	// material
 	this->renderingShaders->setVec3("material.diffuse", this->material->diffuse);
@@ -528,10 +543,6 @@ void CompleteMCManager::render() {
 	Engine::ResourceManager::getTexture("Grass.jpg")->bind();
 	glActiveTexture(GL_TEXTURE2);
 	Engine::ResourceManager::getTexture("Mountain.jpg")->bind();
-
-	glActiveTexture(GL_TEXTURE3);
-	Engine::ResourceManager::getTexture("Water.jpg")->bind();
-
 
 	for (auto pair : this->generatedChunks) {
 		if (pair.first.back() == '4') {
@@ -562,6 +573,9 @@ void CompleteMCManager::render() {
 			pair.second->draw();
 		}
 	}
+
+	// Water will only work if there is one LOD anyway
+	this->water->draw(this->chunkLength, this->chunkLength / (float)this->cellsPerAxis);
 
 	glBindVertexArray(0);
 	this->renderingShaders->unbind();

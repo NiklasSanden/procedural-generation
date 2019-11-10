@@ -10,6 +10,8 @@ namespace ProceduralGeneration {
 }
 
 #include "engine/objects/GameObject.h"
+#include "Water.h"
+#include "Cubemap.h"
 
 #include "glm/glm.hpp"
 
@@ -36,6 +38,9 @@ namespace ProceduralGeneration {
 		unsigned int numberOfVertexBuffers = 300;
 
 	private:
+		Water* water = nullptr;
+		Cubemap* cubemap = nullptr;
+
 		std::unordered_map<std::string, VertexBuffer*> generatedChunks;
 		std::unordered_set<std::string> emptyChunks;
 

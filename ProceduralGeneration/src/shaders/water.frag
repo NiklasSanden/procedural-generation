@@ -9,11 +9,9 @@ in vec3 WorldNormal;
 uniform float viewDistance;
 uniform int LOD;
 uniform float alpha;
+uniform vec2 waterOffset;
 
-layout(binding = 0) uniform sampler2D Texture0;
-layout(binding = 1) uniform sampler2D Texture1;
-layout(binding = 2) uniform sampler2D Texture2;
-
+layout(binding = 3) uniform sampler2D WaterTexture;
 layout(binding = 5) uniform samplerCube skybox;
 
 struct Material {
@@ -98,7 +96,10 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
 //	}
 
 	//newDiffuse *= (GetColourTexture(WorldNormal) / 4.0 + vec3(0.75, 0.75, 0.75));
-	vec3 newDiffuse = GetColourTexture(WorldNormal).xyz;
+	vec3 newDiffuse;
+	newDiffuse = texture(WaterTexture, FragPosWorld.zx * 0.2 + waterOffset).xyz;
+	//newDiffuse = texture(WaterTexture, FragPosWorld.zx * 0.2).xyz;
+	//newDiffuse = GetColourTexture(WorldNormal).xyz;
 
 //	if (FragPosWorld.y <= -2.0 + LOD * 0.05) {
 //		newDiffuse = mix(blue, vec3(0.0, 0.0, 0.0), clamp((FragPosWorld.y + 2.0) * 20.0, 0.0, 1.0));
@@ -144,9 +145,9 @@ vec4 GetColourTexture(vec3 normal) {
 		//if (blend_weights.y > 0) coord2 = . . .
 		//if (blend_weights.z > 0) coord3 = . . .
 		// Sample color maps for each projection, at those UV coords.
-		vec4 col1 = texture(Texture0, coord1);
-		vec4 col2 = texture(Texture1, coord2);
-		vec4 col3 = texture(Texture2, coord3);
+		vec4 col1 = texture(WaterTexture, coord1);
+		vec4 col2 = texture(WaterTexture, coord2);
+		vec4 col3 = texture(WaterTexture, coord3);
 		 // Finally, blend the results of the 3 planar projections.
 		blended_color = col1.xyzw * blend_weights.xxxx +
 						col2.xyzw * blend_weights.yyyy +

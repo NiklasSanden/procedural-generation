@@ -1,13 +1,13 @@
 #version 450 core
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
-layout(r32f, binding = 0) uniform image3D noise;
+layout(r32f, binding = 0) uniform image2D noise;
 layout(binding = 1) uniform sampler3D preCalculatedNoise;
 
 uniform vec3 position;
-uniform vec3 offset;
 uniform float cellLength;
 uniform int pointsPerAxis;
-uniform int LOD;
+uniform float yValue;
+uniform vec2 waterOffset;
 
 // float x, float y, float z, int octaves = 4, float persistence = 0.5, float frequency = 0.2, float amplitude = 1.0
 float octavePerlin(float x, float y, float z, int octaves, float persistence, float frequency, float amplitude);
@@ -29,21 +29,23 @@ void main() {
 	ivec3 noiseCoordinate = ivec3(gl_GlobalInvocationID.xyz);
 
 	float xFloat = noiseCoordinate.x - (pointsPerAxis - 1) / 2.0; xFloat *= cellLength;
-	float yFloat = noiseCoordinate.y - (pointsPerAxis - 1) / 2.0; yFloat *= cellLength;
+	float yFloat = yValue;
 	float zFloat = noiseCoordinate.z - (pointsPerAxis - 1) / 2.0; zFloat *= cellLength;
+	xFloat += waterOffset.x * cellLength * (pointsPerAxis - 3);
+	zFloat += waterOffset.y * cellLength * (pointsPerAxis - 3);
 				
 	// Regular noise
-	//noiseValue = octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 8, 0.5, 0.2, 1.0);
+	noiseValue = octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 8, 0.5, 0.2, 1.0);
 
 	// Ground
 	//noiseValue = -(yFloat + position.y) / 5.0 + octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 8, 0.5, 0.2, 1.0) * 5.0;
 				
 	// Warp
-	float warp = octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.4, 0.04, 1.0);
-	xFloat += warp * 10;
-	zFloat += warp * 10;
+//	float warp = octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.4, 0.04, 1.0);
+//	xFloat += warp * 10;
+//	zFloat += warp * 10;
 	//noiseValue = -(yFloat + position.y) / 10.0 + octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4, 0.1, 1.0);
-	noiseValue = -(yFloat + position.y) / 30.0 + octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4, 0.1, 1.0);
+	//noiseValue = -(yFloat + position.y) / 30.0 + octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4, 0.1, 1.0);
 	//noiseValue = 10.0 -(length(vec3(0.0, 0.0, -150.0) - position - vec3(xFloat, yFloat, zFloat))) / 15.0 + octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4, 0.1, 1.0);
 
 	// Terrace ground
@@ -68,9 +70,7 @@ void main() {
 	// Circle
 	//noiseValue = 1.0 - length(vec3(xFloat + position.x, yFloat + position.y, zFloat + position.z)) / 20.0 + octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.5, 0.2, 1.0);
 
-	noiseValue -= 0.001 * (min(LOD, 3) - 1);
-	//if (yFloat + position.y <= -2.0) noiseValue = 1.0;
-	imageStore(noise, noiseCoordinate, vec4(noiseValue, 0.0, 0.0, 0.0));
+	imageStore(noise, ivec2(noiseCoordinate.x, noiseCoordinate.z), vec4(noiseValue, 0.0, 0.0, 0.0));
 
 }
 
