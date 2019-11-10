@@ -2,6 +2,7 @@
 
 #include "engine/misc/Game.h"
 #include "engine/resources/ResourceManager.h"
+#include "engine/resources/Texture2D.h"
 #include "engine/resources/Material.h"
 #include "engine/components/Transform.h"
 #include "engine/resources/Shader.h"
@@ -35,7 +36,7 @@ using namespace ProceduralGeneration;
 
 CompleteMCManager::CompleteMCManager(const std::string& name) : GameObject(name) {
 	// Material
-	this->material = new Engine::Material();
+	this->material = new Engine::Material(glm::vec3(0.7f, 0.2f, 0.1f), glm::vec3(0.1f, 0.1f, 0.1f), 8);
 
 	// Shader program
 	this->renderingShaders = Engine::ResourceManager::createShaderProgram({ "completeMC.vert", "completeMC.frag" }, "CompleteMCRenderShader");
@@ -198,6 +199,7 @@ void CompleteMCManager::update(float deltaTime) {
 	std::vector<glm::ivec3> nonEmptyChunksPos;
 
 	updateActiveChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength * 4, 4, farthestViewDistanceFactor, this->numberOfVertexBuffers, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
+	//updateActiveChunks(chunksToBeRendered, nonEmptyChunksPos, this->chunkLength    , 1, farthestViewDistanceFactor, this->numberOfVertexBuffers, rightProjectionNormal, leftProjectionNormal, upProjectionNormal, downProjectionNormal);
 	
 	int amountForLOD2 = (this->numberOfVertexBuffers - chunksToBeRendered.size()) / 2;
 	int amountForLOD1 = this->numberOfVertexBuffers - chunksToBeRendered.size() - amountForLOD2;
@@ -512,11 +514,24 @@ void CompleteMCManager::render() {
 	this->renderingShaders->setMat4("view", Camera::viewMatrix);
 	this->renderingShaders->setMat4("projection", Camera::projectionMatrix);
 	this->renderingShaders->setFloat("viewDistance", Camera::viewDistance);
+	this->renderingShaders->setVec2("waterOffset", glm::vec2(glfwGetTime() / 20.0f, glfwGetTime() / 30.0f));
 
 	// material
 	this->renderingShaders->setVec3("material.diffuse", this->material->diffuse);
 	this->renderingShaders->setVec3("material.specular", this->material->specular);
 	this->renderingShaders->setFloat("material.shininess", this->material->shininess);
+
+	// textures
+	glActiveTexture(GL_TEXTURE0);
+	Engine::ResourceManager::getTexture("Mountain.jpg")->bind();
+	glActiveTexture(GL_TEXTURE1);
+	Engine::ResourceManager::getTexture("Grass.jpg")->bind();
+	glActiveTexture(GL_TEXTURE2);
+	Engine::ResourceManager::getTexture("Mountain.jpg")->bind();
+
+	glActiveTexture(GL_TEXTURE3);
+	Engine::ResourceManager::getTexture("Water.jpg")->bind();
+
 
 	for (auto pair : this->generatedChunks) {
 		if (pair.first.back() == '4') {

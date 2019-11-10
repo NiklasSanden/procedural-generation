@@ -7,7 +7,7 @@
 #include "engine/misc/Debug.h"
 using namespace Engine;
 
-Texture2D::Texture2D() : width(0), height(0), internalFormat(GL_RGB), imageFormat(GL_RGB), wrap_S(GL_REPEAT), wrap_T(GL_REPEAT), filterMin(GL_LINEAR), filterMax(GL_LINEAR)
+Texture2D::Texture2D() : width(0), height(0), internalFormat(GL_RGB), imageFormat(GL_RGB), wrap_S(GL_REPEAT), wrap_T(GL_REPEAT), filterMin(GL_LINEAR_MIPMAP_LINEAR), filterMax(GL_LINEAR)
 {
 	glGenTextures(1, &this->ID);
 }
