@@ -71,11 +71,11 @@ GameManager::GameManager(const std::string& _name) : GameObject(_name) {
 	//ComputeMCManager* compCubesManager = new ComputeMCManager("ComputeMCManager");
 	//this->gamePtr->addGameObject(compCubesManager);
 
-	//Raytracing* raytracer = new Raytracing("Raytracer");
-	//this->gamePtr->addGameObject(raytracer);
+	Raytracing* raytracer = new Raytracing("Raytracer");
+	this->gamePtr->addGameObject(raytracer);
 
-	CompleteMCManager* completeMCManager = new CompleteMCManager("CompleteMCManager");
-	this->gamePtr->addGameObject(completeMCManager);
+	//CompleteMCManager* completeMCManager = new CompleteMCManager("CompleteMCManager");
+	//this->gamePtr->addGameObject(completeMCManager);
 
 	/*ChunkManager* chunkManager = new ChunkManager("ChunkManager");
 	this->gamePtr->addGameObject(chunkManager);*/

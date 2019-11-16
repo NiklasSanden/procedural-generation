@@ -88,7 +88,7 @@ Raytracing::~Raytracing() {
 }
 
 void Raytracing::generateNoise() {
-	//srand(this->seed);
+	srand(this->seed);
 
 	const int noiseSize = 16;
 	const int noiesSizeCubes = noiseSize * noiseSize * noiseSize;
@@ -161,8 +161,8 @@ void Raytracing::updateRayTexture() {
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, this->width, this->height, 0, GL_RGB, GL_FLOAT, rayTextureData.data());
 
@@ -172,8 +172,8 @@ void Raytracing::updateRayTexture() {
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this->width, this->height, 0, GL_RGBA, GL_FLOAT, NULL);
 }
@@ -188,7 +188,7 @@ void Raytracing::render() {
 	this->computeShader->setMat3("ViewMatrix", glm::transpose(glm::mat3(Camera::viewMatrix)));
 	this->computeShader->setVec3("PlayerPos", GameManager::getPlayer()->transform->getPosition());
 	//this->computeShader->setVec3("offset", glm::vec3(0.0f, 0.0f, 0.0f));
-	this->computeShader->setFloat("StepLength", this->stepLength);
+	this->computeShader->setFloat("VoxelRes", this->voxelRes);
 	this->computeShader->setFloat("ViewDistance", this->viewDistance);
 
 	// Material
@@ -217,10 +217,6 @@ void Raytracing::render() {
 	glDispatchCompute(this->width, this->height, 1);
 
 
-	// Make sure the noise has finished generating
-	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-
 	// Render
 	this->shaderProgram->use();
 	// Uniforms
@@ -232,6 +228,9 @@ void Raytracing::render() {
 
 	// actually draw
 	glBindVertexArray(this->VAO);
+
+	// Make sure the noise has finished generating
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -260,7 +259,7 @@ void Raytracing::renderImGui() {
 		static int oldWidth = width;
 		static int oldHeight = height;
 
-		static float stepLength = this->stepLength;
+		static float voxelRes = this->voxelRes;
 
 		ImGui::Begin("Raytracing Settings");
 
@@ -269,7 +268,7 @@ void Raytracing::renderImGui() {
 		ImGui::Text("Horizontal Fov: %.3f", glm::degrees(2.0f * glm::atan(glm::tan(glm::radians(Camera::verticalFov) * 0.5f) * aspectRatio)));
 
 		ImGui::SliderFloat("View distance", &viewDistanceSlider, 1.0f, 200.0f);
-		ImGui::SliderFloat("Step length", &stepLength, 0.01f, 20.0f);
+		ImGui::SliderFloat("Voxel resolution", &voxelRes, 0.01f, 20.0f);
 
 		ImGui::SliderInt("Width", &width, 1, 2500);
 		ImGui::SliderInt("Height", &height, 1, 1000);
@@ -280,7 +279,7 @@ void Raytracing::renderImGui() {
 		Camera::viewDistance = viewDistanceSlider; 
 		this->viewDistance = viewDistanceSlider;  this->viewDistanceSqrd = viewDistanceSlider * viewDistanceSlider;
 
-		this->stepLength = stepLength;
+		this->voxelRes = voxelRes;
 
 		this->width = width;
 		this->height = (int)(width / aspectRatio);

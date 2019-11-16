@@ -23,7 +23,7 @@ namespace ProceduralGeneration {
 		unsigned int EBO;
 
 		// Settings
-		float stepLength = 10.0f;
+		float voxelRes = 10.0f;
 		unsigned int seed = 0;
 
 		int width = 100;
