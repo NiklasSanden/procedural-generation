@@ -81,7 +81,8 @@ GameManager::GameManager(const std::string& _name) : GameObject(_name) {
 	this->gamePtr->addGameObject(chunkManager);*/
 
 	// Lights
-	this->directionalLight = new Engine::DirectionalLight("Directional Light", glm::vec3(-0.2f, -1.0f, -0.3f), glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+	//this->directionalLight = new Engine::DirectionalLight("Directional Light", glm::vec3(-0.2f, -1.0f, -0.3f), glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+	this->directionalLight = new Engine::DirectionalLight("Directional Light", glm::vec3(-0.2f, -0.5f, -0.3f), glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	this->gamePtr->addGameObject(directionalLight);
 
 	/*this->pointLights.push_back(new Engine::PointLight("Point Light1", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), 50.0f));

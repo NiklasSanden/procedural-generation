@@ -155,7 +155,7 @@ void ComputeMCChunk::generateNoise(int pointsPerAxis, float cellLength, const gl
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, pointsPerAxis, pointsPerAxis, pointsPerAxis, 0, GL_RED, GL_FLOAT, NULL);
-	glBindImageTexture(0, this->noiseTextureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+	glBindImageTexture(0, this->noiseTextureID, 0, GL_TRUE, 0, GL_READ_WRITE, GL_R32F);
 
 	// Compute shader
 	glDispatchCompute((GLuint)pointsPerAxis, (GLuint)pointsPerAxis, (GLuint)pointsPerAxis);

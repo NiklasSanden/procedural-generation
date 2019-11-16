@@ -44,14 +44,23 @@ Cubemap::Cubemap() {
 	glGenTextures(1, &this->cubemapTexture);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubemapTexture);
 
+	//std::vector<std::string> faces
+	//{
+	//	"res/textures/cloudy/bluecloud_ft.jpg",
+	//	"res/textures/cloudy/bluecloud_bk.jpg",
+	//	"res/textures/cloudy/bluecloud_up.jpg",
+	//	"res/textures/cloudy/bluecloud_dn.jpg",
+	//	"res/textures/cloudy/bluecloud_rt.jpg",
+	//	"res/textures/cloudy/bluecloud_lf.jpg",
+	//};
 	std::vector<std::string> faces
 	{
-		"res/textures/cloudy/bluecloud_ft.jpg",
-		"res/textures/cloudy/bluecloud_bk.jpg",
-		"res/textures/cloudy/bluecloud_up.jpg",
-		"res/textures/cloudy/bluecloud_dn.jpg",
-		"res/textures/cloudy/bluecloud_rt.jpg",
-		"res/textures/cloudy/bluecloud_lf.jpg",
+		"res/textures/cloud_miramar/ft.tga",
+		"res/textures/cloud_miramar/bk.tga",
+		"res/textures/cloud_miramar/up.tga",
+		"res/textures/cloud_miramar/dn.tga",
+		"res/textures/cloud_miramar/rt.tga",
+		"res/textures/cloud_miramar/lf.tga",
 	};
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

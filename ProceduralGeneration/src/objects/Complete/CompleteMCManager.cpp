@@ -38,7 +38,7 @@ CompleteMCManager::CompleteMCManager(const std::string& name) : GameObject(name)
 	this->water = new Water(this->cellsPerAxis + 1);
 	this->cubemap = new Cubemap();
 	// Material
-	this->material = new Engine::Material(glm::vec3(0.7f, 0.2f, 0.1f), glm::vec3(0.1f, 0.1f, 0.1f), 8);
+	this->material = new Engine::Material(glm::vec3(0.7f, 0.2f, 0.1f), glm::vec3(0.125f, 0.125f, 0.125f), 4);
 
 	// Shader program
 	this->renderingShaders = Engine::ResourceManager::createShaderProgram({ "completeMC.vert", "completeMC.frag" }, "CompleteMCRenderShader");
@@ -80,29 +80,8 @@ CompleteMCManager::CompleteMCManager(const std::string& name) : GameObject(name)
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	srand(this->seed);
 	std::vector<float> preCalculatedNoiseData(16 * 16 * 16 * 4, 0.0f);
-	//for (int i = 0; i < 16 * 16 * 16; i++) {
-	//	preCalculatedNoiseData[i * 4    ] = glm::linearRand(0.0f, 1.0f);
-	//	preCalculatedNoiseData[i * 4 + 1] = glm::linearRand(0.0f, 1.0f);
-	//	preCalculatedNoiseData[i * 4 + 2] = glm::linearRand(0.0f, 1.0f);
-	//	preCalculatedNoiseData[i * 4 + 3] = glm::linearRand(0.0f, 1.0f);
-	//}
-	int index = 0;
-	glm::vec3 offset1(glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f));
-	glm::vec3 offset2(glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f));
-	glm::vec3 offset3(glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f));
-	for (int x = 0; x < 16; x++) {
-		for (int y = 0; y < 16; y++) {
-			for (int z = 0; z < 16; z++) {
-				preCalculatedNoiseData[index * 4    ] = (Noise::octavePerlin(x			  , y			 , z			, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
-				preCalculatedNoiseData[index * 4 + 1] = (Noise::octavePerlin(x + offset1.x, y + offset1.y, z + offset1.z, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
-				preCalculatedNoiseData[index * 4 + 2] = (Noise::octavePerlin(x + offset2.x, y + offset2.y, z + offset2.z, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
-				preCalculatedNoiseData[index * 4 + 3] = (Noise::octavePerlin(x + offset3.x, y + offset3.y, z + offset3.z, 2, 0.4, 0.51, this->seed, 1.0) + 1.0f) / 2.0f;
-				index++;
-			}
-		}
-	}
+	getPrecalculatedNoiseDate(preCalculatedNoiseData);
 
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, 16, 16, 16, 0, GL_RGBA, GL_FLOAT, preCalculatedNoiseData.data());
 
@@ -156,14 +135,20 @@ void CompleteMCManager::regenerateChunks() {
 	// Recalculate noise
 	glBindTexture(GL_TEXTURE_3D, this->preCalculatedNoiseTextureID);
 
-	srand(this->seed);
 	std::vector<float> preCalculatedNoiseData(16 * 16 * 16 * 4, 0.0f);
-	//for (int i = 0; i < 16 * 16 * 16; i++) {
-	//	preCalculatedNoiseData[i * 4    ] = glm::linearRand(0.0f, 1.0f);
-	//	preCalculatedNoiseData[i * 4 + 1] = glm::linearRand(0.0f, 1.0f);
-	//	preCalculatedNoiseData[i * 4 + 2] = glm::linearRand(0.0f, 1.0f);
-	//	preCalculatedNoiseData[i * 4 + 3] = glm::linearRand(0.0f, 1.0f);
-	//}
+	getPrecalculatedNoiseDate(preCalculatedNoiseData);
+
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, 16, 16, 16, 0, GL_RGBA, GL_FLOAT, preCalculatedNoiseData.data());
+}
+
+void CompleteMCManager::getPrecalculatedNoiseDate(std::vector<float>& preCalculatedNoiseData) {
+	srand(this->seed);
+	/*for (int i = 0; i < 16 * 16 * 16; i++) {
+		preCalculatedNoiseData[i * 4    ] = glm::linearRand(0.0f, 1.0f);
+		preCalculatedNoiseData[i * 4 + 1] = glm::linearRand(0.0f, 1.0f);
+		preCalculatedNoiseData[i * 4 + 2] = glm::linearRand(0.0f, 1.0f);
+		preCalculatedNoiseData[i * 4 + 3] = glm::linearRand(0.0f, 1.0f);
+	}*/
 	int index = 0;
 	glm::vec3 offset1(glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f));
 	glm::vec3 offset2(glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f), glm::linearRand(-100.0f, 100.0f));
@@ -179,8 +164,6 @@ void CompleteMCManager::regenerateChunks() {
 			}
 		}
 	}
-
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, 16, 16, 16, 0, GL_RGBA, GL_FLOAT, preCalculatedNoiseData.data());
 }
 
 void CompleteMCManager::update(float deltaTime) {
@@ -530,6 +513,7 @@ void CompleteMCManager::render() {
 	this->renderingShaders->setMat4("view", Camera::viewMatrix);
 	this->renderingShaders->setMat4("projection", Camera::projectionMatrix);
 	this->renderingShaders->setFloat("viewDistance", Camera::viewDistance);
+	this->renderingShaders->setVec3("playerPos", GameManager::getPlayer()->transform->getPosition());
 
 	// material
 	this->renderingShaders->setVec3("material.diffuse", this->material->diffuse);
@@ -540,9 +524,12 @@ void CompleteMCManager::render() {
 	glActiveTexture(GL_TEXTURE0);
 	Engine::ResourceManager::getTexture("Mountain.jpg")->bind();
 	glActiveTexture(GL_TEXTURE1);
-	Engine::ResourceManager::getTexture("Grass.jpg")->bind();
+	Engine::ResourceManager::getTexture("GrassEskilII.jpg")->bind();
 	glActiveTexture(GL_TEXTURE2);
 	Engine::ResourceManager::getTexture("Mountain.jpg")->bind();
+
+	glActiveTexture(GL_TEXTURE6);
+	Engine::ResourceManager::getTexture("SandEskil.jpg")->bind();
 
 	for (auto pair : this->generatedChunks) {
 		if (pair.first.back() == '4') {

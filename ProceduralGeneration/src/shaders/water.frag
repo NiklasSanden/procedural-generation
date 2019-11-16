@@ -10,6 +10,7 @@ uniform float viewDistance;
 uniform int LOD;
 uniform float alpha;
 uniform vec2 waterOffset;
+uniform vec3 playerPos;
 
 layout(binding = 3) uniform sampler2D WaterTexture;
 layout(binding = 5) uniform samplerCube skybox;
@@ -53,11 +54,16 @@ void main()
 	}
     
 	// emission
-	result += material.emission;
+	//result += material.emission;
+
+	// Reflection
+    vec3 R = normalize(reflect(FragPosWorld - playerPos, WorldNormal));
+	result = mix(result, vec4(texture(skybox, R).xyz, 1.0).xyz, 0.45); // 0.55
 
 	// FOG
-	vec3 fogColour = vec3(0.2, 0.25, 0.4);
-	float surfaceLevel = pow(min(dist / viewDistance, 1.0), 3.0);
+	//vec3 fogColour = vec3(0.2, 0.25, 0.4);
+	vec3 fogColour = texture(skybox, FragPosWorld - playerPos).xyz;
+	float surfaceLevel = pow(min(dist / viewDistance, 1.0), 4.0);
 	//surfaceLevel = 0.0;
 	//surfaceLevel = clamp((surfaceLevel - 0.4) * 2.5, 0.0, 1.0);
 //    FragColour = vec4(Lerp(result.x, fogColour.x, surfaceLevel), 
@@ -80,39 +86,12 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
 	float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), material.shininess);
 	// combine
 
-	vec3 green = vec3(0.133, 0.545, 0.133);
-	vec3 brown = vec3(0.545 , 0.27, 0.07);
-	vec3 magenta = vec3(0.99, 0.0, 0.99);
-	vec3 grey = vec3(0.4, 0.4, 0.4);
-	vec3 blue = vec3(0.0, 0.467, 0.745);
-	
-	//vec3 newDiffuse = mix(mix(green, brown, clamp(FragPosWorld.y / 4.0 + 1.0, 0.0, 1.0)), brown, clamp(FragPosWorld.y / 5.0 + 1.0, 0.0, 1.0));
-	//vec3 newDiffuse = mix(green, brown, clamp(FragPosWorld.y / 4.0 + 1.0, 0.0, 1.0));
-//	vec3 newDiffuse = brown;
-//	float normalDot = dot(WorldNormal, vec3(0.0, 1.0, 0.0));
-//	if (normalDot > 0.9) newDiffuse = green;
-//	else if (normalDot > 0.5) {
-//		newDiffuse = mix(brown, green, (normalDot - 0.5) * 2.5);
-//	}
 
 	//newDiffuse *= (GetColourTexture(WorldNormal) / 4.0 + vec3(0.75, 0.75, 0.75));
 	vec3 newDiffuse;
 	newDiffuse = texture(WaterTexture, FragPosWorld.zx * 0.2 + waterOffset).xyz;
 	//newDiffuse = texture(WaterTexture, FragPosWorld.zx * 0.2).xyz;
 	//newDiffuse = GetColourTexture(WorldNormal).xyz;
-
-//	if (FragPosWorld.y <= -2.0 + LOD * 0.05) {
-//		newDiffuse = mix(blue, vec3(0.0, 0.0, 0.0), clamp((FragPosWorld.y + 2.0) * 20.0, 0.0, 1.0));
-//	}
-
-//	vec3 newDiffuse = brown;
-//	if (roundEven(FragPosWorld.y) < -5.9) {
-//		newDiffuse = grey;
-//	}
-//	else if (dot(WorldNormal, vec3(0.0, 1.0, 0.0)) > 0.75) {
-//		newDiffuse = green;
-//	}
-
 
 	vec3 ambient  = light.ambient * newDiffuse; // material.diffuse
 	vec3 diffuse  = light.diffuse * difference * newDiffuse; // material.diffuse

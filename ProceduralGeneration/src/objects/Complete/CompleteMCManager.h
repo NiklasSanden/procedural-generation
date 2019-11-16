@@ -69,5 +69,6 @@ namespace ProceduralGeneration {
 		bool generateChunk(VertexBuffer* vertexBuffer, const std::string& name);
 
 		void regenerateChunks();
+		void getPrecalculatedNoiseDate(std::vector<float>& preCalculatedNoiseData);
 	};
 }

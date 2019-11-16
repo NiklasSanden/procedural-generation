@@ -40,10 +40,24 @@ void main() {
 				
 	// Warp
 	float warp = octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 1, 0.4, 0.04, 1.0);
-	xFloat += warp * 10;
-	zFloat += warp * 10;
+	xFloat += warp * 2;
+	zFloat += warp * 2;
 	//noiseValue = -(yFloat + position.y) / 10.0 + octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4, 0.1, 1.0);
-	noiseValue = -(yFloat + position.y) / 30.0 + octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4, 0.1, 1.0);
+	noiseValue = octavePerlin(xFloat + position.x, yFloat + position.y + warp * 2, zFloat + position.z, 9, 0.4, 0.1, 1.0);
+	//noiseValue += octavePerlin(xFloat + position.x, 0.0, zFloat + position.z, 1, 0.4, 0.1, 1.0) * (2.0/3.0);
+	noiseValue += -(yFloat + position.y) / 40.0;
+
+	//const float sigma = 5.0;
+	//noiseValue += ((1.0 / (sigma * 2.5066) * pow(2.72, -(pow(yFloat + position.y, 2) / (2 * sigma * sigma)))) * 25.07 - 1.0) / 8.0;
+
+	//noiseValue += 0.0;
+
+	// sin
+//	noiseValue = octavePerlin(xFloat + position.x, yFloat + position.y + warp * 2, zFloat + position.z, 9, 0.4, 0.1, 1.0);
+//	noiseValue += -(yFloat + position.y) / 40.0;
+//	noiseValue += -(sin((yFloat + position.y))) / 10.0;
+//	noiseValue += 0.1;
+
 	//noiseValue = 10.0 -(length(vec3(0.0, 0.0, -150.0) - position - vec3(xFloat, yFloat, zFloat))) / 15.0 + octavePerlin(xFloat + position.x, yFloat + position.y + warp * 10, zFloat + position.z, 9, 0.4, 0.1, 1.0);
 
 	// Terrace ground
@@ -53,14 +67,14 @@ void main() {
 	//noiseValue = -(yFloat) / 5.0 + octavePerlin(xFloat + position.x, yFloat, zFloat + position.z, 5, 0.35, 0.1, 1.0) * 2.0;
 				
 	// Minecraft
-//	float tempNoise = octavePerlin(xFloat + position.x, 0.0, zFloat + position.z, 1, 0.3, 0.015);
-//	float tempA = -(position.y + yFloat) / 10.0 + octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3, 0.05);
-//	float tempB = -(position.y + yFloat) + 40.0 / 30.0 + octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3, 0.05) * 1.5;
+//	float tempNoise = octavePerlin(xFloat + position.x, 0.0, zFloat + position.z, 1, 0.3, 0.015, 1.0);
+//	float tempA = -(position.y + yFloat) / 10.0 + octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3, 0.05, 1.0);
+//	float tempB = -(position.y + yFloat) + 40.0 / 30.0 + octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3, 0.05, 1.0) * 1.5;
 //
 //	tempA = clamp(tempA, -1.0, 1.0);
 //	float groundNoise = lerpFloat(tempB, tempA, min(1.0, tempNoise * tempNoise + tempNoise));
 //				
-//	float undergroundNoise = 0.075 - octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3, 0.06);
+//	float undergroundNoise = 0.075 - octavePerlin(xFloat + position.x, yFloat + position.y, zFloat + position.z, 4, 0.3, 0.06, 1.0);
 //				
 //	float groundAndUndergroundLerp = clamp(((yFloat + position.y) - (20.0 * (1.0 - tempNoise))) / 20.0, 0.0, 1.0);
 //	noiseValue = lerpFloat(undergroundNoise, groundNoise, groundAndUndergroundLerp);
@@ -75,6 +89,9 @@ void main() {
 }
 
 float octavePerlin(float x, float y, float z, int octaves, float persistence, float frequency, float amplitude) {
+//	x /= 8.0; 
+//	y /= 8.0; 
+//	z /= 8.0; 	
 	x /= 8.0; 
 	y /= 8.0; 
 	z /= 8.0; 

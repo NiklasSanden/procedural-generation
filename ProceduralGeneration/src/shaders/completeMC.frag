@@ -9,10 +9,12 @@ in vec3 WorldNormal;
 uniform float viewDistance;
 uniform int LOD;
 uniform float alpha;
+uniform vec3 playerPos;
 
 layout(binding = 0) uniform sampler2D Texture0;
 layout(binding = 1) uniform sampler2D Texture1;
 layout(binding = 2) uniform sampler2D Texture2;
+layout(binding = 6) uniform sampler2D SandEskil;
 
 layout(binding = 5) uniform samplerCube skybox;
 
@@ -55,11 +57,12 @@ void main()
 	}
     
 	// emission
-	result += material.emission;
+	//result += material.emission;
 
 	// FOG
-	vec3 fogColour = vec3(0.2, 0.25, 0.4);
-	float surfaceLevel = pow(min(dist / viewDistance, 1.0), 3.0);
+	//vec3 fogColour = vec3(0.2, 0.25, 0.4);
+	vec3 fogColour = texture(skybox, FragPosWorld - playerPos).xyz;
+	float surfaceLevel = pow(min(dist / viewDistance, 1.0), 4.0);
 	//surfaceLevel = 0.0;
 	//surfaceLevel = clamp((surfaceLevel - 0.4) * 2.5, 0.0, 1.0);
 //    FragColour = vec4(Lerp(result.x, fogColour.x, surfaceLevel), 
@@ -113,7 +116,7 @@ vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
 //	}
 
 
-	vec3 ambient  = light.ambient * newDiffuse; // material.diffuse
+	vec3 ambient  = light.ambient * newDiffuse * 1.1; // material.diffuse
 	vec3 diffuse  = light.diffuse * difference * newDiffuse; // material.diffuse
 	vec3 specular = light.specular * spec * material.specular;
 
@@ -135,7 +138,7 @@ vec4 GetColourTexture(vec3 normal) {
 	{
 		// Compute the UV coords for each of the 3 planar projections.
 		// tex_scale (default ~ 1.0) determines how big the textures appear.
-		float tex_scale = 0.5;
+		float tex_scale = 0.75;
 		vec2 coord1 = FragPosWorld.yz * tex_scale;
 		vec2 coord2 = FragPosWorld.zx * tex_scale;
 		vec2 coord3 = FragPosWorld.xy * tex_scale;
@@ -145,7 +148,23 @@ vec4 GetColourTexture(vec3 normal) {
 		//if (blend_weights.z > 0) coord3 = . . .
 		// Sample color maps for each projection, at those UV coords.
 		vec4 col1 = texture(Texture0, coord1);
-		vec4 col2 = texture(Texture1, coord2);
+		vec4 col2;
+		if (WorldNormal.y < 0.0) {
+			col2 = texture(Texture0, coord2);
+		}
+		else {
+			vec4 sand = texture(SandEskil, coord2);
+			vec4 rock = texture(Texture0, coord2);
+
+			rock = mix(sand, rock, pow(1.0 - clamp(min((WorldNormal.y - 0.75) * (4), 
+														-FragPosWorld.y + 1.0), 0.0, 1.0), 2));
+
+			vec4 grass = texture(Texture1, coord2);
+
+			grass = mix(grass, rock, clamp(-FragPosWorld.y + 0.3, 0.0, 1.0));
+
+			col2 = grass;
+		}
 		vec4 col3 = texture(Texture2, coord3);
 		 // Finally, blend the results of the 3 planar projections.
 		blended_color = col1.xyzw * blend_weights.xxxx +

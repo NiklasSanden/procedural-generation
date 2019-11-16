@@ -37,7 +37,7 @@ using namespace ProceduralGeneration;
 Water::Water(int pointsPerAxis) {
 	this->pointsPerAxis = pointsPerAxis;
 
-	this->material = new Engine::Material(glm::vec3(0.7f, 0.2f, 0.1f), glm::vec3(0.1f, 0.1f, 0.1f), 8);
+	this->material = new Engine::Material(glm::vec3(0.7f, 0.2f, 0.1f), glm::vec3(0.5f, 0.5f, 0.5f), 8);
 
 	this->renderingShaders = Engine::ResourceManager::createShaderProgram({ "water.vert", "water.frag" }, "WaterRenderingShaders");
 	this->noiseShaders = Engine::ResourceManager::createShaderProgram({ "water.comp" }, "WaterComputeShaders");
@@ -166,6 +166,7 @@ void Water::draw(float chunkLength, float cellLength) {
 	this->renderingShaders->setFloat("viewDistance", Camera::viewDistance);
 	this->renderingShaders->setInt("pointsPerAxis", this->pointsPerAxis);
 	this->renderingShaders->setVec2("waterOffset", glm::vec2(glfwGetTime() / 20.0f, glfwGetTime() / 30.0f));
+	this->renderingShaders->setVec3("playerPos", GameManager::getPlayer()->transform->getPosition());
 
 	// material
 	this->renderingShaders->setVec3("material.diffuse", this->material->diffuse);
