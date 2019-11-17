@@ -29,7 +29,7 @@ Camera::Camera(const std::string& name) : GameObject(name) {
 }
 
 void Camera::update(float deltaTime) {
-	deltaTime = (float)fmin(0.0222222222, deltaTime);
+	//deltaTime = (float)fmin(0.0222222222, deltaTime);
 	
 	// Looking around
 	glm::vec2 mouseDelta = GameManager::getInputPtr()->getMouseDelta();

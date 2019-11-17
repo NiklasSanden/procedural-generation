@@ -1,5 +1,7 @@
 #include "objects/Raytracing/Raytracing.h"
 
+#include "objects/Complete/Cubemap.h"
+
 #include "engine/misc/Game.h"
 #include "engine/resources/ResourceManager.h"
 #include "engine/resources/Material.h"
@@ -30,6 +32,8 @@
 using namespace ProceduralGeneration;
 
 Raytracing::Raytracing(const std::string& name) : GameObject(name) {
+	this->cubemap = new Cubemap();
+
 	// Shader program
 	this->shaderProgram = Engine::ResourceManager::createShaderProgram({ "raytracing.vert", "raytracing.frag" }, "RaytracingRenderingShader");
 	this->computeShader = Engine::ResourceManager::createShaderProgram({ "raytracing.comp" }, "RaytracingComputeShader");
@@ -77,6 +81,7 @@ Raytracing::Raytracing(const std::string& name) : GameObject(name) {
 
 Raytracing::~Raytracing() {
 	delete this->material;
+	delete this->cubemap;
 
 	glDeleteTextures(1, &this->rayTexture);
 	glDeleteTextures(1, &this->renderedTexture);
@@ -161,8 +166,8 @@ void Raytracing::updateRayTexture() {
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, this->width, this->height, 0, GL_RGB, GL_FLOAT, rayTextureData.data());
 
@@ -172,8 +177,8 @@ void Raytracing::updateRayTexture() {
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this->width, this->height, 0, GL_RGBA, GL_FLOAT, NULL);
 }
@@ -212,6 +217,8 @@ void Raytracing::render() {
 	glBindTexture(GL_TEXTURE_3D, this->noiseTexture);
 
 	glBindImageTexture(0, this->renderedTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+	this->cubemap->bind();
 
 	// Compute
 	glDispatchCompute(this->width, this->height, 1);
@@ -268,7 +275,7 @@ void Raytracing::renderImGui() {
 		ImGui::Text("Horizontal Fov: %.3f", glm::degrees(2.0f * glm::atan(glm::tan(glm::radians(Camera::verticalFov) * 0.5f) * aspectRatio)));
 
 		ImGui::SliderFloat("View distance", &viewDistanceSlider, 1.0f, 200.0f);
-		ImGui::SliderFloat("Voxel resolution", &voxelRes, 0.01f, 20.0f);
+		ImGui::SliderFloat("Voxel resolution", &voxelRes, 0.01f, 5.0f);
 
 		ImGui::SliderInt("Width", &width, 1, 2500);
 		ImGui::SliderInt("Height", &height, 1, 1000);

@@ -6,6 +6,7 @@ namespace Engine {
 }
 
 #include "engine/objects/GameObject.h"
+#include "objects/Complete/Cubemap.h"
 
 #include "glm/glm.hpp"
 
@@ -23,7 +24,7 @@ namespace ProceduralGeneration {
 		unsigned int EBO;
 
 		// Settings
-		float voxelRes = 10.0f;
+		float voxelRes = 1.0f;
 		unsigned int seed = 0;
 
 		int width = 100;
@@ -40,6 +41,8 @@ namespace ProceduralGeneration {
 		Engine::Shader* shaderProgram = nullptr;
 		Engine::Shader* computeShader = nullptr;
 		Engine::Material* material = nullptr;
+
+		Cubemap* cubemap = nullptr;
 	public:
 		Raytracing(const std::string& name);
 		~Raytracing();
