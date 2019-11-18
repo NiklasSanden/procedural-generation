@@ -210,6 +210,8 @@ void Raytracing::render() {
 	}
 
 	// Set textures
+	Tables::activateTriangulationTable(GL_TEXTURE4);
+
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, this->rayTexture);
 
