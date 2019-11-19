@@ -95,18 +95,20 @@ RayTraceResult rayTrace(vec3 startPos, vec3 direction, float maxDistance) {
 	vec3 currentRelativePos = startPos / VoxelRes;
 	vec3 nextIntersections = vec3(round(floor(currentRelativePos.x + (float(xDirection) + 1.0) / 2.0)), round(floor(currentRelativePos.y + (float(yDirection) + 1.0) / 2.0)), round(floor(currentRelativePos.z + (float(zDirection) + 1.0) / 2.0)));
 	while (currentLength < maxDistance) {
+		
+		// LOD
+		float dist = (voxelPosition.x - startPos.x) * xDirection + (voxelPosition.y - startPos.y) * yDirection + (voxelPosition.z - startPos.z) * zDirection;
+		if (stepMultiplier == 1 && dist >= ViewDistance / 2.0) {
+			stepMultiplier = 2;
+			nextIntersections = vec3(round(floor(currentRelativePos.x / 2.0 + (float(xDirection) + 1.0) / 2.0)), round(floor(currentRelativePos.y / 2.0 + (float(yDirection) + 1.0) / 2.0)), round(floor(currentRelativePos.z / 2.0 + (float(zDirection) + 1.0) / 2.0)));
+			nextIntersections *= 2.0;
+		}
+		else if (stepMultiplier == 2 && dist >= ViewDistance / 1.25) {
+			stepMultiplier = 4;
+			nextIntersections = vec3(round(floor(currentRelativePos.x / 4.0 + (float(xDirection) + 1.0) / 2.0)), round(floor(currentRelativePos.y / 4.0 + (float(yDirection) + 1.0) / 2.0)), round(floor(currentRelativePos.z / 4.0 + (float(zDirection) + 1.0) / 2.0)));
+			nextIntersections *= 4.0;
+		}
 
-//		float dist = (voxelPosition.x - startPos.x) * xDirection + (voxelPosition.y - startPos.y) * yDirection + (voxelPosition.z - startPos.z) * zDirection;
-//		if (stepMultiplier == 1 && dist >= ViewDistance / 2.0) {
-//			stepMultiplier = 2;
-//			nextIntersections = vec3(round(floor(currentRelativePos.x / 2.0 + (float(xDirection) + 1.0) / 2.0)), round(floor(currentRelativePos.y / 2.0 + (float(yDirection) + 1.0) / 2.0)), round(floor(currentRelativePos.z / 2.0 + (float(zDirection) + 1.0) / 2.0)));
-//			nextIntersections *= 2.0;
-//		}
-//		else if (stepMultiplier == 2 && dist >= ViewDistance / 1.25) {
-//			stepMultiplier = 4;
-//			nextIntersections = vec3(round(floor(currentRelativePos.x / 4.0 + (float(xDirection) + 1.0) / 2.0)), round(floor(currentRelativePos.y / 4.0 + (float(yDirection) + 1.0) / 2.0)), round(floor(currentRelativePos.z / 4.0 + (float(zDirection) + 1.0) / 2.0)));
-//			nextIntersections *= 4.0;
-//		}
 
 		vec3 distances = abs(vec3((float(nextIntersections.x) - currentRelativePos.x) / direction.x, (float(nextIntersections.y) - currentRelativePos.y) / direction.y, (float(nextIntersections.z) - currentRelativePos.z) / direction.z));
 		if (distances.x < distances.y && distances.x < distances.z) {
@@ -136,27 +138,28 @@ RayTraceResult rayTrace(vec3 startPos, vec3 direction, float maxDistance) {
 
 		voxelPosition = (nextIntersections - (directions * 0.5 * float(stepMultiplier))) * VoxelRes;
 
-//		float noiseValue = getDensityValue(voxelPosition.x, voxelPosition.y, voxelPosition.z);
-//		if (noiseValue >= surfaceLevel) {
-//			result.hit = true;
-//			result.hitPos = currentRelativePos * VoxelRes;
-//			result.voxelPos = voxelPosition;
-//			result.hitDistance = currentLength;
-//			result.voxelSize = stepMultiplier;
-//
-//			return result;
-//		}
-		MarchingCubesResult tempResult = marchingCubesIntersection(startPos, direction, floor(voxelPosition / VoxelRes) * VoxelRes, VoxelRes * stepMultiplier);
-		if (tempResult.hit) {
+		float noiseValue = getDensityValue(voxelPosition.x, voxelPosition.y, voxelPosition.z);
+		if (noiseValue >= surfaceLevel) {
 			result.hit = true;
-			result.hitPos = tempResult.hitPos;
+			result.hitPos = currentRelativePos * VoxelRes;
 			result.voxelPos = voxelPosition;
-			result.hitDistance = length(startPos - tempResult.hitPos);
+			result.hitDistance = currentLength;
 			result.voxelSize = stepMultiplier;
-			result.normal = tempResult.normal;
+			result.normal = vec3(0.0, -1.0, 0.0);
 
 			return result;
 		}
+//		MarchingCubesResult tempResult = marchingCubesIntersection(startPos, direction, floor(voxelPosition / VoxelRes) * VoxelRes, VoxelRes * stepMultiplier);
+//		if (tempResult.hit) {
+//			result.hit = true;
+//			result.hitPos = tempResult.hitPos;
+//			result.voxelPos = voxelPosition;
+//			result.hitDistance = length(startPos - tempResult.hitPos);
+//			result.voxelSize = stepMultiplier;
+//			result.normal = tempResult.normal;
+//
+//			return result;
+//		}
 	}
 
 	result.hit = false;
@@ -177,15 +180,8 @@ MarchingCubesResult marchingCubesIntersection(vec3 startPos, vec3 ray, vec3 cube
 	vertexPositions[6] = vec3(1.0, 1.0, 1.0);
 	vertexPositions[7] = vec3(1.0, 1.0, 0.0);
 
-	//float offsetToPositive = (cellsPerAxis + 2) / 2.0;
 	float noiseValues[8];
 	for (int i = 0; i < 8; i++) {
-//		noiseValues[i] = texelFetch(noise,
-//								    ivec3(round(cube.x + vertexPositions[i].x),
-//										  round(cube.y + vertexPositions[i].y),
-//										  round(cube.z + vertexPositions[i].z)),
-//									0).r;
-		//noiseValues[i] = texture(noise, cube + vertexPositions[i] * cubeSize).r;
 		noiseValues[i] = getDensityValue(cube.x + vertexPositions[i].x * cubeSize, cube.y + vertexPositions[i].y * cubeSize, cube.z + vertexPositions[i].z * cubeSize);
 	}
 
@@ -284,12 +280,13 @@ vec4 calculateColour(vec3 samplePoint, float sampleDistance, vec3 hitPoint, int 
 
 	vec3 Normal = -triangleNormal;
 	// NOISE GRADIENTS
-//	Normal.x = getDensityValue(hitPoint.x + localVoxelRes, hitPoint.y				 , hitPoint.z) -
-//			   getDensityValue(hitPoint.x - localVoxelRes, hitPoint.y				 , hitPoint.z);
-//	Normal.y = getDensityValue(hitPoint.x				 , hitPoint.y + localVoxelRes, hitPoint.z) -
-//			   getDensityValue(hitPoint.x				 , hitPoint.y - localVoxelRes, hitPoint.z);
-//	Normal.z = getDensityValue(hitPoint.x				 , hitPoint.y				 , hitPoint.z + localVoxelRes) -
-//			   getDensityValue(hitPoint.x				 , hitPoint.y				 , hitPoint.z - localVoxelRes);
+
+	Normal.x = sign(getDensityValue(samplePoint.x + localVoxelRes, samplePoint.y				   , samplePoint.z)) -
+			   sign(getDensityValue(samplePoint.x - localVoxelRes, samplePoint.y				   , samplePoint.z));
+	Normal.y = sign(getDensityValue(samplePoint.x				, samplePoint.y + localVoxelRes, samplePoint.z)) -
+			   sign(getDensityValue(samplePoint.x				, samplePoint.y - localVoxelRes, samplePoint.z));
+	Normal.z = sign(getDensityValue(samplePoint.x				, samplePoint.y				   , samplePoint.z + localVoxelRes)) -
+			   sign(getDensityValue(samplePoint.x				, samplePoint.y				   , samplePoint.z - localVoxelRes));
 	
 	// ROUNDED EDGES CUBE
 //	if (hitPoint.x - samplePoint.x > 0.0) {
@@ -363,12 +360,12 @@ vec4 calculateColour(vec3 samplePoint, float sampleDistance, vec3 hitPoint, int 
 	vec3 ao = vec3(1.0, 1.0, 1.0);
 //	if (rayTrace(hitPoint + normalize((PlayerPos - hitPoint)) * localVoxelRes / 100.0, normalize(-directionalLight.direction), ViewDistance / 2.0).hit) 
 //		ao = vec3(0.1, 0.1, 0.1);
-//	if (rayTrace(samplePoint + normalize(-directionalLight.direction) * localVoxelRes * 2.0, normalize(-directionalLight.direction), ViewDistance / 2.0).hit) 
-//		ao = vec3(0.1, 0.1, 0.1);
-	if (dot(-directionalLight.direction, Normal) <= 0.0) 
+	if (rayTrace(samplePoint + Normal * localVoxelRes * 0.87, normalize(-directionalLight.direction), ViewDistance / 1.0).hit) 
 		ao = vec3(0.75, 0.75, 0.75);
-	else if (rayTrace(hitPoint, normalize(-directionalLight.direction), ViewDistance / 2.0).hit)
-		ao = vec3(0.75, 0.75, 0.75);
+//	if (dot(-directionalLight.direction, Normal) <= 0.0) 
+//		ao = vec3(0.75, 0.75, 0.75);
+//	else if (rayTrace(hitPoint, normalize(-directionalLight.direction), ViewDistance / 2.0).hit)
+//		ao = vec3(0.75, 0.75, 0.75);
 
 
 	vec3 lightDir = normalize(-directionalLight.direction);
@@ -385,8 +382,9 @@ vec4 calculateColour(vec3 samplePoint, float sampleDistance, vec3 hitPoint, int 
 	vec3 grey = vec3(0.4, 0.4, 0.4);
 	
 	//vec3 newDiffuse = mix(mix(green, brown, clamp(samplePoint.y / 4.0 + 2.0, 0.0, 1.0)), brown, clamp(samplePoint.y / 5.0 + 2.0, 0.0, 1.0)) * ao;
+	vec3 newDiffuse = texture(skybox, reflect(samplePoint - PlayerPos, Normal)).xyz;
 	//vec3 newDiffuse = mix(mix(green, brown, clamp(hitPoint.y / 4.0 + 2.0, 0.0, 1.0)), brown, clamp(hitPoint.y / 5.0 + 2.0, 0.0, 1.0)) * ao;
-	vec3 newDiffuse = vec3(0.6, 0.6, 0.6) * ao;
+	//vec3 newDiffuse = vec3(0.6, 0.6, 0.6) * ao;
 
 //	vec3 newDiffuse = brown;
 //	if (roundEven(FragPosWorld.y) < -5.9) {
@@ -397,10 +395,11 @@ vec4 calculateColour(vec3 samplePoint, float sampleDistance, vec3 hitPoint, int 
 //	}
 
 
-	vec3 ambient  = directionalLight.ambient * newDiffuse; // material.diffuse
-	vec3 diffuse  = directionalLight.diffuse * difference * newDiffuse; // material.diffuse
-	vec3 specular = directionalLight.specular * spec * material.specular;
-	//vec3 specular = vec3(0.0, 0.0, 0.0);
+	vec3 ambient  = directionalLight.ambient * 4.0 * newDiffuse; // material.diffuse
+	vec3 diffuse  = directionalLight.diffuse * difference * newDiffuse / 2.0; // material.diffuse
+	//vec3 diffuse = vec3(0.0, 0.0, 0.0);
+	//vec3 specular = directionalLight.specular * spec * material.specular;
+	vec3 specular = vec3(0.0, 0.0, 0.0);
 
 	return vec4(mix(ambient + diffuse + specular, backgroundColour, min(1.0, pow(sampleDistance / ViewDistance, 4.0))), 1.0);
 
@@ -422,7 +421,7 @@ float getDensityValue(float x, float y, float z) {
 	float noiseValue = 0.0;
 
 	// Regular noise
-	noiseValue = (octavePerlin(x, y, z, 6, 0.5, 0.2, 1.0) - y / 100.0);
+	noiseValue = (octavePerlin(x, y, z, 3, 0.5, 0.2, 1.0) - y / 100.0);
 
 	//noiseValue = octavePerlin(x, y, z, 6, 0.5, 0.2, 1.0);
 
